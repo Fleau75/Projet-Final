@@ -28,6 +28,9 @@ export default function SettingsScreen({ navigation }) {
     requireAccessibleToilets: false,
     highContrast: false,
     largeText: false,
+    screenReader: false,
+    speechRate: 1.0,
+    autoDescriptions: false,
   });
 
   // États pour les notifications
@@ -70,6 +73,9 @@ export default function SettingsScreen({ navigation }) {
       requireAccessibleToilets: false,
       highContrast: false,
       largeText: false,
+      screenReader: false,
+      speechRate: 1.0,
+      autoDescriptions: false,
     });
     setNotifications({
       newPlaces: true,
@@ -166,6 +172,106 @@ export default function SettingsScreen({ navigation }) {
             />
           </Card.Content>
         </Card>
+
+        {/* Lecture d'écran pour malvoyants */}
+        <Card style={styles.card}>
+          <Card.Content>
+            <Title style={styles.sectionTitle}>🔊 Lecture d'écran</Title>
+            <Text style={styles.sectionDescription}>
+              Fonctionnalités d'assistance vocale pour les malvoyants
+            </Text>
+            
+            <List.Item
+              title="Activer la lecture d'écran"
+              description="Lecture automatique des éléments sélectionnés"
+              right={() => (
+                <Switch
+                  value={accessibilityPrefs.screenReader}
+                  onValueChange={() => toggleAccessibilityPref('screenReader')}
+                />
+              )}
+            />
+            
+            <List.Item
+              title="Descriptions automatiques"
+              description="Décrit automatiquement les images et boutons"
+              right={() => (
+                <Switch
+                  value={accessibilityPrefs.autoDescriptions}
+                  onValueChange={() => toggleAccessibilityPref('autoDescriptions')}
+                />
+              )}
+            />
+            
+            {accessibilityPrefs.screenReader && (
+              <>
+                <Divider style={styles.divider} />
+                <Text style={styles.settingLabel}>
+                  Vitesse de lecture: {accessibilityPrefs.speechRate.toFixed(1)}x
+                </Text>
+                <View style={styles.speechRateContainer}>
+                  <Button 
+                    mode="outlined" 
+                    compact
+                    onPress={() => {
+                      const newRate = Math.max(0.5, accessibilityPrefs.speechRate - 0.1);
+                      setAccessibilityPrefs(prev => ({...prev, speechRate: newRate}));
+                    }}
+                    style={styles.rateButton}
+                  >
+                    - Lent
+                  </Button>
+                  
+                  <Text style={styles.rateDisplay}>
+                    {accessibilityPrefs.speechRate === 0.5 ? 'Très lent' :
+                     accessibilityPrefs.speechRate === 1.0 ? 'Normal' :
+                     accessibilityPrefs.speechRate === 1.5 ? 'Rapide' : 
+                     'Très rapide'}
+                  </Text>
+                  
+                  <Button 
+                    mode="outlined" 
+                    compact
+                    onPress={() => {
+                      const newRate = Math.min(2.0, accessibilityPrefs.speechRate + 0.1);
+                      setAccessibilityPrefs(prev => ({...prev, speechRate: newRate}));
+                    }}
+                    style={styles.rateButton}
+                  >
+                    + Rapide
+                  </Button>
+                </View>
+                
+                <Button 
+                  mode="contained" 
+                  onPress={() => {
+                    // Test de la lecture d'écran
+                    console.log('Test de lecture:', `Bonjour, bienvenue dans AccessPlus. Vitesse de lecture: ${accessibilityPrefs.speechRate}`);
+                    // Ici vous pourriez intégrer une vraie synthèse vocale
+                  }}
+                  style={styles.testButton}
+                >
+                  🎤 Tester la lecture
+                </Button>
+              </>
+            )}
+          </Card.Content>
+        </Card>
+
+        {/* Note d'information lecture d'écran */}
+        {accessibilityPrefs.screenReader && (
+          <Card style={[styles.card, { backgroundColor: '#E3F2FD' }]}>
+            <Card.Content>
+              <Title style={[styles.infoTitle, { color: '#1976D2' }]}>💡 Comment utiliser la lecture d'écran</Title>
+              <Text style={[styles.infoText, { color: '#1976D2' }]}>
+                • Touchez un élément pour l'entendre{'\n'}
+                • Balayez vers la droite pour naviguer{'\n'}
+                • Double-touchez pour activer{'\n'}
+                • Utilisez les gestes de votre lecteur d'écran habituel
+              </Text>
+            </Card.Content>
+          </Card>
+        )}
 
         {/* Préférences de recherche */}
         <Card style={styles.card}>
@@ -308,5 +414,34 @@ const styles = StyleSheet.create({
   },
   resetButton: {
     paddingVertical: 8,
+  },
+  speechRateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    paddingHorizontal: 8,
+  },
+  rateButton: {
+    minWidth: 80,
+  },
+  rateDisplay: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  testButton: {
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  infoText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
 }); 
