@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { Text, TextInput, Button, Surface, Checkbox, useTheme } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, Image, TouchableOpacity, FlatList } from 'react-native';
+import { Text, TextInput, Button, Surface, Checkbox, useTheme, Searchbar, List } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { Rating } from 'react-native-ratings';
+import { searchPlaces } from '../services/placesSearch';
 
 export default function AddReviewScreen({ navigation }) {
   const theme = useTheme();
@@ -10,6 +11,10 @@ export default function AddReviewScreen({ navigation }) {
   const [comment, setComment] = useState('');
   const [photos, setPhotos] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
   const [accessibility, setAccessibility] = useState({
     ramp: false,
     elevator: false,
@@ -17,6 +22,51 @@ export default function AddReviewScreen({ navigation }) {
     toilets: false,
   });
 
+  // Effet pour la recherche de lieux
+  useEffect(() => {
+    const searchTimeout = setTimeout(async () => {
+      if (searchQuery.length >= 3) {
+        setIsSearching(true);
+        try {
+          const results = await searchPlaces(searchQuery);
+          setSearchResults(results);
+        } catch (error) {
+          console.error('Erreur de recherche:', error);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(searchTimeout);
+  }, [searchQuery]);
+
+  // Fonction pour prendre une photo
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        alert('Nous avons besoin de votre permission pour accéder à l\'appareil photo');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+
+      if (!result.canceled) {
+        setPhotos([...photos, result.assets[0].uri]);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la prise de photo:', error);
+    }
+  };
+
+  // Fonction pour choisir une photo depuis la galerie
   const pickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -45,6 +95,11 @@ export default function AddReviewScreen({ navigation }) {
   };
 
   const handleSubmit = async () => {
+    if (!selectedPlace) {
+      alert('Veuillez sélectionner un lieu');
+      return;
+    }
+
     if (rating === 0) {
       alert('Veuillez donner une note');
       return;
@@ -63,8 +118,62 @@ export default function AddReviewScreen({ navigation }) {
     <ScrollView style={styles.container}>
       <Surface style={styles.surface}>
         <Text variant="headlineMedium" style={styles.title}>
-          Évaluer ce lieu
+          Évaluer un lieu
         </Text>
+
+        {/* Sélection du lieu */}
+        <View style={styles.section}>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            Sélectionner un lieu
+          </Text>
+          <Searchbar
+            placeholder="Rechercher un lieu..."
+            onChangeText={setSearchQuery}
+            value={searchQuery}
+            style={styles.searchBar}
+            loading={isSearching}
+          />
+          
+          {/* Résultats de recherche */}
+          {searchResults.length > 0 && !selectedPlace && (
+            <Surface style={styles.searchResults}>
+              {searchResults.map((place) => (
+                <List.Item
+                  key={place.id}
+                  title={place.name}
+                  description={place.address}
+                  onPress={() => {
+                    setSelectedPlace(place);
+                    setSearchQuery('');
+                    setSearchResults([]);
+                  }}
+                  style={styles.searchResultItem}
+                />
+              ))}
+            </Surface>
+          )}
+
+          {/* Lieu sélectionné */}
+          {selectedPlace && (
+            <Surface style={styles.selectedPlace}>
+              <View style={styles.selectedPlaceHeader}>
+                <View style={styles.selectedPlaceInfo}>
+                  <Text variant="titleMedium">{selectedPlace.name}</Text>
+                  <Text variant="bodySmall">{selectedPlace.address}</Text>
+                </View>
+                <Button
+                  mode="text"
+                  onPress={() => {
+                    setSelectedPlace(null);
+                    setSearchQuery('');
+                  }}
+                >
+                  Changer
+                </Button>
+              </View>
+            </Surface>
+          )}
+        </View>
 
         <View style={styles.ratingContainer}>
           <Text variant="titleMedium" style={styles.sectionTitle}>
@@ -98,14 +207,24 @@ export default function AddReviewScreen({ navigation }) {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Photos
           </Text>
-          <Button
-            mode="contained-tonal"
-            onPress={pickImage}
-            icon="camera"
-            style={styles.photoButton}
-          >
-            Ajouter des photos
-          </Button>
+          <View style={styles.photoButtons}>
+            <Button
+              mode="contained-tonal"
+              onPress={takePhoto}
+              icon="camera"
+              style={[styles.photoButton, { flex: 1 }]}
+            >
+              Prendre une photo
+            </Button>
+            <Button
+              mode="contained-tonal"
+              onPress={pickImage}
+              icon="image"
+              style={[styles.photoButton, { flex: 1 }]}
+            >
+              Galerie
+            </Button>
+          </View>
           
           <View style={styles.photoGrid}>
             {photos.map((photo, index) => (
@@ -156,7 +275,7 @@ export default function AddReviewScreen({ navigation }) {
           onPress={handleSubmit}
           loading={isLoading}
           style={styles.submitButton}
-          disabled={isLoading}
+          disabled={isLoading || !selectedPlace}
         >
           Publier l'avis
         </Button>
@@ -186,6 +305,34 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginBottom: 16,
   },
+  searchBar: {
+    marginBottom: 8,
+    elevation: 0,
+  },
+  searchResults: {
+    marginTop: 8,
+    borderRadius: 8,
+    elevation: 4,
+    maxHeight: 200,
+  },
+  searchResultItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  selectedPlace: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
+  },
+  selectedPlaceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  selectedPlaceInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
   ratingContainer: {
     alignItems: 'center',
     marginBottom: 24,
@@ -196,8 +343,13 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: 'white',
   },
-  photoButton: {
+  photoButtons: {
+    flexDirection: 'row',
+    gap: 8,
     marginBottom: 16,
+  },
+  photoButton: {
+    marginBottom: 0,
   },
   photoGrid: {
     flexDirection: 'row',
