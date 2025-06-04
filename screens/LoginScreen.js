@@ -33,78 +33,78 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
-      >
+    >
         <View style={styles.headerContainer}>
           <Text variant="displayLarge" style={[styles.title, { color: theme.colors.primary }]}>
             AccessPlus
           </Text>
           <Text variant="titleLarge" style={styles.subtitle}>
-            Trouvez facilement des lieux accessibles
-          </Text>
-        </View>
+          Trouvez facilement des lieux accessibles
+        </Text>
+      </View>
 
         <Surface style={[styles.surface, { backgroundColor: theme.colors.surface }]}>
-          <TextInput
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            mode="outlined"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={styles.input}
+        <TextInput
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          mode="outlined"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          style={styles.input}
             left={<TextInput.Icon icon="email" />}
-          />
+        />
 
-          <TextInput
-            label="Mot de passe"
-            value={password}
-            onChangeText={setPassword}
-            mode="outlined"
-            secureTextEntry
-            style={styles.input}
+        <TextInput
+          label="Mot de passe"
+          value={password}
+          onChangeText={setPassword}
+          mode="outlined"
+          secureTextEntry
+          style={styles.input}
             left={<TextInput.Icon icon="lock" />}
-          />
+        />
 
-          {error ? (
+        {error ? (
             <Text style={[styles.error, { color: theme.colors.error }]}>
-              {error}
+            {error}
             </Text>
-          ) : null}
+        ) : null}
 
-          <Button
-            mode="contained"
-            onPress={handleLogin}
-            loading={isLoading}
-            style={styles.button}
-          >
-            Se connecter
-          </Button>
+        <Button
+          mode="contained"
+          onPress={handleLogin}
+          loading={isLoading}
+          style={styles.button}
+        >
+          Se connecter
+        </Button>
 
-          <Button
-            mode="outlined"
+        <Button
+          mode="outlined"
             onPress={() => navigation.replace('Home')}
-            style={styles.button}
-          >
-            Continuer sans compte
-          </Button>
+          style={styles.button}
+        >
+          Continuer sans compte
+        </Button>
 
-          <View style={styles.registerContainer}>
+        <View style={styles.registerContainer}>
             <Text variant="bodyMedium">
               Vous n'avez pas de compte ?
             </Text>
-            <Button
-              mode="text"
+          <Button
+            mode="text"
               onPress={() => navigation.navigate('Register')}
-              style={styles.registerButton}
-            >
-              S'inscrire
-            </Button>
-          </View>
+            style={styles.registerButton}
+          >
+            S'inscrire
+          </Button>
+        </View>
         </Surface>
-      </KeyboardAvoidingView>
+    </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

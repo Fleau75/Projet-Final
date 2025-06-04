@@ -32,7 +32,7 @@ build/
 *.aab
 
 # Config files with sensitive data
-config/keys.js
+config/keys.js 
 
 # Expo
 .expo/

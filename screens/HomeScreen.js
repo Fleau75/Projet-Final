@@ -28,11 +28,11 @@ const categories = [
  * À remplacer par les données réelles de l'API
  */
 const places = [
-  {
+    {
     id: '1',
     name: 'Restaurant Le Marais',
     address: '35 rue des Archives, 75003 Paris',
-    type: 'restaurant',
+      type: 'restaurant',
     rating: 4.5,
     reviewCount: 42,
     image: null,
@@ -40,14 +40,14 @@ const places = [
       latitude: 48.8627,
       longitude: 2.3578
     },
-    accessibility: {
-      ramp: true,
+      accessibility: {
+        ramp: true,
       elevator: true,
       parking: true,
       toilets: true,
     },
-  },
-  {
+    },
+    {
     id: '2',
     name: 'Musée Carnavalet',
     address: '23 Rue de Sévigné, 75003 Paris',
@@ -59,14 +59,14 @@ const places = [
       latitude: 48.8578,
       longitude: 2.3622
     },
-    accessibility: {
-      ramp: true,
+      accessibility: {
+        ramp: true,
       elevator: true,
       parking: true,
       toilets: true,
     },
-  },
-  {
+    },
+    {
     id: '3',
     name: 'BHV Marais',
     address: '52 Rue de Rivoli, 75004 Paris',
@@ -78,14 +78,14 @@ const places = [
       latitude: 48.8571,
       longitude: 2.3519
     },
-    accessibility: {
-      ramp: true,
+      accessibility: {
+        ramp: true,
       elevator: true,
       parking: true,
       toilets: true,
     },
-  },
-  {
+    },
+    {
     id: '4',
     name: 'Café Saint-Régis',
     address: '6 Rue Jean du Bellay, 75004 Paris',
@@ -97,8 +97,8 @@ const places = [
       latitude: 48.8524,
       longitude: 2.3568
     },
-    accessibility: {
-      ramp: true,
+      accessibility: {
+        ramp: true,
       elevator: false,
       parking: true,
       toilets: true,
@@ -118,7 +118,7 @@ const places = [
     },
     accessibility: {
       ramp: true,
-      elevator: true,
+        elevator: true,
       parking: true,
       toilets: true,
     },
@@ -141,8 +141,8 @@ const places = [
       parking: true,
       toilets: true,
     },
-  },
-];
+    },
+  ];
 
 /**
  * Calcule le niveau d'accessibilité d'un lieu
@@ -403,16 +403,16 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.locationText}>
               Position actuelle : {userLocation.latitude.toFixed(4)}, {userLocation.longitude.toFixed(4)}
             </Text>
-          </View>
+      </View>
         )}
 
-        <Searchbar
-          placeholder="Rechercher un lieu..."
-          onChangeText={setSearchQuery}
-          value={searchQuery}
-          style={styles.searchBar}
-        />
-        
+      <Searchbar
+        placeholder="Rechercher un lieu..."
+        onChangeText={setSearchQuery}
+        value={searchQuery}
+        style={styles.searchBar}
+      />
+
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -495,18 +495,18 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.section}>
             {renderSectionHeader('📍 À proximité')}
             {nearbyPlaces.map(place => (
-              <PlaceCard
-                key={place.id}
+          <PlaceCard
+            key={place.id}
                 place={{
                   ...place,
                   distance: place.distance < Infinity ? place.distance.toFixed(1) + ' km' : null,
                   accessibilityLabel: place.accessibilityLabel
                 }}
-                onPress={() => navigation.navigate('PlaceDetail', { place })}
-              />
-            ))}
-          </View>
-        </ScrollView>
+            onPress={() => navigation.navigate('PlaceDetail', { place })}
+          />
+        ))}
+      </View>
+    </ScrollView>
       )}
 
       {(searchQuery || selectedCategory !== 'all' || accessibilityFilter !== 'all') && (
@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
     shadowOffset: {
       width: 0,
       height: 2,
-    },
+  },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },

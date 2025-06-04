@@ -7,8 +7,8 @@ import ReviewCard from '../components/ReviewCard';
 const AccessibilityFeature = ({ label, available }) => (
   <View style={[styles.feature, available ? styles.featureAvailable : styles.featureUnavailable]}>
     <Text style={styles.featureText}>{label}</Text>
-  </View>
-);
+    </View>
+  );
 
 export default function PlaceDetailScreen({ navigation, route }) {
   const theme = useTheme();
@@ -69,7 +69,7 @@ export default function PlaceDetailScreen({ navigation, route }) {
           <Text variant="bodyMedium">
             {averageRating.toFixed(1)} ({reviews.length} avis)
           </Text>
-        </View>
+            </View>
       </Surface>
 
       <Surface style={styles.section}>
@@ -81,7 +81,7 @@ export default function PlaceDetailScreen({ navigation, route }) {
           <AccessibilityFeature label="🛗 Ascenseur" available={place.accessibility.elevator} />
           <AccessibilityFeature label="🅿️ Parking" available={place.accessibility.parking} />
           <AccessibilityFeature label="🚻 Toilettes adaptées" available={place.accessibility.toilets} />
-        </View>
+          </View>
       </Surface>
 
       <Surface style={styles.section}>

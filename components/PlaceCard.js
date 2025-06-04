@@ -93,7 +93,7 @@ export default function PlaceCard({ place, onPress }) {
               icon="🅿️"
               label="Parking"
             />
-            <AccessibilityIcon
+          <AccessibilityIcon
               available={place.accessibility.toilets}
               icon="🚻"
               label="Toilettes"
