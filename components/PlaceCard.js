@@ -1,8 +1,21 @@
+/**
+ * Composant PlaceCard
+ * Affiche les informations d'un lieu sous forme de carte
+ * avec image, nom, adresse, note et icônes d'accessibilité
+ */
+
 import React from 'react';
 import { View, StyleSheet, Image, Pressable } from 'react-native';
 import { Surface, Text, useTheme } from 'react-native-paper';
 import { Rating } from 'react-native-ratings';
 
+/**
+ * Composant pour afficher une icône d'accessibilité
+ * @param {Object} props - Les propriétés du composant
+ * @param {boolean} props.available - Si la fonctionnalité est disponible
+ * @param {string} props.icon - L'emoji à afficher
+ * @param {string} props.label - Le libellé de la fonctionnalité
+ */
 const AccessibilityIcon = ({ available, icon, label }) => {
   const theme = useTheme();
   return (
@@ -15,12 +28,19 @@ const AccessibilityIcon = ({ available, icon, label }) => {
   );
 };
 
+/**
+ * Composant principal PlaceCard
+ * @param {Object} props - Les propriétés du composant
+ * @param {Object} props.place - Les données du lieu à afficher
+ * @param {Function} props.onPress - Fonction appelée lors du clic sur la carte
+ */
 export default function PlaceCard({ place, onPress }) {
   const theme = useTheme();
 
   return (
     <Pressable onPress={onPress}>
       <Surface style={styles.card}>
+        {/* Container de l'image */}
         <View style={styles.imageContainer}>
           {place.image ? (
             <Image source={{ uri: place.image }} style={styles.image} />
@@ -33,6 +53,7 @@ export default function PlaceCard({ place, onPress }) {
           )}
         </View>
 
+        {/* Contenu textuel et informations */}
         <View style={styles.content}>
           <Text variant="titleMedium" style={styles.title}>
             {place.name}
@@ -42,6 +63,7 @@ export default function PlaceCard({ place, onPress }) {
             {place.address}
           </Text>
 
+          {/* Note et nombre d'avis */}
           <View style={styles.ratingContainer}>
             <Rating
               readonly
@@ -54,6 +76,7 @@ export default function PlaceCard({ place, onPress }) {
             </Text>
           </View>
 
+          {/* Icônes d'accessibilité */}
           <View style={styles.accessibilityContainer}>
             <AccessibilityIcon
               available={place.accessibility.ramp}
@@ -82,6 +105,9 @@ export default function PlaceCard({ place, onPress }) {
   );
 }
 
+/**
+ * Styles du composant
+ */
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',

@@ -32,4 +32,31 @@ build/
 *.aab
 
 # Config files with sensitive data
-config/keys.js 
+config/keys.js
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo 

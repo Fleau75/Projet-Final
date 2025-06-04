@@ -1,3 +1,8 @@
+/**
+ * Écran d'accueil de l'application AccessPlus
+ * Affiche la liste des lieux accessibles avec des options de filtrage et de tri
+ */
+
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, FlatList, ActivityIndicator } from 'react-native';
 import { Searchbar, Chip, FAB, Text, SegmentedButtons, useTheme } from 'react-native-paper';
@@ -5,6 +10,9 @@ import PlaceCard from '../components/PlaceCard';
 import * as Location from 'expo-location';
 import { searchNearbyPlaces } from '../services/placesApi';
 
+/**
+ * Liste des catégories de lieux disponibles dans l'application
+ */
 const categories = [
   { id: 'all', label: 'Tous' },
   { id: 'restaurant', label: '🍽️ Restaurants' },
@@ -15,7 +23,10 @@ const categories = [
   { id: 'education', label: '📚 Éducation' },
 ];
 
-// Données de test enrichies avec des lieux proches de la position actuelle
+/**
+ * Données de test pour les lieux
+ * À remplacer par les données réelles de l'API
+ */
 const places = [
   {
     id: '1',
@@ -133,6 +144,11 @@ const places = [
   },
 ];
 
+/**
+ * Calcule le niveau d'accessibilité d'un lieu
+ * @param {Object} place - Le lieu à évaluer
+ * @returns {string} - Le niveau d'accessibilité ('full', 'partial', 'none')
+ */
 const getAccessibilityLevel = (place) => {
   const features = [
     place.accessibility.ramp,
@@ -144,14 +160,19 @@ const getAccessibilityLevel = (place) => {
   const accessibleCount = features.filter(Boolean).length;
   
   if (accessibleCount === 4) {
-    return 'full'; // Totalement accessible
+    return 'full';
   } else if (accessibleCount >= 2) {
-    return 'partial'; // Partiellement accessible
+    return 'partial';
   } else {
-    return 'none'; // Non accessible
+    return 'none';
   }
 };
 
+/**
+ * Retourne le libellé correspondant au niveau d'accessibilité
+ * @param {string} level - Le niveau d'accessibilité
+ * @returns {string} - Le libellé avec l'icône correspondante
+ */
 const getAccessibilityLabel = (level) => {
   switch (level) {
     case 'full':
@@ -163,22 +184,34 @@ const getAccessibilityLabel = (level) => {
   }
 };
 
+/**
+ * Composant principal de l'écran d'accueil
+ */
 export default function HomeScreen({ navigation }) {
+  // États pour gérer les filtres et la recherche
   const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortValue, setSortValue] = useState('proximity');
   const [accessibilityFilter, setAccessibilityFilter] = useState('all');
+  
+  // États pour la géolocalisation
   const [userLocation, setUserLocation] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  
+  // États pour les données des lieux
   const [places, setPlaces] = useState([]);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
 
+  /**
+   * Effet pour gérer la géolocalisation au chargement
+   */
   useEffect(() => {
     (async () => {
       setIsLoadingLocation(true);
       try {
+        // Vérifie si la localisation est activée
         const providerStatus = await Location.hasServicesEnabledAsync();
         if (!providerStatus) {
           setLocationError('La localisation est désactivée sur votre appareil');
@@ -186,6 +219,7 @@ export default function HomeScreen({ navigation }) {
           return;
         }
 
+        // Demande la permission de localisation
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setLocationError('Permission de localisation refusée');
@@ -193,6 +227,7 @@ export default function HomeScreen({ navigation }) {
           return;
         }
 
+        // Obtient la position actuelle
         let location = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
@@ -357,7 +392,7 @@ export default function HomeScreen({ navigation }) {
         {(isLoadingLocation || isLoadingPlaces) && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={styles.loadingText}>
+            <Text style={[styles.loadingText, { color: theme.colors.primary }]}>
               {isLoadingLocation ? 'Recherche de votre position...' : 'Chargement des lieux...'}
             </Text>
           </View>
@@ -604,6 +639,5 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 8,
-    color: theme.colors.primary,
   },
 });
