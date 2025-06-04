@@ -1,183 +1,609 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, ScrollView } from 'react-native';
-import { Searchbar, Title, Paragraph } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, FlatList, ActivityIndicator } from 'react-native';
+import { Searchbar, Chip, FAB, Text, SegmentedButtons, useTheme } from 'react-native-paper';
 import PlaceCard from '../components/PlaceCard';
-import { AccessibilityIcon } from '../components/AccessibilityIcons';
+import * as Location from 'expo-location';
+import { searchNearbyPlaces } from '../services/placesApi';
+
+const categories = [
+  { id: 'all', label: 'Tous' },
+  { id: 'restaurant', label: '🍽️ Restaurants' },
+  { id: 'culture', label: '🎭 Culture' },
+  { id: 'shopping', label: '🛍️ Shopping' },
+  { id: 'health', label: '🏥 Santé' },
+  { id: 'sport', label: '🏃 Sport' },
+  { id: 'education', label: '📚 Éducation' },
+];
+
+// Données de test enrichies avec des lieux proches de la position actuelle
+const places = [
+  {
+    id: '1',
+    name: 'Restaurant Le Marais',
+    address: '35 rue des Archives, 75003 Paris',
+    type: 'restaurant',
+    rating: 4.5,
+    reviewCount: 42,
+    image: null,
+    coordinates: {
+      latitude: 48.8627,
+      longitude: 2.3578
+    },
+    accessibility: {
+      ramp: true,
+      elevator: true,
+      parking: true,
+      toilets: true,
+    },
+  },
+  {
+    id: '2',
+    name: 'Musée Carnavalet',
+    address: '23 Rue de Sévigné, 75003 Paris',
+    type: 'culture',
+    rating: 4.8,
+    reviewCount: 89,
+    image: null,
+    coordinates: {
+      latitude: 48.8578,
+      longitude: 2.3622
+    },
+    accessibility: {
+      ramp: true,
+      elevator: true,
+      parking: true,
+      toilets: true,
+    },
+  },
+  {
+    id: '3',
+    name: 'BHV Marais',
+    address: '52 Rue de Rivoli, 75004 Paris',
+    type: 'shopping',
+    rating: 4.2,
+    reviewCount: 156,
+    image: null,
+    coordinates: {
+      latitude: 48.8571,
+      longitude: 2.3519
+    },
+    accessibility: {
+      ramp: true,
+      elevator: true,
+      parking: true,
+      toilets: true,
+    },
+  },
+  {
+    id: '4',
+    name: 'Café Saint-Régis',
+    address: '6 Rue Jean du Bellay, 75004 Paris',
+    type: 'restaurant',
+    rating: 4.9,
+    reviewCount: 56,
+    image: null,
+    coordinates: {
+      latitude: 48.8524,
+      longitude: 2.3568
+    },
+    accessibility: {
+      ramp: true,
+      elevator: false,
+      parking: true,
+      toilets: true,
+    },
+  },
+  {
+    id: '5',
+    name: 'Bibliothèque de l\'Arsenal',
+    address: '1 Rue de Sully, 75004 Paris',
+    type: 'education',
+    rating: 4.7,
+    reviewCount: 34,
+    image: null,
+    coordinates: {
+      latitude: 48.8509,
+      longitude: 2.3645
+    },
+    accessibility: {
+      ramp: true,
+      elevator: true,
+      parking: true,
+      toilets: true,
+    },
+  },
+  {
+    id: '6',
+    name: 'Place des Vosges',
+    address: 'Place des Vosges, 75004 Paris',
+    type: 'culture',
+    rating: 4.9,
+    reviewCount: 245,
+    image: null,
+    coordinates: {
+      latitude: 48.8561,
+      longitude: 2.3655
+    },
+    accessibility: {
+      ramp: true,
+      elevator: false,
+      parking: true,
+      toilets: true,
+    },
+  },
+];
+
+const getAccessibilityLevel = (place) => {
+  const features = [
+    place.accessibility.ramp,
+    place.accessibility.elevator,
+    place.accessibility.parking,
+    place.accessibility.toilets
+  ];
+  
+  const accessibleCount = features.filter(Boolean).length;
+  
+  if (accessibleCount === 4) {
+    return 'full'; // Totalement accessible
+  } else if (accessibleCount >= 2) {
+    return 'partial'; // Partiellement accessible
+  } else {
+    return 'none'; // Non accessible
+  }
+};
+
+const getAccessibilityLabel = (level) => {
+  switch (level) {
+    case 'full':
+      return '♿ Totalement accessible';
+    case 'partial':
+      return '⚡ Partiellement accessible';
+    default:
+      return '⚠️ Non accessible';
+  }
+};
 
 export default function HomeScreen({ navigation }) {
+  const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortValue, setSortValue] = useState('proximity');
+  const [accessibilityFilter, setAccessibilityFilter] = useState('all');
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationError, setLocationError] = useState(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [places, setPlaces] = useState([]);
+  const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
 
-  const recentPlaces = [
-    {
-      id: 1,
-      name: 'Restaurant Le Bon Vivant',
-      type: 'restaurant',
-      accessibility: {
-        distance: 350,
-        ramp: true,
-        adaptedToilets: true,
-        elevator: false,
-        widePaths: true,
-      }
-    },
-    {
-      id: 2,
-      name: 'Pharmacie Centrale',
-      type: 'pharmacie',
-      accessibility: {
-        distance: 500,
-        ramp: true,
-        adaptedToilets: false,
-        elevator: false,
-        widePaths: true,
-      }
-    },
-    {
-      id: 3,
-      name: 'Parc des Lilas',
-      type: 'parc',
-      accessibility: {
-        distance: 700,
-        ramp: true,
-        adaptedToilets: false,
-        widePaths: true,
-        adaptedBenches: true,
-      }
-    },
-    {
-      id: 4,
-      name: 'Cinéma Lumière',
-      type: 'cinéma',
-      accessibility: {
-        distance: 1100,
-        ramp: true,
-        adaptedToilets: true,
-        elevator: true,
-        widePaths: true,
-      }
-    },
-  ];
+  useEffect(() => {
+    (async () => {
+      setIsLoadingLocation(true);
+      try {
+        const providerStatus = await Location.hasServicesEnabledAsync();
+        if (!providerStatus) {
+          setLocationError('La localisation est désactivée sur votre appareil');
+          setIsLoadingLocation(false);
+          return;
+        }
 
-  const categories = [
-    {
-      id: 'restaurants',
-      icon: 'restaurant',
-      title: 'Restaurants',
-      count: 15,
-    },
-    {
-      id: 'commerces',
-      icon: 'pharmacy',
-      title: 'Commerces',
-      count: 28,
-    },
-    {
-      id: 'loisirs',
-      icon: 'cinema',
-      title: 'Loisirs',
-      count: 8,
-    },
-    {
-      id: 'services',
-      icon: 'office-building',
-      title: 'Services',
-      count: 12,
-    },
-  ];
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          setLocationError('Permission de localisation refusée');
+          setIsLoadingLocation(false);
+          return;
+        }
+
+        let location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        setUserLocation(location.coords);
+        
+        // Charger les lieux une fois la position obtenue
+        setIsLoadingPlaces(true);
+        const nearbyPlaces = await searchNearbyPlaces(
+          location.coords.latitude,
+          location.coords.longitude
+        );
+        setPlaces(nearbyPlaces);
+      } catch (error) {
+        console.error('Erreur:', error);
+        setLocationError('Impossible d\'obtenir votre position');
+      } finally {
+        setIsLoadingLocation(false);
+        setIsLoadingPlaces(false);
+      }
+    })();
+  }, []);
+
+  const calculateDistance = (coords1, coords2) => {
+    if (!coords1 || !coords2) {
+      console.log('Coordonnées manquantes:', { coords1, coords2 });
+      return Infinity;
+    }
+    
+    // Conversion en radians
+    const lat1 = coords1.latitude * Math.PI / 180;
+    const lon1 = coords1.longitude * Math.PI / 180;
+    const lat2 = coords2.latitude * Math.PI / 180;
+    const lon2 = coords2.longitude * Math.PI / 180;
+
+    // Formule de Haversine
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = lat2 - lat1;
+    const dLon = lon2 - lon1;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+
+    console.log('Distance calculée:', {
+      from: coords1,
+      to: coords2,
+      distance: distance.toFixed(2) + ' km'
+    });
+
+    return distance;
+  };
+
+  const sortedAndFilteredPlaces = places
+    .filter(place => {
+      const matchesSearch = place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          place.address.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === 'all' || place.type === selectedCategory;
+      const accessLevel = getAccessibilityLevel(place);
+      const isAccessible = accessibilityFilter === 'all' || 
+                          accessibilityFilter === accessLevel ||
+                          (accessibilityFilter === 'partial' && accessLevel === 'full');
+      return matchesSearch && matchesCategory && isAccessible;
+    })
+    .map(place => ({
+      ...place,
+      distance: calculateDistance(userLocation, place.coordinates),
+      accessibilityLevel: getAccessibilityLevel(place),
+      accessibilityLabel: getAccessibilityLabel(getAccessibilityLevel(place))
+    }))
+    .sort((a, b) => {
+      if (sortValue === 'proximity') {
+        return a.distance - b.distance;
+      } else if (sortValue === 'rating') {
+        return b.rating - a.rating;
+      } else {
+        return b.reviewCount - a.reviewCount;
+      }
+    });
+
+  const nearbyPlaces = [...places]
+    .map(place => ({
+      ...place,
+      distance: calculateDistance(userLocation, place.coordinates),
+      accessibilityLevel: getAccessibilityLevel(place),
+      accessibilityLabel: getAccessibilityLabel(getAccessibilityLevel(place))
+    }))
+    .filter(place => getAccessibilityLevel(place) !== 'none')
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 5);
+
+  const topRatedPlaces = [...places]
+    .map(place => ({
+      ...place,
+      accessibilityLevel: getAccessibilityLevel(place),
+      accessibilityLabel: getAccessibilityLabel(getAccessibilityLevel(place))
+    }))
+    .filter(place => getAccessibilityLevel(place) !== 'none')
+    .sort((a, b) => b.rating - a.rating)
+    .slice(0, 3);
+
+  const renderPlace = ({ item }) => (
+    <PlaceCard
+      place={{
+        ...item,
+        distance: item.distance < Infinity ? item.distance.toFixed(1) + ' km' : null,
+        accessibilityLabel: item.accessibilityLabel
+      }}
+      onPress={() => navigation.navigate('PlaceDetail', { place: item })}
+    />
+  );
+
+  const renderSectionHeader = (title) => (
+    <Text variant="titleLarge" style={styles.sectionTitle}>
+      {title}
+    </Text>
+  );
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Title style={styles.welcomeText}>Bonjour 👋</Title>
-        <Paragraph style={styles.subtitle}>
-          Trouvez des lieux accessibles autour de vous
-        </Paragraph>
-      </View>
+        {locationError && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>
+              {locationError}
+            </Text>
+            <Chip 
+              icon="refresh" 
+              onPress={async () => {
+                setLocationError(null);
+                setIsLoadingLocation(true);
+                setIsLoadingPlaces(true);
+                try {
+                  const { status } = await Location.requestForegroundPermissionsAsync();
+                  if (status === 'granted') {
+                    const location = await Location.getCurrentPositionAsync({
+                      accuracy: Location.Accuracy.Balanced,
+                    });
+                    setUserLocation(location.coords);
+                    const nearbyPlaces = await searchNearbyPlaces(
+                      location.coords.latitude,
+                      location.coords.longitude
+                    );
+                    setPlaces(nearbyPlaces);
+                    setLocationError(null);
+                  } else {
+                    throw new Error('Permission refusée');
+                  }
+                } catch (error) {
+                  setLocationError('Impossible d\'obtenir votre position');
+                } finally {
+                  setIsLoadingLocation(false);
+                  setIsLoadingPlaces(false);
+                }
+              }}
+            >
+              Réessayer
+            </Chip>
+          </View>
+        )}
 
-      <Searchbar
-        placeholder="Rechercher un lieu..."
-        onChangeText={setSearchQuery}
-        value={searchQuery}
-        style={styles.searchBar}
-      />
+        {(isLoadingLocation || isLoadingPlaces) && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.colors.primary} />
+            <Text style={styles.loadingText}>
+              {isLoadingLocation ? 'Recherche de votre position...' : 'Chargement des lieux...'}
+            </Text>
+          </View>
+        )}
 
-      <View style={styles.categoriesContainer}>
-        <Title style={styles.sectionTitle}>Catégories</Title>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {categories.map((category) => (
-            <View key={category.id} style={styles.categoryCard}>
-              <AccessibilityIcon type={category.icon} size={32} />
-              <Title style={styles.categoryTitle}>{category.title}</Title>
-              <Paragraph style={styles.categoryCount}>{category.count} lieux</Paragraph>
-            </View>
+        {userLocation && (
+          <View style={styles.locationInfo}>
+            <Text style={styles.locationText}>
+              Position actuelle : {userLocation.latitude.toFixed(4)}, {userLocation.longitude.toFixed(4)}
+            </Text>
+          </View>
+        )}
+
+        <Searchbar
+          placeholder="Rechercher un lieu..."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          style={styles.searchBar}
+        />
+        
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesContainer}
+          contentContainerStyle={styles.categories}
+        >
+          {categories.map(category => (
+            <Chip
+              key={category.id}
+              selected={selectedCategory === category.id}
+              onPress={() => setSelectedCategory(category.id)}
+              style={styles.categoryChip}
+              selectedColor={theme.colors.primary}
+            >
+              {category.label}
+            </Chip>
           ))}
         </ScrollView>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.accessibilityContainer}
+          contentContainerStyle={styles.categories}
+        >
+          <Chip
+            selected={accessibilityFilter === 'all'}
+            onPress={() => setAccessibilityFilter('all')}
+            style={styles.categoryChip}
+            selectedColor={theme.colors.primary}
+          >
+            🔍 Tous
+          </Chip>
+          <Chip
+            selected={accessibilityFilter === 'full'}
+            onPress={() => setAccessibilityFilter('full')}
+            style={styles.categoryChip}
+            selectedColor={theme.colors.primary}
+          >
+            ♿ Totalement accessible
+          </Chip>
+          <Chip
+            selected={accessibilityFilter === 'partial'}
+            onPress={() => setAccessibilityFilter('partial')}
+            style={styles.categoryChip}
+            selectedColor={theme.colors.primary}
+          >
+            ⚡ Partiellement accessible
+          </Chip>
+        </ScrollView>
+
+        <SegmentedButtons
+          value={sortValue}
+          onValueChange={setSortValue}
+          buttons={[
+            { value: 'proximity', label: 'Distance' },
+            { value: 'rating', label: 'Note' },
+            { value: 'popular', label: 'Populaire' },
+          ]}
+          style={styles.sortButtons}
+        />
       </View>
 
-      <View style={styles.placesContainer}>
-        <Title style={styles.sectionTitle}>Lieux accessibles à proximité</Title>
-        {recentPlaces.map((place) => (
-          <PlaceCard
-            key={place.id}
-            place={place}
-            onPress={() => navigation.navigate('PlaceDetail', { place })}
-          />
-        ))}
+      {!searchQuery && selectedCategory === 'all' && accessibilityFilter === 'all' && (
+        <ScrollView style={styles.content}>
+          <View style={styles.section}>
+            {renderSectionHeader('✨ Mieux notés')}
+            {topRatedPlaces.map(place => (
+              <PlaceCard
+                key={place.id}
+                place={{
+                  ...place,
+                  accessibilityLabel: place.accessibilityLabel
+                }}
+                onPress={() => navigation.navigate('PlaceDetail', { place })}
+              />
+            ))}
+          </View>
+
+          <View style={styles.section}>
+            {renderSectionHeader('📍 À proximité')}
+            {nearbyPlaces.map(place => (
+              <PlaceCard
+                key={place.id}
+                place={{
+                  ...place,
+                  distance: place.distance < Infinity ? place.distance.toFixed(1) + ' km' : null,
+                  accessibilityLabel: place.accessibilityLabel
+                }}
+                onPress={() => navigation.navigate('PlaceDetail', { place })}
+              />
+            ))}
+          </View>
+        </ScrollView>
+      )}
+
+      {(searchQuery || selectedCategory !== 'all' || accessibilityFilter !== 'all') && (
+        <FlatList
+          data={sortedAndFilteredPlaces}
+          renderItem={renderPlace}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.list}
+          ListHeaderComponent={() => (
+            <Text variant="titleMedium" style={styles.resultsCount}>
+              {sortedAndFilteredPlaces.length} résultat{sortedAndFilteredPlaces.length > 1 ? 's' : ''}
+            </Text>
+          )}
+        />
+      )}
+
+      <View style={styles.fabContainer}>
+        <FAB
+          icon="map"
+          label="Voir la carte"
+          onPress={() => navigation.navigate('Map')}
+          style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+        />
+        <FAB
+          icon="plus"
+          label="Ajouter un lieu"
+          onPress={() => navigation.navigate('AddReview')}
+          style={[styles.fab, { backgroundColor: theme.colors.secondary }]}
+        />
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F1F5F9',
   },
   header: {
-    padding: 16,
-    paddingTop: 24,
-  },
-  welcomeText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
+    backgroundColor: 'white',
+    paddingTop: 60,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   searchBar: {
-    margin: 16,
-    elevation: 4,
+    elevation: 0,
+    borderRadius: 12,
+    marginBottom: 16,
   },
   categoriesContainer: {
-    marginBottom: 24,
+    marginBottom: 16,
+  },
+  accessibilityContainer: {
+    marginBottom: 16,
+  },
+  categories: {
+    paddingRight: 16,
+    gap: 8,
+  },
+  categoryChip: {
+    marginRight: 8,
+  },
+  sortButtons: {
+    marginBottom: 8,
+  },
+  content: {
+    flex: 1,
+  },
+  section: {
+    padding: 16,
   },
   sectionTitle: {
-    fontSize: 20,
+    marginBottom: 16,
     fontWeight: 'bold',
-    marginLeft: 16,
-    marginBottom: 12,
   },
-  categoryCard: {
-    backgroundColor: 'white',
+  list: {
     padding: 16,
-    marginLeft: 16,
-    marginRight: 8,
-    borderRadius: 12,
-    width: 140,
-    alignItems: 'center',
+  },
+  resultsCount: {
+    marginBottom: 16,
+    opacity: 0.7,
+  },
+  fabContainer: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    gap: 16,
+  },
+  fab: {
     elevation: 4,
   },
-  categoryTitle: {
-    fontSize: 16,
+  errorContainer: {
+    backgroundColor: '#FEE2E2',
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  errorText: {
+    color: '#DC2626',
+    flex: 1,
+    marginRight: 8,
+  },
+  loadingContainer: {
+    padding: 8,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  locationInfo: {
+    padding: 8,
+    marginBottom: 16,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
+  },
+  locationText: {
+    color: '#333',
+  },
+  loadingText: {
     marginTop: 8,
-    textAlign: 'center',
-  },
-  categoryCount: {
-    color: '#666',
-  },
-  placesContainer: {
-    marginBottom: 24,
+    color: theme.colors.primary,
   },
 });

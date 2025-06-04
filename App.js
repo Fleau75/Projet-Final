@@ -7,6 +7,7 @@ import { theme } from './theme';
 
 // Écrans
 import LoginScreen from './screens/LoginScreen';
+import HomeScreen from './screens/HomeScreen';
 import MapScreen from './screens/MapScreen';
 import PlaceDetailScreen from './screens/PlaceDetailScreen';
 import AddReviewScreen from './screens/AddReviewScreen';
@@ -38,10 +39,20 @@ export default function App() {
             
             <Stack.Screen 
               name="Home" 
-              component={MapScreen}
+              component={HomeScreen}
               options={{ 
                 title: 'AccessPlus',
                 headerTransparent: true,
+                headerTintColor: '#000',
+                headerTitle: '',
+              }}
+            />
+            
+            <Stack.Screen 
+              name="Map" 
+              component={MapScreen}
+              options={{ 
+                title: 'Carte',
               }}
             />
             
@@ -50,7 +61,6 @@ export default function App() {
               component={PlaceDetailScreen}
               options={({ route }) => ({ 
                 title: route.params?.place?.name || 'Détails du lieu',
-                headerTransparent: true,
               })}
             />
             

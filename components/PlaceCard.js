@@ -1,100 +1,139 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Card, Title, Paragraph } from 'react-native-paper';
-import { AccessibilityIcon } from './AccessibilityIcons';
+import { View, StyleSheet, Image, Pressable } from 'react-native';
+import { Surface, Text, useTheme } from 'react-native-paper';
+import { Rating } from 'react-native-ratings';
+
+const AccessibilityIcon = ({ available, icon, label }) => {
+  const theme = useTheme();
+  return (
+    <View style={[
+      styles.accessibilityIcon,
+      { backgroundColor: available ? '#DCF7E3' : '#FEE2E2' }
+    ]}>
+      <Text>{icon}</Text>
+    </View>
+  );
+};
 
 export default function PlaceCard({ place, onPress }) {
-  const getPlaceTypeIcon = () => {
-    switch (place.type.toLowerCase()) {
-      case 'restaurant':
-        return 'restaurant';
-      case 'pharmacie':
-        return 'pharmacy';
-      case 'parc':
-        return 'park';
-      case 'cinéma':
-        return 'cinema';
-      default:
-        return 'map-marker';
-    }
-  };
-
-  const formatDistance = (distance) => {
-    if (typeof distance === 'number') {
-      return distance >= 1000 
-        ? `${(distance / 1000).toFixed(1)} km`
-        : `${distance}m`;
-    }
-    return distance; // Si c'est déjà formaté
-  };
+  const theme = useTheme();
 
   return (
-    <Card style={styles.card} onPress={onPress}>
-      <Card.Content style={styles.content}>
-        <View style={styles.header}>
-          <AccessibilityIcon
-            type={getPlaceTypeIcon()}
-            size={24}
-            color="#4169E1"
-          />
-          <View style={styles.titleContainer}>
-            <Title style={styles.title}>{place.name}</Title>
-            <Paragraph style={styles.distance}>
-              {formatDistance(place.accessibility.distance)}
-            </Paragraph>
-          </View>
+    <Pressable onPress={onPress}>
+      <Surface style={styles.card}>
+        <View style={styles.imageContainer}>
+          {place.image ? (
+            <Image source={{ uri: place.image }} style={styles.image} />
+          ) : (
+            <View style={[styles.placeholderImage, { backgroundColor: theme.colors.surfaceVariant }]}>
+              <Text variant="headlineMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                {place.name[0]}
+              </Text>
+            </View>
+          )}
         </View>
 
-        <View style={styles.features}>
-          {place.accessibility.ramp && (
-            <AccessibilityIcon type="ramp" size={20} />
-          )}
-          {place.accessibility.adaptedToilets && (
-            <AccessibilityIcon type="toilet" size={20} />
-          )}
-          {place.accessibility.elevator && (
-            <AccessibilityIcon type="elevator" size={20} />
-          )}
-          {place.accessibility.widePaths && (
-            <AccessibilityIcon type="wide-path" size={20} />
-          )}
-          {place.accessibility.adaptedBenches && (
-            <AccessibilityIcon type="bench" size={20} />
-          )}
+        <View style={styles.content}>
+          <Text variant="titleMedium" style={styles.title}>
+            {place.name}
+          </Text>
+          
+          <Text variant="bodySmall" style={styles.address}>
+            {place.address}
+          </Text>
+
+          <View style={styles.ratingContainer}>
+            <Rating
+              readonly
+              startingValue={place.rating}
+              imageSize={16}
+              style={styles.rating}
+            />
+            <Text variant="bodySmall" style={styles.reviewCount}>
+              ({place.reviewCount})
+            </Text>
+          </View>
+
+          <View style={styles.accessibilityContainer}>
+            <AccessibilityIcon
+              available={place.accessibility.ramp}
+              icon="♿️"
+              label="Rampe"
+            />
+            <AccessibilityIcon
+              available={place.accessibility.elevator}
+              icon="🛗"
+              label="Ascenseur"
+            />
+            <AccessibilityIcon
+              available={place.accessibility.parking}
+              icon="🅿️"
+              label="Parking"
+            />
+            <AccessibilityIcon
+              available={place.accessibility.toilets}
+              icon="🚻"
+              label="Toilettes"
+            />
+          </View>
         </View>
-      </Card.Content>
-    </Card>
+      </Surface>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 16,
-    marginVertical: 8,
-    elevation: 4,
-  },
-  content: {
-    padding: 12,
-  },
-  header: {
     flexDirection: 'row',
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 2,
+  },
+  imageContainer: {
+    width: 100,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  placeholderImage: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  titleContainer: {
+  content: {
     flex: 1,
-    marginLeft: 12,
+    padding: 12,
   },
   title: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    marginBottom: 4,
   },
-  distance: {
-    fontSize: 14,
-    color: '#666',
+  address: {
+    marginBottom: 8,
+    opacity: 0.7,
   },
-  features: {
+  ratingContainer: {
     flexDirection: 'row',
-    marginTop: 8,
-    gap: 12,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  rating: {
+    marginRight: 4,
+  },
+  reviewCount: {
+    opacity: 0.7,
+  },
+  accessibilityContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  accessibilityIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 }); 
