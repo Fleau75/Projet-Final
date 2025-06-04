@@ -10,7 +10,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { theme } from './theme';
+import { ThemeProvider, useAppTheme } from './theme/ThemeContext';
 import LoadingOverlay from './components/LoadingOverlay';
 
 // Import des différents écrans de l'application
@@ -31,6 +31,8 @@ const Tab = createBottomTabNavigator();
  * Contient les 5 onglets principaux de l'application
  */
 function MainTabNavigator() {
+  const { theme } = useAppTheme();
+  
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -60,9 +62,9 @@ function MainTabNavigator() {
           return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: '#666',
+        tabBarInactiveTintColor: theme.colors.disabled,
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.outline,
           borderTopWidth: 1,
           paddingBottom: 8,
@@ -132,10 +134,10 @@ function MainTabNavigator() {
 }
 
 /**
- * Composant principal de l'application
- * Configure la navigation et les thèmes de l'application
+ * Contenu principal de l'application avec thème
  */
-export default function App() {
+function AppContent() {
+  const { theme, isLoading: themeLoading } = useAppTheme();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -147,63 +149,78 @@ export default function App() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Attendre que le thème soit chargé
+  if (themeLoading) {
+    return <LoadingOverlay />;
+  }
+
+  return (
+    <PaperProvider theme={theme}>
+      <NavigationContainer>
+        {isLoading ? (
+          <LoadingOverlay />
+        ) : (
+          <Stack.Navigator
+            initialRouteName="Login"
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: theme.colors.primary,
+              },
+              headerTintColor: '#fff',
+              headerTitleStyle: {
+                fontWeight: 'bold',
+              },
+            }}
+          >
+            {/* Écran de connexion */}
+            <Stack.Screen 
+              name="Login" 
+              component={LoginScreen}
+              options={{ headerShown: false }}
+            />
+            
+            {/* Navigation principale par onglets */}
+            <Stack.Screen 
+              name="MainTabs" 
+              component={MainTabNavigator}
+              options={{ headerShown: false }}
+            />
+            
+            {/* Écrans modaux et de détail */}
+            <Stack.Screen 
+              name="PlaceDetail" 
+              component={PlaceDetailScreen}
+              options={({ route }) => ({ 
+                title: route.params?.place?.name || 'Détails du lieu',
+                presentation: 'card',
+              })}
+            />
+            
+            <Stack.Screen 
+              name="AddReview" 
+              component={AddReviewScreen}
+              options={{ 
+                title: 'Ajouter un avis',
+                presentation: 'modal',
+              }}
+            />
+          </Stack.Navigator>
+        )}
+      </NavigationContainer>
+    </PaperProvider>
+  );
+}
+
+/**
+ * Composant principal de l'application
+ * Configure les providers et les thèmes
+ */
+export default function App() {
   return (
     <SafeAreaProvider>
-      {/* Configuration du thème pour React Native Paper */}
-      <PaperProvider theme={theme}>
-        {/* Conteneur principal de navigation */}
-        <NavigationContainer>
-          {isLoading ? (
-            <LoadingOverlay />
-          ) : (
-            <Stack.Navigator
-              initialRouteName="Login"
-              screenOptions={{
-                headerStyle: {
-                  backgroundColor: theme.colors.primary,
-                },
-                headerTintColor: '#fff',
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
-              }}
-            >
-              {/* Écran de connexion */}
-              <Stack.Screen 
-                name="Login" 
-                component={LoginScreen}
-                options={{ headerShown: false }}
-              />
-              
-              {/* Navigation principale par onglets */}
-              <Stack.Screen 
-                name="MainTabs" 
-                component={MainTabNavigator}
-                options={{ headerShown: false }}
-              />
-              
-              {/* Écrans modaux et de détail */}
-              <Stack.Screen 
-                name="PlaceDetail" 
-                component={PlaceDetailScreen}
-                options={({ route }) => ({ 
-                  title: route.params?.place?.name || 'Détails du lieu',
-                  presentation: 'card',
-                })}
-              />
-              
-              <Stack.Screen 
-                name="AddReview" 
-                component={AddReviewScreen}
-                options={{ 
-                  title: 'Ajouter un avis',
-                  presentation: 'modal',
-                }}
-              />
-            </Stack.Navigator>
-          )}
-        </NavigationContainer>
-      </PaperProvider>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

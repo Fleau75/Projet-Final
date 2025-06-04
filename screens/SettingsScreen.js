@@ -16,9 +16,11 @@ import {
   useTheme 
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppTheme } from '../theme/ThemeContext';
 
 export default function SettingsScreen({ navigation }) {
   const theme = useTheme();
+  const { isDarkMode, toggleTheme } = useAppTheme();
   
   // États pour les préférences d'accessibilité
   const [accessibilityPrefs, setAccessibilityPrefs] = useState({
@@ -147,7 +149,21 @@ export default function SettingsScreen({ navigation }) {
         {/* Préférences d'affichage */}
         <Card style={styles.card}>
           <Card.Content>
-            <Title style={styles.sectionTitle}>🎨 Affichage</Title>
+            <Title style={styles.sectionTitle}>🎨 Apparence</Title>
+            
+            <List.Item
+              title="Mode sombre"
+              description={isDarkMode ? "Interface sombre activée" : "Interface claire activée"}
+              left={props => <List.Icon {...props} icon={isDarkMode ? "weather-night" : "weather-sunny"} />}
+              right={() => (
+                <Switch
+                  value={isDarkMode}
+                  onValueChange={toggleTheme}
+                />
+              )}
+            />
+            
+            <Divider style={styles.divider} />
             
             <List.Item
               title="Contraste élevé"

@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, FlatList, ActivityIndicator } from 'react-native';
-import { Searchbar, Chip, Text, SegmentedButtons, useTheme } from 'react-native-paper';
+import { Searchbar, Chip, Text, SegmentedButtons, useTheme, Button } from 'react-native-paper';
 import PlaceCard from '../components/PlaceCard';
 import * as Location from 'expo-location';
 import { searchNearbyPlaces } from '../services/placesApi';
@@ -347,71 +347,66 @@ export default function HomeScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
         {locationError && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>
-              {locationError}
-            </Text>
-            <Chip 
-              icon="refresh" 
-              onPress={async () => {
-                setLocationError(null);
-                setIsLoadingLocation(true);
-                setIsLoadingPlaces(true);
-                try {
-                  const { status } = await Location.requestForegroundPermissionsAsync();
-                  if (status === 'granted') {
-                    const location = await Location.getCurrentPositionAsync({
-                      accuracy: Location.Accuracy.Balanced,
-                    });
-                    setUserLocation(location.coords);
-                    const nearbyPlaces = await searchNearbyPlaces(
-                      location.coords.latitude,
-                      location.coords.longitude
-                    );
-                    setPlaces(nearbyPlaces);
-                    setLocationError(null);
-                  } else {
-                    throw new Error('Permission refusée');
-                  }
-                } catch (error) {
-                  setLocationError('Impossible d\'obtenir votre position');
-                } finally {
-                  setIsLoadingLocation(false);
-                  setIsLoadingPlaces(false);
+          <View style={[styles.errorContainer, { backgroundColor: theme.colors.errorContainer }]}>
+            <Text style={[styles.errorText, { color: theme.colors.error }]}>⚠️ {locationError}</Text>
+            <Button onPress={async () => {
+              setLocationError(null);
+              setIsLoadingLocation(true);
+              setIsLoadingPlaces(true);
+              try {
+                const { status } = await Location.requestForegroundPermissionsAsync();
+                if (status === 'granted') {
+                  const location = await Location.getCurrentPositionAsync({
+                    accuracy: Location.Accuracy.Balanced,
+                  });
+                  setUserLocation(location.coords);
+                  const nearbyPlaces = await searchNearbyPlaces(
+                    location.coords.latitude,
+                    location.coords.longitude
+                  );
+                  setPlaces(nearbyPlaces);
+                  setLocationError(null);
+                } else {
+                  throw new Error('Permission refusée');
                 }
-              }}
-            >
+              } catch (error) {
+                setLocationError('Impossible d\'obtenir votre position');
+              } finally {
+                setIsLoadingLocation(false);
+                setIsLoadingPlaces(false);
+              }
+            }} mode="text" compact>
               Réessayer
-            </Chip>
+            </Button>
           </View>
         )}
 
-        {(isLoadingLocation || isLoadingPlaces) && (
+        {isLoadingLocation && (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.colors.primary} />
-            <Text style={[styles.loadingText, { color: theme.colors.primary }]}>
-              {isLoadingLocation ? 'Recherche de votre position...' : 'Chargement des lieux...'}
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>
+              Recherche de votre position...
             </Text>
           </View>
         )}
 
         {userLocation && (
-          <View style={styles.locationInfo}>
-            <Text style={styles.locationText}>
-              Position actuelle : {userLocation.latitude.toFixed(4)}, {userLocation.longitude.toFixed(4)}
+          <View style={[styles.locationInfo, { backgroundColor: theme.colors.surfaceVariant }]}>
+            <Text style={[styles.locationText, { color: theme.colors.onSurface }]}>
+              📍 Position détectée
             </Text>
-      </View>
+          </View>
         )}
 
-      <Searchbar
-        placeholder="Rechercher un lieu..."
-        onChangeText={setSearchQuery}
-        value={searchQuery}
-        style={styles.searchBar}
-      />
+        <Searchbar
+          placeholder="Rechercher un lieu..."
+          onChangeText={setSearchQuery}
+          value={searchQuery}
+          style={styles.searchBar}
+        />
 
         <ScrollView
           horizontal
@@ -529,10 +524,8 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
   },
   header: {
-    backgroundColor: 'white',
     paddingTop: 60,
     paddingHorizontal: 16,
     paddingBottom: 16,
@@ -586,7 +579,6 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   errorContainer: {
-    backgroundColor: '#FEE2E2',
     padding: 8,
     borderRadius: 8,
     marginBottom: 16,
@@ -595,7 +587,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   errorText: {
-    color: '#DC2626',
     flex: 1,
     marginRight: 8,
   },
@@ -607,11 +598,10 @@ const styles = StyleSheet.create({
   locationInfo: {
     padding: 8,
     marginBottom: 16,
-    backgroundColor: '#F1F5F9',
     borderRadius: 8,
   },
   locationText: {
-    color: '#333',
+    
   },
   loadingText: {
     marginTop: 8,
