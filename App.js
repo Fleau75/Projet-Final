@@ -6,8 +6,10 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from './theme';
 import LoadingOverlay from './components/LoadingOverlay';
 
@@ -15,11 +17,119 @@ import LoadingOverlay from './components/LoadingOverlay';
 import LoginScreen from './screens/LoginScreen';
 import HomeScreen from './screens/HomeScreen';
 import MapScreen from './screens/MapScreen';
-import PlaceDetailScreen from './screens/PlaceDetailScreen';
 import AddReviewScreen from './screens/AddReviewScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import SettingsScreen from './screens/SettingsScreen';
+import PlaceDetailScreen from './screens/PlaceDetailScreen';
 
-// Création du navigateur Stack pour la gestion de la navigation
+// Création des navigateurs
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
+
+/**
+ * Composant de navigation par onglets principal
+ * Contient les 5 onglets principaux de l'application
+ */
+function MainTabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName;
+
+          switch (route.name) {
+            case 'Home':
+              iconName = focused ? 'home' : 'home-outline';
+              break;
+            case 'Map':
+              iconName = focused ? 'map' : 'map-outline';
+              break;
+            case 'AddPlace':
+              iconName = focused ? 'plus-circle' : 'plus-circle-outline';
+              break;
+            case 'Profile':
+              iconName = focused ? 'account' : 'account-outline';
+              break;
+            case 'Settings':
+              iconName = focused ? 'cog' : 'cog-outline';
+              break;
+            default:
+              iconName = 'circle';
+          }
+
+          return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: '#666',
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          borderTopColor: theme.colors.outline,
+          borderTopWidth: 1,
+          paddingBottom: 8,
+          paddingTop: 8,
+          height: 70,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
+        headerStyle: {
+          backgroundColor: theme.colors.primary,
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      })}
+    >
+      <Tab.Screen 
+        name="Home" 
+        component={HomeScreen}
+        options={{ 
+          title: 'Accueil',
+          tabBarLabel: 'Accueil',
+          headerTitle: 'AccessPlus',
+        }}
+      />
+      
+      <Tab.Screen 
+        name="Map" 
+        component={MapScreen}
+        options={{ 
+          title: 'Carte',
+          tabBarLabel: 'Carte',
+        }}
+      />
+      
+      <Tab.Screen 
+        name="AddPlace" 
+        component={AddReviewScreen}
+        options={{ 
+          title: 'Ajouter un lieu',
+          tabBarLabel: 'Ajouter',
+        }}
+      />
+      
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileScreen}
+        options={{ 
+          title: 'Profil',
+          tabBarLabel: 'Profil',
+        }}
+      />
+      
+      <Tab.Screen 
+        name="Settings" 
+        component={SettingsScreen}
+        options={{ 
+          title: 'Réglages',
+          tabBarLabel: 'Réglages',
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
 
 /**
  * Composant principal de l'application
@@ -65,37 +175,23 @@ export default function App() {
                 options={{ headerShown: false }}
               />
               
-              {/* Écran d'accueil */}
+              {/* Navigation principale par onglets */}
               <Stack.Screen 
-                name="Home" 
-                component={HomeScreen}
-                options={{ 
-                  title: 'AccessPlus',
-                  headerTransparent: true,
-                  headerTintColor: '#000',
-                  headerTitle: '',
-                }}
+                name="MainTabs" 
+                component={MainTabNavigator}
+                options={{ headerShown: false }}
               />
               
-              {/* Écran de carte */}
-              <Stack.Screen 
-                name="Map" 
-                component={MapScreen}
-                options={{ 
-                  title: 'Carte',
-                }}
-              />
-              
-              {/* Écran de détails d'un lieu */}
+              {/* Écrans modaux et de détail */}
               <Stack.Screen 
                 name="PlaceDetail" 
                 component={PlaceDetailScreen}
                 options={({ route }) => ({ 
                   title: route.params?.place?.name || 'Détails du lieu',
+                  presentation: 'card',
                 })}
               />
               
-              {/* Écran d'ajout d'avis */}
               <Stack.Screen 
                 name="AddReview" 
                 component={AddReviewScreen}

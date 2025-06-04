@@ -23,7 +23,7 @@ export default function LoginScreen({ navigation }) {
       // Simulation de connexion
       setTimeout(() => {
         setIsLoading(false);
-        navigation.replace('Home');
+        navigation.replace('MainTabs');
       }, 1000);
     } catch (err) {
       setError('Erreur de connexion. Veuillez réessayer.');
@@ -85,7 +85,7 @@ export default function LoginScreen({ navigation }) {
 
         <Button
           mode="outlined"
-            onPress={() => navigation.replace('Home')}
+          onPress={() => navigation.replace('MainTabs')}
           style={styles.button}
         >
           Continuer sans compte

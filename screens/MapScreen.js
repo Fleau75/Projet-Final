@@ -108,7 +108,7 @@ export default function MapScreen({ navigation }) {
             coordinate={place.coordinate}
             title={place.name}
             description={`Type: ${place.type}`}
-            onPress={() => navigation.navigate('PlaceDetail', { place })}
+            onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place })}
           />
         ))}
       </MapView>
@@ -116,7 +116,7 @@ export default function MapScreen({ navigation }) {
       <FAB
         icon="plus"
         style={styles.fab}
-        onPress={() => navigation.navigate('AddReview')}
+        onPress={() => navigation.navigate('AddPlace')}
         label="Ajouter un lieu"
       />
     </View>

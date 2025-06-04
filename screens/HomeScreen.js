@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, FlatList, ActivityIndicator } from 'react-native';
-import { Searchbar, Chip, FAB, Text, SegmentedButtons, useTheme } from 'react-native-paper';
+import { Searchbar, Chip, Text, SegmentedButtons, useTheme } from 'react-native-paper';
 import PlaceCard from '../components/PlaceCard';
 import * as Location from 'expo-location';
 import { searchNearbyPlaces } from '../services/placesApi';
@@ -336,7 +336,7 @@ export default function HomeScreen({ navigation }) {
         distance: item.distance < Infinity ? item.distance.toFixed(1) + ' km' : null,
         accessibilityLabel: item.accessibilityLabel
       }}
-      onPress={() => navigation.navigate('PlaceDetail', { place: item })}
+      onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place: item })}
     />
   );
 
@@ -487,7 +487,7 @@ export default function HomeScreen({ navigation }) {
                   ...place,
                   accessibilityLabel: place.accessibilityLabel
                 }}
-                onPress={() => navigation.navigate('PlaceDetail', { place })}
+                onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place })}
               />
             ))}
           </View>
@@ -502,7 +502,7 @@ export default function HomeScreen({ navigation }) {
                   distance: place.distance < Infinity ? place.distance.toFixed(1) + ' km' : null,
                   accessibilityLabel: place.accessibilityLabel
                 }}
-            onPress={() => navigation.navigate('PlaceDetail', { place })}
+            onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place })}
           />
         ))}
       </View>
@@ -522,21 +522,6 @@ export default function HomeScreen({ navigation }) {
           )}
         />
       )}
-
-      <View style={styles.fabContainer}>
-        <FAB
-          icon="map"
-          label="Voir la carte"
-          onPress={() => navigation.navigate('Map')}
-          style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-        />
-        <FAB
-          icon="plus"
-          label="Ajouter un lieu"
-          onPress={() => navigation.navigate('AddReview')}
-          style={[styles.fab, { backgroundColor: theme.colors.secondary }]}
-        />
-      </View>
     </View>
   );
 }
@@ -599,15 +584,6 @@ const styles = StyleSheet.create({
   resultsCount: {
     marginBottom: 16,
     opacity: 0.7,
-  },
-  fabContainer: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
-    gap: 16,
-  },
-  fab: {
-    elevation: 4,
   },
   errorContainer: {
     backgroundColor: '#FEE2E2',
