@@ -5,8 +5,8 @@ export const lightTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#2563EB',
-    secondary: '#0EA5E9',
+    primary: '#2596BE',
+    secondary: '#2596BE99',
     background: '#F1F5F9',
     surface: '#FFFFFF',
     surfaceVariant: '#F8FAFC',
@@ -31,8 +31,8 @@ export const darkTheme = {
   ...MD3DarkTheme,
   colors: {
     ...MD3DarkTheme.colors,
-    primary: '#3B82F6',
-    secondary: '#06B6D4',
+    primary: '#2596BE',
+    secondary: '#2596BE99',
     background: '#0F172A',
     surface: '#1E293B',
     surfaceVariant: '#334155',

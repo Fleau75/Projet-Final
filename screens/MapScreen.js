@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Platform } from 'react-native';
-import { Text, FAB, ActivityIndicator, Searchbar } from 'react-native-paper';
+import { Text, FAB, ActivityIndicator, Searchbar, useTheme } from 'react-native-paper';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 
 export default function MapScreen({ navigation }) {
+  const theme = useTheme();
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,7 +51,6 @@ export default function MapScreen({ navigation }) {
 
   const handleSearch = () => {
     // TODO: Implémenter la recherche de lieux
-    console.log('Recherche:', searchQuery);
   };
 
   if (errorMsg) {
@@ -64,7 +64,7 @@ export default function MapScreen({ navigation }) {
   if (!location) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -115,8 +115,8 @@ export default function MapScreen({ navigation }) {
 
       <FAB
         icon="plus"
-        style={styles.fab}
-        onPress={() => navigation.navigate('AddPlace')}
+        style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+        onPress={() => navigation.getParent()?.navigate('AddReview')}
         label="Ajouter un lieu"
       />
     </View>
@@ -154,6 +154,13 @@ const styles = StyleSheet.create({
     margin: 16,
     right: 0,
     bottom: 0,
-    backgroundColor: '#2563EB',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
 });

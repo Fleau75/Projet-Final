@@ -65,11 +65,19 @@ function MainTabNavigator() {
         tabBarInactiveTintColor: theme.colors.disabled,
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
-          borderTopColor: theme.colors.outline,
-          borderTopWidth: 1,
+          borderTopColor: theme.colors.primary,
+          borderTopWidth: 2,
           paddingBottom: 8,
           paddingTop: 8,
-          height: 70,
+          height: 65,
+          elevation: 12,
+          shadowColor: theme.colors.primary,
+          shadowOffset: {
+            width: 0,
+            height: -4,
+          },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
         },
         tabBarLabelStyle: {
           fontSize: 12,
@@ -91,6 +99,7 @@ function MainTabNavigator() {
           title: 'Accueil',
           tabBarLabel: 'Accueil',
           headerTitle: 'AccessPlus',
+          tabBarHideOnKeyboard: true,
         }}
       />
       
@@ -107,8 +116,10 @@ function MainTabNavigator() {
         name="AddPlace" 
         component={AddReviewScreen}
         options={{ 
-          title: 'Ajouter un lieu',
+          title: 'Ajouter un avis',
           tabBarLabel: 'Ajouter',
+          headerTitle: 'Ajouter un avis',
+          tabBarHideOnKeyboard: true,
         }}
       />
       

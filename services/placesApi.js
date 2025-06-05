@@ -1,29 +1,10 @@
 import axios from 'axios';
 import { GOOGLE_PLACES_API_KEY } from '@env';
 
-// Fonction pour masquer partiellement la clé API dans les logs
-const maskApiKey = (key) => {
-  if (!key) return 'undefined';
-  if (key.length < 8) return 'invalid_length';
-  return `${key.substring(0, 4)}...${key.substring(key.length - 4)}`;
-};
-
 export const searchNearbyPlaces = async (latitude, longitude, radius = 1500) => {
   try {
-    console.log('Début de la recherche des lieux...');
-    console.log('Paramètres:', {
-      latitude,
-      longitude,
-      radius,
-      keyLength: GOOGLE_PLACES_API_KEY?.length || 0,
-      keyStart: GOOGLE_PLACES_API_KEY?.substring(0, 4) || 'none'
-    });
-
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&key=${GOOGLE_PLACES_API_KEY}`;
-    console.log('URL de requête (sans la clé):', url.split('key=')[0]);
-
     const response = await axios.get(url);
-    console.log('Réponse reçue, status HTTP:', response.status);
 
     if (!response.data) {
       throw new Error('Pas de données dans la réponse');
@@ -47,7 +28,6 @@ export const searchNearbyPlaces = async (latitude, longitude, radius = 1500) => 
       throw new Error(`Statut invalide: ${response.data.status}`);
     }
 
-    console.log(`${response.data.results.length} lieux trouvés`);
     return response.data.results.map(place => ({
       id: place.place_id,
       name: place.name,

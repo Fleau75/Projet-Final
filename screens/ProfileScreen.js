@@ -17,6 +17,7 @@ import {
   useTheme 
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function ProfileScreen({ navigation }) {
   const theme = useTheme();
@@ -30,17 +31,17 @@ export default function ProfileScreen({ navigation }) {
 
   const handleEditProfile = () => {
     // Navigation vers l'écran d'édition du profil
-    console.log('Éditer le profil');
+    // TODO: Implémenter l'édition du profil
   };
 
   const handleViewReviews = () => {
     // Navigation vers les avis de l'utilisateur
-    console.log('Voir mes avis');
+    // TODO: Implémenter la visualisation des avis
   };
 
   const handleViewFavorites = () => {
     // Navigation vers les lieux favoris
-    console.log('Voir mes favoris');
+    // TODO: Implémenter la visualisation des favoris
   };
 
   const handleLogout = () => {
@@ -52,7 +53,7 @@ export default function ProfileScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView style={styles.scrollView}>
         {/* Section profil utilisateur */}
         <Card style={styles.profileCard}>
@@ -123,17 +124,25 @@ export default function ProfileScreen({ navigation }) {
 
         {/* Section déconnexion */}
         <View style={styles.logoutSection}>
-          <Button 
-            mode="contained" 
-            onPress={handleLogout}
-            style={[styles.logoutButton, { backgroundColor: theme.colors.error }]}
-            labelStyle={{ color: 'white' }}
+          <LinearGradient
+            colors={['#FF5757', '#E53E3E']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.gradientButton}
           >
-            Se déconnecter
-          </Button>
+            <Button 
+              mode="text" 
+              onPress={handleLogout}
+              style={styles.logoutButton}
+              labelStyle={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}
+              icon="logout"
+            >
+              Se déconnecter
+            </Button>
+          </LinearGradient>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -143,7 +152,8 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   profileCard: {
     marginBottom: 16,
@@ -198,6 +208,23 @@ const styles = StyleSheet.create({
   },
   logoutSection: {
     marginTop: 32,
+  },
+  gradientButton: {
+    borderRadius: 25,
+    marginHorizontal: 20,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+  },
+  logoutButton: {
+    backgroundColor: 'transparent',
+    elevation: 0,
+    paddingVertical: 12,
     marginBottom: 32,
   },
   logoutButton: {

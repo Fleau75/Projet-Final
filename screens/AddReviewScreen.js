@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity, FlatList } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Text, TextInput, Button, Surface, Checkbox, useTheme, Searchbar, List } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { Rating } from 'react-native-ratings';
 import { searchPlaces } from '../services/placesSearch';
+import { useAppTheme } from '../theme/ThemeContext';
 
 export default function AddReviewScreen({ navigation }) {
   const theme = useTheme();
+  const { isDarkMode } = useAppTheme();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [photos, setPhotos] = useState([]);
@@ -115,8 +117,8 @@ export default function AddReviewScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Surface style={styles.surface}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Surface style={[styles.surface, { backgroundColor: theme.colors.surface }]}>
         <Text variant="headlineMedium" style={styles.title}>
           Évaluer un lieu
         </Text>
@@ -136,7 +138,7 @@ export default function AddReviewScreen({ navigation }) {
           
           {/* Résultats de recherche */}
           {searchResults.length > 0 && !selectedPlace && (
-            <Surface style={styles.searchResults}>
+            <Surface style={[styles.searchResults, { backgroundColor: theme.colors.surface }]}>
               {searchResults.map((place) => (
                 <List.Item
                   key={place.id}
@@ -147,7 +149,7 @@ export default function AddReviewScreen({ navigation }) {
                     setSearchQuery('');
                     setSearchResults([]);
                   }}
-                  style={styles.searchResultItem}
+                  style={[styles.searchResultItem, { borderBottomColor: isDarkMode ? '#334155' : '#E5E7EB' }]}
                 />
               ))}
             </Surface>
@@ -155,7 +157,7 @@ export default function AddReviewScreen({ navigation }) {
 
           {/* Lieu sélectionné */}
           {selectedPlace && (
-            <Surface style={styles.selectedPlace}>
+            <Surface style={[styles.selectedPlace, { backgroundColor: isDarkMode ? '#334155' : '#F1F5F9' }]}>
               <View style={styles.selectedPlaceHeader}>
                 <View style={styles.selectedPlaceInfo}>
                   <Text variant="titleMedium">{selectedPlace.name}</Text>
@@ -199,7 +201,7 @@ export default function AddReviewScreen({ navigation }) {
             mode="outlined"
             multiline
             numberOfLines={4}
-            style={styles.input}
+            style={[styles.input, { backgroundColor: theme.colors.surface }]}
           />
         </View>
 
@@ -246,7 +248,7 @@ export default function AddReviewScreen({ navigation }) {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Équipements accessibles
           </Text>
-          <View style={styles.accessibilityGrid}>
+          <View style={[styles.accessibilityGrid, { backgroundColor: theme.colors.surface }]}>
             <Checkbox.Item
               label="Rampe d'accès"
               status={accessibility.ramp ? 'checked' : 'unchecked'}
@@ -287,10 +289,11 @@ export default function AddReviewScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
   },
   surface: {
-    margin: 16,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
     padding: 16,
     borderRadius: 12,
     elevation: 4,
@@ -317,12 +320,10 @@ const styles = StyleSheet.create({
   },
   searchResultItem: {
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   selectedPlace: {
     padding: 12,
     borderRadius: 8,
-    backgroundColor: '#F1F5F9',
   },
   selectedPlaceHeader: {
     flexDirection: 'row',
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   input: {
-    backgroundColor: 'white',
+    // backgroundColor géré dynamiquement
   },
   photoButtons: {
     flexDirection: 'row',
@@ -384,7 +385,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   accessibilityGrid: {
-    backgroundColor: 'white',
     borderRadius: 8,
   },
   submitButton: {

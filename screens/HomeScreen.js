@@ -252,7 +252,6 @@ export default function HomeScreen({ navigation }) {
 
   const calculateDistance = (coords1, coords2) => {
     if (!coords1 || !coords2) {
-      console.log('Coordonnées manquantes:', { coords1, coords2 });
       return Infinity;
     }
     
@@ -272,11 +271,7 @@ export default function HomeScreen({ navigation }) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c;
 
-    console.log('Distance calculée:', {
-      from: coords1,
-      to: coords2,
-      distance: distance.toFixed(2) + ' km'
-    });
+    // Distance calculée: ${distance.toFixed(2)} km
 
     return distance;
   };
@@ -526,7 +521,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 60,
+    paddingTop: 8,
     paddingHorizontal: 16,
     paddingBottom: 16,
     borderBottomLeftRadius: 24,

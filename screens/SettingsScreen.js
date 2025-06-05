@@ -62,8 +62,7 @@ export default function SettingsScreen({ navigation }) {
 
   const handleSaveSettings = () => {
     // Sauvegarder les paramètres
-    console.log('Paramètres sauvegardés');
-    // Vous pouvez ici sauvegarder dans AsyncStorage ou une base de données
+    // TODO: Sauvegarder dans AsyncStorage ou une base de données
   };
 
   const handleResetSettings = () => {
@@ -89,7 +88,7 @@ export default function SettingsScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView style={styles.scrollView}>
         
         {/* Préférences d'accessibilité */}
@@ -262,8 +261,8 @@ export default function SettingsScreen({ navigation }) {
                   mode="contained" 
                   onPress={() => {
                     // Test de la lecture d'écran
-                    console.log('Test de lecture:', `Bonjour, bienvenue dans AccessPlus. Vitesse de lecture: ${accessibilityPrefs.speechRate}`);
-                    // Ici vous pourriez intégrer une vraie synthèse vocale
+                    // TODO: Intégrer une vraie synthèse vocale
+                    // Texte test: `Bonjour, bienvenue dans AccessPlus. Vitesse de lecture: ${accessibilityPrefs.speechRate}`
                   }}
                   style={styles.testButton}
                 >
@@ -387,7 +386,7 @@ export default function SettingsScreen({ navigation }) {
           </Card.Content>
         </Card>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -397,7 +396,8 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   card: {
     marginBottom: 16,
