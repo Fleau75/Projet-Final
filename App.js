@@ -21,6 +21,7 @@ import HomeScreen from './screens/HomeScreen';
 import MapScreen from './screens/MapScreen';
 import AddReviewScreen from './screens/AddReviewScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import EditProfileScreen from './screens/EditProfileScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import PlaceDetailScreen from './screens/PlaceDetailScreen';
 
@@ -131,6 +132,7 @@ function MainTabNavigator() {
         options={{ 
           title: 'Profil',
           tabBarLabel: 'Profil',
+          headerShown: false,
         }}
       />
       
@@ -189,6 +191,22 @@ function AppContent() {
                 presentation: 'card',
                 headerShown: true,
               })}
+            />
+            <Stack.Screen 
+              name="EditProfile" 
+              component={EditProfileScreen}
+              options={{ 
+                title: 'Éditer le profil',
+                presentation: 'card',
+                headerShown: true,
+                headerStyle: {
+                  backgroundColor: theme.colors.primary,
+                },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                },
+              }}
             />
             <Stack.Screen 
               name="AddReview" 
