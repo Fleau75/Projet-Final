@@ -3,7 +3,7 @@
  * Permet à l'utilisateur de configurer ses préférences d'accessibilité et l'application
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Linking, Platform, Alert } from 'react-native';
 import { 
   Card, 
@@ -13,12 +13,20 @@ import {
   Divider, 
   Button,
   Text,
-  useTheme 
+  useTheme,
 } from 'react-native-paper';
+import Slider from '@react-native-community/slider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '../theme/ThemeContext';
 import { useTextSize } from '../theme/TextSizeContext';
 import { useScreenReader } from '../theme/ScreenReaderContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Constantes pour les valeurs par défaut et les limites
+const SEARCH_RADIUS_DEFAULT = 1500;
+const SEARCH_RADIUS_MIN = 500;
+const SEARCH_RADIUS_MAX = 5000;
+const SEARCH_RADIUS_STEP = 100;
 
 export default function SettingsScreen({ navigation }) {
   const theme = useTheme();
@@ -42,8 +50,59 @@ export default function SettingsScreen({ navigation }) {
   });
 
   // États pour les préférences générales
-  const [searchRadius, setSearchRadius] = useState(1500);
+  const [searchRadius, setSearchRadius] = useState(SEARCH_RADIUS_DEFAULT);
   const [mapStyle, setMapStyle] = useState('standard');
+
+  // Charger tous les paramètres au démarrage
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        // Charger les préférences d'accessibilité
+        const savedAccessibilityPrefs = await AsyncStorage.getItem('accessibilityPrefs');
+        if (savedAccessibilityPrefs !== null) {
+          setAccessibilityPrefs(JSON.parse(savedAccessibilityPrefs));
+        }
+
+        // Charger les notifications
+        const savedNotifications = await AsyncStorage.getItem('notifications');
+        if (savedNotifications !== null) {
+          setNotifications(JSON.parse(savedNotifications));
+        }
+
+        // Charger le rayon de recherche
+        const savedRadius = await AsyncStorage.getItem('searchRadius');
+        if (savedRadius !== null) {
+          setSearchRadius(parseInt(savedRadius));
+        }
+
+        // Charger le style de carte
+        const savedMapStyle = await AsyncStorage.getItem('mapStyle');
+        if (savedMapStyle !== null) {
+          setMapStyle(savedMapStyle);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des paramètres:', error);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
+  // Optimisation des callbacks avec useCallback
+  const handleSearchRadiusChange = useCallback(async (value) => {
+    try {
+      const roundedValue = Math.round(value);
+      setSearchRadius(roundedValue);
+      await AsyncStorage.setItem('searchRadius', roundedValue.toString());
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde du rayon de recherche:', error);
+      Alert.alert(
+        "Erreur",
+        "Impossible de sauvegarder le rayon de recherche",
+        [{ text: "OK" }]
+      );
+    }
+  }, []);
 
   const toggleAccessibilityPref = (key) => {
     setAccessibilityPrefs(prev => ({
@@ -59,26 +118,79 @@ export default function SettingsScreen({ navigation }) {
     }));
   };
 
-  const handleSaveSettings = () => {
-    // Sauvegarder les paramètres
-    // TODO: Sauvegarder dans AsyncStorage ou une base de données
+  const handleSaveSettings = async () => {
+    try {
+      // Sauvegarder les préférences d'accessibilité
+      await AsyncStorage.setItem('accessibilityPrefs', JSON.stringify(accessibilityPrefs));
+      
+      // Sauvegarder les notifications
+      await AsyncStorage.setItem('notifications', JSON.stringify(notifications));
+      
+      // Sauvegarder le rayon de recherche
+      await AsyncStorage.setItem('searchRadius', searchRadius.toString());
+      
+      // Sauvegarder le style de carte
+      await AsyncStorage.setItem('mapStyle', mapStyle);
+
+      Alert.alert(
+        "Succès",
+        "Vos paramètres ont été sauvegardés avec succès",
+        [{ text: "OK" }]
+      );
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des paramètres:', error);
+      Alert.alert(
+        "Erreur",
+        "Une erreur est survenue lors de la sauvegarde des paramètres",
+        [{ text: "OK" }]
+      );
+    }
   };
 
-  const handleResetSettings = () => {
-    // Réinitialiser tous les paramètres
-    setAccessibilityPrefs({
-      requireRamp: false,
-      requireElevator: false,
-      requireAccessibleParking: false,
-      requireAccessibleToilets: false,
-    });
-    setNotifications({
-      newPlaces: true,
-      reviews: true,
-      updates: false,
-    });
-    setSearchRadius(1500);
-    setMapStyle('standard');
+  const handleResetSettings = async () => {
+    try {
+      // Réinitialiser les préférences d'accessibilité
+      const defaultAccessibilityPrefs = {
+        requireRamp: false,
+        requireElevator: false,
+        requireAccessibleParking: false,
+        requireAccessibleToilets: false,
+      };
+      setAccessibilityPrefs(defaultAccessibilityPrefs);
+      await AsyncStorage.setItem('accessibilityPrefs', JSON.stringify(defaultAccessibilityPrefs));
+
+      // Réinitialiser les notifications
+      const defaultNotifications = {
+        newPlaces: true,
+        reviews: true,
+        updates: false,
+      };
+      setNotifications(defaultNotifications);
+      await AsyncStorage.setItem('notifications', JSON.stringify(defaultNotifications));
+
+      // Réinitialiser le rayon de recherche
+      const defaultSearchRadius = SEARCH_RADIUS_DEFAULT;
+      setSearchRadius(defaultSearchRadius);
+      await AsyncStorage.setItem('searchRadius', defaultSearchRadius.toString());
+
+      // Réinitialiser le style de carte
+      const defaultMapStyle = 'standard';
+      setMapStyle(defaultMapStyle);
+      await AsyncStorage.setItem('mapStyle', defaultMapStyle);
+
+      Alert.alert(
+        "Succès",
+        "Vos paramètres ont été réinitialisés avec succès",
+        [{ text: "OK" }]
+      );
+    } catch (error) {
+      console.error('Erreur lors de la réinitialisation des paramètres:', error);
+      Alert.alert(
+        "Erreur",
+        "Une erreur est survenue lors de la réinitialisation des paramètres",
+        [{ text: "OK" }]
+      );
+    }
   };
 
   const openAccessibilitySettings = async () => {
@@ -244,14 +356,43 @@ export default function SettingsScreen({ navigation }) {
         {/* Préférences de recherche */}
         <Card style={styles.card}>
           <Card.Content>
-            <Title style={styles.sectionTitle}>🔍 Recherche</Title>
+            <Title style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
+              🔍 Rayon de recherche
+            </Title>
             
-            <Text style={styles.settingLabel}>
-              Rayon de recherche: {Math.round(searchRadius)}m
+            <Text style={[styles.sectionDescription, { fontSize: textSizes.body }]}>
+              Ajustez la distance de recherche pour trouver les lieux accessibles autour de vous
             </Text>
-            <Text style={styles.sectionDescription}>
-              Le rayon de recherche est actuellement fixé à {Math.round(searchRadius)}m
-            </Text>
+
+            <View style={styles.searchRadiusContainer}>
+              <Text style={[styles.valueText, { fontSize: textSizes.subtitle }]}>
+                {Math.round(searchRadius)} mètres
+              </Text>
+              
+              <Slider
+                style={styles.slider}
+                value={searchRadius}
+                onValueChange={handleSearchRadiusChange}
+                minimumValue={SEARCH_RADIUS_MIN}
+                maximumValue={SEARCH_RADIUS_MAX}
+                step={SEARCH_RADIUS_STEP}
+                minimumTrackTintColor={theme.colors.primary}
+                maximumTrackTintColor={theme.colors.onSurfaceDisabled}
+                thumbTintColor={theme.colors.primary}
+                accessible={true}
+                accessibilityLabel={`Rayon de recherche actuel : ${Math.round(searchRadius)} mètres`}
+                accessibilityHint="Glissez pour modifier la distance de recherche"
+              />
+
+              <View style={styles.sliderLabels}>
+                <Text style={[styles.rangeLabel, { color: theme.colors.onSurfaceVariant }]}>
+                  {SEARCH_RADIUS_MIN}m
+                </Text>
+                <Text style={[styles.rangeLabel, { color: theme.colors.onSurfaceVariant }]}>
+                  {SEARCH_RADIUS_MAX}m
+                </Text>
+              </View>
+            </View>
           </Card.Content>
         </Card>
 
@@ -421,5 +562,26 @@ const styles = StyleSheet.create({
   settingsButton: {
     marginTop: 16,
     marginHorizontal: 16,
+  },
+  searchRadiusContainer: {
+    marginTop: 16,
+    paddingHorizontal: 8,
+  },
+  valueText: {
+    textAlign: 'center',
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  slider: {
+    height: 40,
+    width: '100%',
+  },
+  sliderLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  rangeLabel: {
+    fontSize: 12,
   },
 }); 
