@@ -1,38 +1,38 @@
 import React from 'react';
 import { View, StyleSheet, Image, ScrollView } from 'react-native';
-import { Surface, Text } from 'react-native-paper';
-import { Rating } from 'react-native-ratings';
+import { Surface, Text, useTheme } from 'react-native-paper';
+import CustomRating from './CustomRating';
 import { useTextSize } from '../theme/TextSizeContext';
 
 export default function ReviewCard({ review }) {
   const { textSizes } = useTextSize();
+  const theme = useTheme();
   
   return (
-    <Surface style={styles.reviewCard}>
+    <Surface style={[styles.reviewCard, { backgroundColor: theme.colors.surface }]}>
       <View style={styles.reviewHeader}>
         <View style={styles.reviewUser}>
           <Image
             source={review.userPhoto ? { uri: review.userPhoto } : require('../assets/default-avatar.png')}
             style={styles.userPhoto}
           />
-          <Text style={[styles.userName, { fontSize: textSizes.subtitle }]}>
+          <Text style={[styles.userName, { fontSize: textSizes.subtitle, color: theme.colors.onSurface }]}>
             {review.userName}
           </Text>
         </View>
-        <Text style={[styles.reviewDate, { fontSize: textSizes.caption }]}>
+        <Text style={[styles.reviewDate, { fontSize: textSizes.caption, color: theme.colors.onSurfaceVariant }]}>
           {new Date(review.date).toLocaleDateString()}
         </Text>
       </View>
 
-      <Rating
-        readonly
-        startingValue={review.rating}
-        imageSize={20}
-        style={[styles.reviewRating, { backgroundColor: 'transparent' }]}
-        tintColor="transparent"
+      <CustomRating
+        rating={review.rating}
+        readonly={true}
+        size={20}
+        style={styles.reviewRating}
       />
 
-      <Text style={[styles.reviewComment, { fontSize: textSizes.body }]}>
+      <Text style={[styles.reviewComment, { fontSize: textSizes.body, color: theme.colors.onSurface }]}>
         {review.comment}
       </Text>
 
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   reviewDate: {
-    opacity: 0.6,
+    // opacity gérée par theme.colors.onSurfaceVariant
   },
   reviewRating: {
     alignItems: 'flex-start',

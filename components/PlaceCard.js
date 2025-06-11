@@ -7,7 +7,7 @@
 import React from 'react';
 import { View, StyleSheet, Image, Pressable } from 'react-native';
 import { Surface, Text, useTheme } from 'react-native-paper';
-import { Rating } from 'react-native-ratings';
+import CustomRating from './CustomRating';
 import { useScreenReader } from '../theme/ScreenReaderContext';
 
 /**
@@ -115,12 +115,11 @@ export default function PlaceCard({ place, onPress }) {
             accessible={true}
             accessibilityLabel={`Note: ${place.rating} sur 5, ${place.reviewCount} avis`}
           >
-            <Rating
-              readonly
-              startingValue={place.rating}
-              imageSize={16}
-              style={[styles.rating, { backgroundColor: 'transparent' }]}
-              tintColor="transparent"
+            <CustomRating
+              rating={place.rating}
+              readonly={true}
+              size={16}
+              style={styles.rating}
             />
             <Text variant="bodySmall" style={styles.reviewCount}>
               ({place.reviewCount})

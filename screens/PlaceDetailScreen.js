@@ -1,15 +1,39 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Button, Surface, useTheme } from 'react-native-paper';
-import { Rating } from 'react-native-ratings';
+import CustomRating from '../components/CustomRating';
 import ReviewCard from '../components/ReviewCard';
 import { useTextSize } from '../theme/TextSizeContext';
 
 const AccessibilityFeature = ({ label, available }) => {
   const { textSizes } = useTextSize();
+  const theme = useTheme();
+  
+  const getFeatureStyle = () => {
+    if (available) {
+      return {
+        backgroundColor: theme.colors.primary + '20', // Couleur primaire avec transparence
+        borderColor: theme.colors.primary,
+        borderWidth: 1,
+      };
+    } else {
+      return {
+        backgroundColor: theme.colors.error + '20', // Couleur d'erreur avec transparence
+        borderColor: theme.colors.error,
+        borderWidth: 1,
+      };
+    }
+  };
+
   return (
-    <View style={[styles.feature, available ? styles.featureAvailable : styles.featureUnavailable]}>
-      <Text style={[styles.featureText, { fontSize: textSizes.body }]}>{label}</Text>
+    <View style={[styles.feature, getFeatureStyle()]}>
+      <Text style={[
+        styles.featureText, 
+        { 
+          fontSize: textSizes.body,
+          color: available ? theme.colors.primary : theme.colors.error
+        }
+      ]}>{label}</Text>
     </View>
   );
 };
@@ -62,32 +86,31 @@ export default function PlaceDetailScreen({ navigation, route }) {
   const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Surface style={styles.headerSurface}>
-        <Text style={[styles.title, { fontSize: textSizes.title }]}>
+        <Text style={[styles.title, { fontSize: textSizes.title, color: theme.colors.onSurface }]}>
           {place.name}
         </Text>
         
-        <Text style={[styles.address, { fontSize: textSizes.body }]}>
+        <Text style={[styles.address, { fontSize: textSizes.body, color: theme.colors.onSurface }]}>
           {place.address}
         </Text>
 
         <View style={styles.ratingContainer}>
-          <Rating
-            readonly
-            startingValue={averageRating}
-            imageSize={24}
-            style={[styles.rating, { backgroundColor: 'transparent' }]}
-            tintColor="transparent"
+          <CustomRating
+            rating={averageRating}
+            readonly={true}
+            size={24}
+            style={styles.rating}
           />
-          <Text style={{ fontSize: textSizes.body }}>
+          <Text style={{ fontSize: textSizes.body, color: theme.colors.onSurface }}>
             {averageRating.toFixed(1)} ({reviews.length} avis)
           </Text>
         </View>
       </Surface>
 
       <Surface style={styles.section}>
-        <Text style={[styles.sectionTitle, { fontSize: textSizes.subtitle }]}>
+        <Text style={[styles.sectionTitle, { fontSize: textSizes.subtitle, color: theme.colors.onSurface }]}>
           Accessibilité
         </Text>
         <View style={styles.featuresGrid}>
@@ -99,7 +122,7 @@ export default function PlaceDetailScreen({ navigation, route }) {
       </Surface>
 
       <Surface style={styles.section}>
-        <Text style={[styles.sectionTitle, { fontSize: textSizes.subtitle }]}>
+        <Text style={[styles.sectionTitle, { fontSize: textSizes.subtitle, color: theme.colors.onSurface }]}>
           Avis ({reviews.length})
         </Text>
 
@@ -116,7 +139,6 @@ export default function PlaceDetailScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
   },
   headerSurface: {
     padding: 16,
@@ -133,6 +155,7 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 8,
+    fontWeight: 'bold',
   },
   address: {
     marginBottom: 16,
@@ -148,6 +171,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: 16,
+    fontWeight: 'bold',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -165,12 +189,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     minWidth: '48%',
-  },
-  featureAvailable: {
-    backgroundColor: '#DCF7E3',
-  },
-  featureUnavailable: {
-    backgroundColor: '#FEE2E2',
   },
   featureText: {
     fontWeight: '500',

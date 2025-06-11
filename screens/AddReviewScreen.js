@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { Text, TextInput, Button, Surface, Checkbox, useTheme, Searchbar, List } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
-import { Rating } from 'react-native-ratings';
+import CustomRating from '../components/CustomRating';
 import { searchPlaces } from '../services/placesSearch';
 import { useAppTheme } from '../theme/ThemeContext';
 
@@ -181,23 +181,13 @@ export default function AddReviewScreen({ navigation }) {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Note globale
           </Text>
-          <View style={styles.customRatingContainer}>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <TouchableOpacity 
-                key={star} 
-                onPress={() => {
-                  console.log('Star pressed:', star);
-                  setRating(star);
-                }}
-                style={styles.starButton}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.starText, { color: star <= rating ? '#FFD700' : '#E0E0E0' }]}>
-                  ★
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <CustomRating
+            rating={rating}
+            readonly={false}
+            onRatingChange={setRating}
+            size={30}
+            style={styles.customRating}
+          />
           <Text style={{ marginTop: 10, textAlign: 'center' }}>
             Note sélectionnée: {rating}/5
           </Text>
@@ -403,23 +393,8 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: 8,
   },
-  customRatingContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  starButton: {
-    padding: 8,
-    marginHorizontal: 4,
-    borderRadius: 20,
-    minWidth: 40,
-    alignItems: 'center',
-  },
-  starText: {
-    fontSize: 35,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+  customRating: {
+    alignSelf: 'center',
+    marginVertical: 10,
   },
 }); 
