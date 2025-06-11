@@ -20,7 +20,7 @@ export const useAppTheme = () => {
 
 // Provider du thème
 export const ThemeProvider = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true); // Thème sombre par défaut
   const [isLoading, setIsLoading] = useState(true);
 
   // Charger la préférence de thème sauvegardée
@@ -33,6 +33,10 @@ export const ThemeProvider = ({ children }) => {
       const savedTheme = await AsyncStorage.getItem('theme_preference');
       if (savedTheme !== null) {
         setIsDarkMode(savedTheme === 'dark');
+      } else {
+        // Si aucune préférence sauvegardée, utiliser le thème sombre par défaut
+        setIsDarkMode(true);
+        await AsyncStorage.setItem('theme_preference', 'dark');
       }
     } catch (error) {
       console.error('Erreur lors du chargement de la préférence de thème:', error);

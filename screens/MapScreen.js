@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Platform, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Platform, FlatList, TouchableOpacity, StatusBar } from 'react-native';
 import { Text, FAB, ActivityIndicator, Searchbar, useTheme, Surface, Card } from 'react-native-paper';
+import { useAppTheme } from '../theme/ThemeContext';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -9,8 +10,34 @@ import { searchPlacesByText } from '../services/placesSearch';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 
+// Style de carte sombre pour Google Maps
+const darkMapStyle = [
+  { elementType: "geometry", stylers: [{ color: "#212121" }] },
+  { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#212121" }] },
+  { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#757575" }] },
+  { featureType: "administrative.country", elementType: "labels.text.fill", stylers: [{ color: "#9e9e9e" }] },
+  { featureType: "administrative.land_parcel", stylers: [{ visibility: "off" }] },
+  { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#bdbdbd" }] },
+  { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+  { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#181818" }] },
+  { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+  { featureType: "poi.park", elementType: "labels.text.stroke", stylers: [{ color: "#1b1b1b" }] },
+  { featureType: "road", elementType: "geometry.fill", stylers: [{ color: "#2c2c2c" }] },
+  { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#8a8a8a" }] },
+  { featureType: "road.arterial", elementType: "geometry", stylers: [{ color: "#373737" }] },
+  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#3c3c3c" }] },
+  { featureType: "road.highway.controlled_access", elementType: "geometry", stylers: [{ color: "#4e4e4e" }] },
+  { featureType: "road.local", elementType: "labels.text.fill", stylers: [{ color: "#616161" }] },
+  { featureType: "transit", elementType: "labels.text.fill", stylers: [{ color: "#757575" }] },
+  { featureType: "water", elementType: "geometry", stylers: [{ color: "#000000" }] },
+  { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#3d3d3d" }] }
+];
+
 export default function MapScreen({ navigation }) {
   const theme = useTheme();
+  const { isDarkMode } = useAppTheme(); // Récupérer l'état du thème sombre
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -144,23 +171,26 @@ export default function MapScreen({ navigation }) {
     <TouchableOpacity 
       onPress={() => handlePlaceSelect(item)}
       activeOpacity={0.6}
-      style={styles.resultItem}
+      style={[styles.resultItem, { 
+        backgroundColor: theme.colors.surface,
+        borderBottomColor: theme.colors.outline
+      }]}
     >
       <View style={styles.resultContent}>
         <View style={styles.resultTextContainer}>
-          <Text style={styles.resultTitle}>{item.name}</Text>
-          <Text style={styles.resultAddress}>📍 {item.address}</Text>
+          <Text style={[styles.resultTitle, { color: theme.colors.onSurface }]}>{item.name}</Text>
+          <Text style={[styles.resultAddress, { color: theme.colors.onSurfaceVariant }]}>📍 {item.address}</Text>
           <View style={styles.resultMeta}>
-            <Text style={styles.resultRating}>
+            <Text style={[styles.resultRating, { color: theme.colors.onSurfaceVariant }]}>
               ⭐ {item.rating.toFixed(1)} ({item.reviewCount})
             </Text>
-            <Text style={styles.resultAction}>Ajouter à la carte</Text>
+            <Text style={[styles.resultAction, { color: theme.colors.primary }]}>Ajouter à la carte</Text>
           </View>
         </View>
         <MaterialCommunityIcons 
           name="chevron-right" 
           size={20} 
-          color="#007AFF" 
+          color={theme.colors.primary} 
         />
       </View>
     </TouchableOpacity>
@@ -168,25 +198,33 @@ export default function MapScreen({ navigation }) {
 
   if (!location) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={styles.loadingText}>Chargement de la carte...</Text>
+        <Text style={[styles.loadingText, { color: theme.colors.onBackground }]}>Chargement de la carte...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <StatusBar 
+        barStyle={isDarkMode ? "light-content" : "dark-content"}
+        backgroundColor={theme.colors.background}
+      />
       <MapView
         key={mapKey}
         provider={PROVIDER_GOOGLE}
-        style={styles.map}
+        style={[
+          styles.map,
+          { backgroundColor: theme.colors.background }, // S'assurer que la carte a le bon fond
+        ]}
         initialRegion={{
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
+        customMapStyle={isDarkMode ? darkMapStyle : undefined} // Applique le style sombre si activé
       >
         {/* Marqueur de position actuelle */}
         <Marker
@@ -228,9 +266,12 @@ export default function MapScreen({ navigation }) {
 
       {/* Résultats de recherche */}
       {showResults && (
-        <Surface style={styles.resultsContainer}>
-          <View style={styles.resultsHeader}>
-            <Text variant="titleMedium" style={styles.resultsTitle}>
+        <Surface style={[styles.resultsContainer, { backgroundColor: theme.colors.surface }]}>
+          <View style={[styles.resultsHeader, { 
+            backgroundColor: theme.colors.surface,
+            borderBottomColor: theme.colors.outline 
+          }]}>
+            <Text variant="titleMedium" style={[styles.resultsTitle, { color: theme.colors.onSurface }]}>
               Résultats de recherche ({searchResults.length}/100)
             </Text>
             <TouchableOpacity onPress={() => setShowResults(false)}>
@@ -252,8 +293,22 @@ export default function MapScreen({ navigation }) {
               data={searchResults}
               renderItem={renderSearchResult}
               keyExtractor={(item) => item.id}
-              style={styles.resultsList}
-              showsVerticalScrollIndicator={false}
+              style={[styles.resultsList, { backgroundColor: theme.colors.surface }]}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+              contentContainerStyle={{ 
+                flexGrow: 1,
+                justifyContent: 'flex-start', // Align items to top
+                paddingBottom: 5 // Minimal padding at bottom
+              }}
+              removeClippedSubviews={false}
+              initialNumToRender={12} // Plus d'items pour remplir l'espace
+              maxToRenderPerBatch={15}
+              windowSize={15}
+              getItemLayout={(data, index) => (
+                // Optimisation pour le scroll - hauteur fixe par item
+                {length: 80, offset: 80 * index, index}
+              )}
             />
           ) : (
             <View style={styles.noResultsContainer}>
@@ -281,8 +336,8 @@ export default function MapScreen({ navigation }) {
 
       {/* Message d'erreur si applicable */}
       {errorMsg && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{errorMsg}</Text>
+        <View style={[styles.errorContainer, { backgroundColor: theme.colors.errorContainer }]}>
+          <Text style={[styles.errorText, { color: theme.colors.onErrorContainer }]}>{errorMsg}</Text>
         </View>
       )}
     </View>
@@ -292,6 +347,7 @@ export default function MapScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // backgroundColor supprimé - sera défini dynamiquement avec le thème
   },
   map: {
     flex: 1,
@@ -301,7 +357,7 @@ const styles = StyleSheet.create({
     top: Platform.OS === 'ios' ? 50 : 30,
     left: 16,
     right: 16,
-    zIndex: 10,
+    zIndex: 1001, // Augmenté pour être au-dessus des résultats
   },
   searchBar: {
     elevation: 6,
@@ -320,11 +376,10 @@ const styles = StyleSheet.create({
     top: Platform.OS === 'ios' ? 110 : 90,
     left: 16,
     right: 16,
-    maxHeight: '50%',
+    bottom: 80, // Utiliser bottom au lieu de maxHeight pour un meilleur contrôle
     borderRadius: 12,
-    elevation: 10,
-    zIndex: 999,
-    backgroundColor: '#FFFFFF',
+    elevation: 15,
+    zIndex: 1000,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -337,10 +392,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
+    padding: 8, // Réduit de 12 à 8 pour optimiser l'espace
+    borderBottomWidth: 0.5, // Réduit pour plus de subtilité
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
   },
@@ -348,25 +401,25 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   resultsList: {
-    maxHeight: 280,
-    backgroundColor: '#FFFFFF',
-    paddingBottom: 10,
+    maxHeight: 450, // Augmenté pour utiliser plus d'espace vertical
+    paddingBottom: 5, // Réduit pour optimiser l'espace
+    paddingTop: 2, // Réduit pour optimiser l'espace
   },
   resultItem: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 8,
-    marginVertical: 5,
-    borderRadius: 10,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    elevation: 3,
+    marginHorizontal: 6, // Réduit pour plus d'espace
+    marginVertical: 2, // Réduit pour optimiser l'espace
+    borderRadius: 8,
+    paddingVertical: 12, // Réduit pour plus d'items visibles
+    paddingHorizontal: 14, // Réduit légèrement
+    elevation: 2, // Réduit pour moins d'ombre
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 1,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    borderBottomWidth: 0.5, // Réduit pour plus de subtilité
   },
   resultContent: {
     flexDirection: 'row',
@@ -380,12 +433,12 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 17,
     fontWeight: 'bold',
-    color: '#1F2937',
+    // color supprimé - sera défini dynamiquement avec le thème
     marginBottom: 5,
   },
   resultAddress: {
     fontSize: 15,
-    color: '#6B7280',
+    // color supprimé - sera défini dynamiquement avec le thème
     marginBottom: 9,
   },
   resultMeta: {
@@ -395,11 +448,11 @@ const styles = StyleSheet.create({
   },
   resultRating: {
     fontSize: 13,
-    color: '#4B5563',
+    // color supprimé - sera défini dynamiquement avec le thème
   },
   resultAction: {
     fontSize: 13,
-    color: '#007AFF',
+    // color supprimé - sera défini dynamiquement avec le thème
     fontWeight: '500',
   },
   searchingContainer: {
@@ -421,21 +474,21 @@ const styles = StyleSheet.create({
   loadingText: {
     textAlign: 'center',
     marginTop: 10,
-    color: '#6B7280',
+    // color supprimé - sera défini dynamiquement avec le thème
   },
   errorContainer: {
     position: 'absolute',
     bottom: 100,
     left: 16,
     right: 16,
-    backgroundColor: '#FEE2E2',
+    // backgroundColor supprimé - sera défini dynamiquement avec le thème
     padding: 12,
     borderRadius: 8,
     zIndex: 5,
   },
   errorText: {
     textAlign: 'center',
-    color: '#EF4444',
+    // color supprimé - sera défini dynamiquement avec le thème
   },
   fabContainer: {
     position: 'absolute',
