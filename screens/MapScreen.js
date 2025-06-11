@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Platform, FlatList, TouchableOpacity, StatusBar } from 'react-native';
 import { Text, FAB, ActivityIndicator, Searchbar, useTheme, Surface, Card } from 'react-native-paper';
 import { useAppTheme } from '../theme/ThemeContext';
@@ -38,6 +38,7 @@ const darkMapStyle = [
 export default function MapScreen({ navigation }) {
   const theme = useTheme();
   const { isDarkMode } = useAppTheme(); // Récupérer l'état du thème sombre
+  const mapRef = useRef(null); // Référence pour contrôler la carte
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -45,7 +46,8 @@ export default function MapScreen({ navigation }) {
   const [showResults, setShowResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [places, setPlaces] = useState([]);
-  const [mapKey, setMapKey] = useState(0); // Pour forcer le re-rendu de la carte
+  const [lastAddedPlace, setLastAddedPlace] = useState(null); // Pour tracker le dernier lieu ajouté
+  const [mapKey, setMapKey] = useState(0); // Pour forcer le re-rendu quand nécessaire
 
   // Position par défaut sur Paris
   const defaultParisLocation = {
@@ -103,6 +105,21 @@ export default function MapScreen({ navigation }) {
     }, [])
   );
 
+  // Centrer automatiquement quand un nouveau lieu est ajouté
+  useEffect(() => {
+    if (lastAddedPlace && mapRef.current) {
+      // Attendre que la carte soit re-rendue avec le nouveau marqueur
+      setTimeout(() => {
+        mapRef.current.animateToRegion({
+          latitude: lastAddedPlace.coordinates.latitude,
+          longitude: lastAddedPlace.coordinates.longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        }, 800); // Animation rapide
+      }, 100); // Délai pour laisser la carte se re-rendre
+    }
+  }, [lastAddedPlace]);
+
   // Vérifier régulièrement si les marqueurs ont été supprimés
   useEffect(() => {
     const checkMarkers = setInterval(async () => {
@@ -155,11 +172,14 @@ export default function MapScreen({ navigation }) {
     const newPlaces = [...places, place];
     setPlaces(newPlaces);
     
+    // Forcer la mise à jour immédiate de la carte pour afficher le marqueur
+    setMapKey(prev => prev + 1);
+    
+    // Déclencher le centrage via le state après que le marqueur soit visible
+    setLastAddedPlace(place);
+    
     // Sauvegarder automatiquement
     saveMarkers(newPlaces);
-    
-    // Forcer le re-rendu de la carte
-    setMapKey(prev => prev + 1);
 
     // Ne pas naviguer vers les détails - juste ajouter le marqueur
     // L'utilisateur pourra cliquer sur le marqueur s'il veut voir les détails
@@ -212,7 +232,8 @@ export default function MapScreen({ navigation }) {
         backgroundColor={theme.colors.background}
       />
       <MapView
-        key={mapKey}
+        ref={mapRef} // Ajouter la référence
+        key={mapKey} // Pour forcer le re-rendu des marqueurs
         provider={PROVIDER_GOOGLE}
         style={[
           styles.map,
