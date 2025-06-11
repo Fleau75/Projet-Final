@@ -51,6 +51,14 @@ export default function PlaceDetailScreen({ navigation, route }) {
     },
   };
 
+  // S'assurer que place.accessibility existe
+  const accessibility = place.accessibility || {
+    ramp: false,
+    elevator: false,
+    parking: false,
+    toilets: false,
+  };
+
   const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
 
   return (
@@ -82,10 +90,10 @@ export default function PlaceDetailScreen({ navigation, route }) {
           Accessibilité
         </Text>
         <View style={styles.featuresGrid}>
-          <AccessibilityFeature label="♿️ Rampe d'accès" available={place.accessibility.ramp} />
-          <AccessibilityFeature label="🛗 Ascenseur" available={place.accessibility.elevator} />
-          <AccessibilityFeature label="🅿️ Parking" available={place.accessibility.parking} />
-          <AccessibilityFeature label="🚻 Toilettes adaptées" available={place.accessibility.toilets} />
+          <AccessibilityFeature label="♿️ Rampe d'accès" available={accessibility.ramp} />
+          <AccessibilityFeature label="🛗 Ascenseur" available={accessibility.elevator} />
+          <AccessibilityFeature label="🅿️ Parking" available={accessibility.parking} />
+          <AccessibilityFeature label="🚻 Toilettes adaptées" available={accessibility.toilets} />
         </View>
       </Surface>
 

@@ -3,7 +3,7 @@
  * Permet à l'utilisateur de configurer ses préférences d'accessibilité et l'application
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet, ScrollView, Linking, Platform, Alert } from 'react-native';
 import { 
   Card, 
@@ -28,11 +28,14 @@ const SEARCH_RADIUS_MIN = 500;
 const SEARCH_RADIUS_MAX = 5000;
 const SEARCH_RADIUS_STEP = 100;
 
-export default function SettingsScreen({ navigation }) {
+export default function SettingsScreen({ navigation, route }) {
   const theme = useTheme();
   const { isDarkMode, toggleTheme, resetToDefault: resetTheme } = useAppTheme();
   const { isLargeText, toggleTextSize, resetToDefault: resetTextSize, textSizes } = useTextSize();
   const { isScreenReaderEnabled } = useScreenReader();
+  
+  // Référence pour le ScrollView
+  const scrollViewRef = useRef(null);
   
   // États pour les préférences d'accessibilité
   const [accessibilityPrefs, setAccessibilityPrefs] = useState({
@@ -87,6 +90,27 @@ export default function SettingsScreen({ navigation }) {
 
     loadSettings();
   }, []);
+
+  // Gérer le défilement vers la section notifications
+  useEffect(() => {
+    if (route?.params?.scrollToNotifications) {
+      // Délai pour laisser le temps au composant de se rendre
+      const timer = setTimeout(() => {
+        // Scroller vers une position approximative de la section notifications
+        // Chaque Card fait environ 200-300px, les notifications sont la 4ème section
+        const approximatePosition = 3 * 280; // Position approximative
+        scrollViewRef.current?.scrollTo({ 
+          y: approximatePosition, 
+          animated: true 
+        });
+        
+        // Nettoyer le paramètre pour éviter les réactualisations multiples
+        navigation.setParams({ scrollToNotifications: false });
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [route?.params?.scrollToNotifications, navigation]);
 
   // Optimisation des callbacks avec useCallback
   const handleSearchRadiusChange = useCallback(async (value) => {
@@ -246,7 +270,7 @@ export default function SettingsScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ScrollView style={styles.scrollView}>
+      <ScrollView ref={scrollViewRef} style={styles.scrollView}>
         
         {/* Préférences d'accessibilité */}
         <Card style={styles.card}>

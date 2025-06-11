@@ -196,7 +196,7 @@ export default function ProfileScreen({ navigation, route }) {
               description="Gérer les notifications"
               left={props => <List.Icon {...props} icon="bell" />}
               right={props => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => navigation.navigate('Settings')}
+              onPress={() => navigation.navigate('Settings', { scrollToNotifications: true })}
             />
           </Card.Content>
         </Card>
