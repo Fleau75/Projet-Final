@@ -33,7 +33,7 @@ const Tab = createBottomTabNavigator();
 
 /**
  * Composant de navigation par onglets principal
- * Contient les 5 onglets principaux de l'application
+ * Contient les 4 onglets principaux de l'application
  */
 function MainTabNavigator() {
   const { theme } = useAppTheme();
@@ -50,9 +50,6 @@ function MainTabNavigator() {
               break;
             case 'Map':
               iconName = focused ? 'map' : 'map-outline';
-              break;
-            case 'AddPlace':
-              iconName = focused ? 'plus-circle' : 'plus-circle-outline';
               break;
             case 'Profile':
               iconName = focused ? 'account' : 'account-outline';
@@ -114,17 +111,6 @@ function MainTabNavigator() {
         options={{ 
           title: 'Carte',
           tabBarLabel: 'Carte',
-        }}
-      />
-      
-      <Tab.Screen 
-        name="AddPlace" 
-        component={AddReviewScreen}
-        options={{ 
-          title: 'Ajouter un avis',
-          tabBarLabel: 'Ajouter',
-          headerTitle: 'Ajouter un avis',
-          tabBarHideOnKeyboard: true,
         }}
       />
       

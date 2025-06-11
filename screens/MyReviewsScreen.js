@@ -346,7 +346,7 @@ export default function MyReviewsScreen({ navigation }) {
               </Text>
               <Button 
                 mode="contained" 
-                onPress={() => navigation.navigate('AddPlace')}
+                onPress={() => navigation.navigate('AddReview')}
                 style={styles.addButton}
                 icon="plus"
               >
