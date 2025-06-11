@@ -113,12 +113,17 @@ export default function MapScreen({ navigation }) {
         ))}
       </MapView>
 
-      <FAB
-        icon="plus"
-        style={[styles.fab, { backgroundColor: theme.colors.primary }]}
-        onPress={() => navigation.getParent()?.navigate('AddReview')}
-        label="Ajouter un lieu"
-      />
+      <View style={styles.fabContainer}>
+        <FAB
+          icon="comment-plus"
+          style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+          onPress={() => navigation.getParent()?.navigate('AddReview')}
+          label="Ajouter avis"
+          mode="extended"
+          size="medium"
+          color="white"
+        />
+      </View>
     </View>
   );
 }
@@ -149,18 +154,25 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     margin: 20,
   },
-  fab: {
+  fabContainer: {
     position: 'absolute',
-    margin: 16,
+    bottom: 30,
+    left: 0,
     right: 0,
-    bottom: 0,
-    elevation: 8,
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  fab: {
+    elevation: 12,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 6,
     },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
 });

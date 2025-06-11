@@ -241,6 +241,15 @@ function AppContent() {
                 title: 'Ajouter un avis',
                 presentation: 'modal',
                 headerShown: true,
+                headerBackTitle: '',
+                headerBackTitleVisible: false,
+                headerStyle: {
+                  backgroundColor: theme.colors.primary,
+                },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                },
               }}
             />
           </Stack.Navigator>
