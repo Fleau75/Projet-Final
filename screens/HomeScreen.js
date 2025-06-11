@@ -32,6 +32,84 @@ const categories = [
  * Données statiques de fallback (utilisées si Firebase ne fonctionne pas)
  */
 const staticPlaces = [
+  // Lieux du 11ème arrondissement (vraie zone de l'utilisateur)
+  {
+    id: 'static-11-1',
+    name: 'Place de la République',
+    address: 'Place de la République, 75011 Paris',
+    type: 'culture',
+    rating: 4.3,
+    reviewCount: 89,
+    image: null,
+    coordinates: {
+      latitude: 48.8676,
+      longitude: 2.3631
+    },
+    accessibility: {
+      ramp: true,
+      elevator: false,
+      parking: true,
+      toilets: true,
+    },
+  },
+  {
+    id: 'static-11-2',
+    name: 'Café Charbon',
+    address: '109 Rue Oberkampf, 75011 Paris',
+    type: 'restaurant',
+    rating: 4.1,
+    reviewCount: 156,
+    image: null,
+    coordinates: {
+      latitude: 48.8665,
+      longitude: 2.3731
+    },
+    accessibility: {
+      ramp: true,
+      elevator: false,
+      parking: false,
+      toilets: true,
+    },
+  },
+  {
+    id: 'static-11-3',
+    name: 'Monoprix Bastille',
+    address: '51 Rue du Faubourg Saint-Antoine, 75011 Paris',
+    type: 'shopping',
+    rating: 4.0,
+    reviewCount: 234,
+    image: null,
+    coordinates: {
+      latitude: 48.8531,
+      longitude: 2.3726
+    },
+    accessibility: {
+      ramp: true,
+      elevator: true,
+      parking: false,
+      toilets: true,
+    },
+  },
+  {
+    id: 'static-11-4',
+    name: 'Hôpital Saint-Antoine',
+    address: '184 Rue du Faubourg Saint-Antoine, 75012 Paris',
+    type: 'health',
+    rating: 3.8,
+    reviewCount: 89,
+    image: null,
+    coordinates: {
+      latitude: 48.8479,
+      longitude: 2.3939
+    },
+    accessibility: {
+      ramp: true,
+      elevator: true,
+      parking: true,
+      toilets: true,
+    },
+  },
+  // Anciens lieux (3ème/4ème) gardés pour la compatibilité
   {
     id: 'static-1',
     name: 'Restaurant Le Marais',
@@ -261,7 +339,7 @@ export default function HomeScreen({ navigation }) {
       // Charger depuis les différentes sources en parallèle
       const [firestorePlaces, parisPlaces] = await Promise.all([
         PlacesService.getAllPlaces().catch(() => []),
-        SimplePlacesService.getNearbyPlaces(selectedCategory, 20).catch((error) => {
+        SimplePlacesService.getNearbyPlaces(selectedCategory, 20, userLocation, searchRadius).catch((error) => {
           console.warn('⚠️ Google Places erreur:', error.message);
           return [];
         })
@@ -299,7 +377,7 @@ export default function HomeScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, userLocation, searchRadius]);
 
   /**
    * Effet pour charger les lieux au montage du composant
@@ -340,6 +418,41 @@ export default function HomeScreen({ navigation }) {
         });
         setUserLocation(location.coords);
         
+        // Debug: Afficher votre position et calculer les distances aux lieux du 11ème
+        console.log(`📍 VOTRE POSITION: ${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`);
+        
+        // Fonction locale pour calculer les distances
+        const calcDistance = (coords1, coords2) => {
+          const lat1 = coords1.latitude * Math.PI / 180;
+          const lon1 = coords1.longitude * Math.PI / 180;
+          const lat2 = coords2.latitude * Math.PI / 180;
+          const lon2 = coords2.longitude * Math.PI / 180;
+          const R = 6371;
+          const dLat = lat2 - lat1;
+          const dLon = lon2 - lon1;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1) * Math.cos(lat2) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          return R * c;
+        };
+        
+        // Calculer distances aux lieux du 11ème pour debug
+        const lieu11eme = {
+          nom: 'Place de la République (11ème)',
+          coords: { latitude: 48.8676, longitude: 2.3631 }
+        };
+        const lieuOberkampf = {
+          nom: 'Rue Oberkampf (11ème)',
+          coords: { latitude: 48.8665, longitude: 2.3731 }
+        };
+        
+        const distanceRepublique = calcDistance(location.coords, lieu11eme.coords);
+        const distanceOberkampf = calcDistance(location.coords, lieuOberkampf.coords);
+        
+        console.log(`🏠 Distance à ${lieu11eme.nom}: ${(distanceRepublique * 1000).toFixed(0)}m`);
+        console.log(`🏠 Distance à ${lieuOberkampf.nom}: ${(distanceOberkampf * 1000).toFixed(0)}m`);
+        
         // Google Places intégré avec le service principal
         console.log('📍 Localisation obtenue, les lieux Google Places seront chargés via loadPlacesFromFirestore');
       } catch (error) {
@@ -372,8 +485,6 @@ export default function HomeScreen({ navigation }) {
               Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     const distance = R * c;
-
-    // Distance calculée: ${distance.toFixed(2)} km
 
     return distance;
   };
