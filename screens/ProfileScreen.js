@@ -105,13 +105,6 @@ export default function ProfileScreen({ navigation, route }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* En-tête personnalisé */}
-      <View style={[styles.header, { backgroundColor: theme.colors.primary }]}>
-        <Title style={[styles.headerTitle, { fontSize: textSizes.title }]}>
-          Mon Profil
-        </Title>
-      </View>
-      
       <ScrollView style={styles.scrollView}>
         {/* Section profil utilisateur */}
         <Card style={styles.profileCard}>
@@ -225,24 +218,6 @@ export default function ProfileScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    paddingTop: 44, // Pour l'encoche iPhone
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  headerTitle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
   },
   scrollView: {
     flex: 1,

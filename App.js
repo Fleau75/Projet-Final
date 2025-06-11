@@ -10,6 +10,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Platform } from 'react-native';
 import { ThemeProvider, useAppTheme } from './theme/ThemeContext';
 import { TextSizeProvider } from './theme/TextSizeContext';
 import { ScreenReaderProvider } from './theme/ScreenReaderContext';
@@ -31,6 +32,32 @@ import PlaceDetailScreen from './screens/PlaceDetailScreen';
 // Création des navigateurs
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+
+// Style global pour les headers
+const getHeaderStyle = (theme) => ({
+  backgroundColor: theme.colors.primary,
+  elevation: 8,
+  shadowColor: theme.colors.primary,
+  shadowOffset: {
+    width: 0,
+    height: 4,
+  },
+  shadowOpacity: 0.3,
+  shadowRadius: 6,
+  borderBottomWidth: 0,
+  height: Platform.OS === 'ios' ? 100 : 70,
+});
+
+const getHeaderTitleStyle = () => ({
+  fontWeight: '700',
+  fontSize: 20,
+  fontFamily: Platform.select({
+    ios: 'SF Pro Display',
+    android: 'Roboto',
+    default: 'System',
+  }),
+  letterSpacing: 0.5,
+});
 
 /**
  * Composant de navigation par onglets principal
@@ -86,13 +113,11 @@ function MainTabNavigator() {
           fontSize: 12,
           fontWeight: '600',
         },
-        headerStyle: {
-          backgroundColor: theme.colors.primary,
-        },
+        headerStyle: getHeaderStyle(theme),
         headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
+        headerTitleStyle: getHeaderTitleStyle(),
+        headerTitleAlign: 'center',
+        headerBackTitleVisible: false,
       })}
     >
       <Tab.Screen 
@@ -121,7 +146,7 @@ function MainTabNavigator() {
         options={{ 
           title: 'Profil',
           tabBarLabel: 'Profil',
-          headerShown: false,
+          headerTitle: 'Mon Profil',
         }}
       />
       
@@ -180,13 +205,10 @@ function AppContent() {
                 headerShown: true,
                 headerBackTitle: '',
                 headerBackTitleVisible: false,
-                headerStyle: {
-                  backgroundColor: theme.colors.primary,
-                },
+                headerStyle: getHeaderStyle(theme),
                 headerTintColor: '#fff',
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
+                headerTitleStyle: getHeaderTitleStyle(),
+                headerTitleAlign: 'center',
               }}
             />
             <Stack.Screen name="MainTabs" component={MainTabNavigator} />
@@ -197,6 +219,12 @@ function AppContent() {
                 title: route.params?.place?.name || 'Détails du lieu',
                 presentation: 'card',
                 headerShown: true,
+                headerBackTitle: '',
+                headerBackTitleVisible: false,
+                headerStyle: getHeaderStyle(theme),
+                headerTintColor: '#fff',
+                headerTitleStyle: getHeaderTitleStyle(),
+                headerTitleAlign: 'center',
               })}
             />
             <Stack.Screen 
@@ -208,13 +236,10 @@ function AppContent() {
                 headerShown: true,
                 headerBackTitle: '',
                 headerBackTitleVisible: false,
-                headerStyle: {
-                  backgroundColor: theme.colors.primary,
-                },
+                headerStyle: getHeaderStyle(theme),
                 headerTintColor: '#fff',
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
+                headerTitleStyle: getHeaderTitleStyle(),
+                headerTitleAlign: 'center',
               }}
             />
             <Stack.Screen 
@@ -226,13 +251,10 @@ function AppContent() {
                 headerShown: true,
                 headerBackTitle: '',
                 headerBackTitleVisible: false,
-                headerStyle: {
-                  backgroundColor: theme.colors.primary,
-                },
+                headerStyle: getHeaderStyle(theme),
                 headerTintColor: '#fff',
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
+                headerTitleStyle: getHeaderTitleStyle(),
+                headerTitleAlign: 'center',
               }}
             />
             <Stack.Screen 
@@ -244,13 +266,10 @@ function AppContent() {
                 headerShown: true,
                 headerBackTitle: '',
                 headerBackTitleVisible: false,
-                headerStyle: {
-                  backgroundColor: theme.colors.primary,
-                },
+                headerStyle: getHeaderStyle(theme),
                 headerTintColor: '#fff',
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
+                headerTitleStyle: getHeaderTitleStyle(),
+                headerTitleAlign: 'center',
               }}
             />
             <Stack.Screen 
@@ -262,13 +281,10 @@ function AppContent() {
                 headerShown: true,
                 headerBackTitle: '',
                 headerBackTitleVisible: false,
-                headerStyle: {
-                  backgroundColor: theme.colors.primary,
-                },
+                headerStyle: getHeaderStyle(theme),
                 headerTintColor: '#fff',
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
+                headerTitleStyle: getHeaderTitleStyle(),
+                headerTitleAlign: 'center',
               }}
             />
           </Stack.Navigator>
