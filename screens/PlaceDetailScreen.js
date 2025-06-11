@@ -3,15 +3,20 @@ import { View, StyleSheet, ScrollView } from 'react-native';
 import { Text, Button, Surface, useTheme } from 'react-native-paper';
 import { Rating } from 'react-native-ratings';
 import ReviewCard from '../components/ReviewCard';
+import { useTextSize } from '../theme/TextSizeContext';
 
-const AccessibilityFeature = ({ label, available }) => (
-  <View style={[styles.feature, available ? styles.featureAvailable : styles.featureUnavailable]}>
-    <Text style={styles.featureText}>{label}</Text>
+const AccessibilityFeature = ({ label, available }) => {
+  const { textSizes } = useTextSize();
+  return (
+    <View style={[styles.feature, available ? styles.featureAvailable : styles.featureUnavailable]}>
+      <Text style={[styles.featureText, { fontSize: textSizes.body }]}>{label}</Text>
     </View>
   );
+};
 
 export default function PlaceDetailScreen({ navigation, route }) {
   const theme = useTheme();
+  const { textSizes } = useTextSize();
   const [reviews] = useState([
     {
       id: 1,
@@ -51,11 +56,11 @@ export default function PlaceDetailScreen({ navigation, route }) {
   return (
     <ScrollView style={styles.container}>
       <Surface style={styles.headerSurface}>
-        <Text variant="headlineMedium" style={styles.title}>
+        <Text style={[styles.title, { fontSize: textSizes.title }]}>
           {place.name}
         </Text>
         
-        <Text variant="bodyLarge" style={styles.address}>
+        <Text style={[styles.address, { fontSize: textSizes.body }]}>
           {place.address}
         </Text>
 
@@ -66,14 +71,14 @@ export default function PlaceDetailScreen({ navigation, route }) {
             imageSize={24}
             style={styles.rating}
           />
-          <Text variant="bodyMedium">
+          <Text style={{ fontSize: textSizes.body }}>
             {averageRating.toFixed(1)} ({reviews.length} avis)
           </Text>
-            </View>
+        </View>
       </Surface>
 
       <Surface style={styles.section}>
-        <Text variant="titleLarge" style={styles.sectionTitle}>
+        <Text style={[styles.sectionTitle, { fontSize: textSizes.subtitle }]}>
           Accessibilité
         </Text>
         <View style={styles.featuresGrid}>
@@ -81,18 +86,19 @@ export default function PlaceDetailScreen({ navigation, route }) {
           <AccessibilityFeature label="🛗 Ascenseur" available={place.accessibility.elevator} />
           <AccessibilityFeature label="🅿️ Parking" available={place.accessibility.parking} />
           <AccessibilityFeature label="🚻 Toilettes adaptées" available={place.accessibility.toilets} />
-          </View>
+        </View>
       </Surface>
 
       <Surface style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text variant="titleLarge" style={styles.sectionTitle}>
+          <Text style={[styles.sectionTitle, { fontSize: textSizes.subtitle }]}>
             Avis
           </Text>
           <Button
             mode="contained"
             onPress={() => navigation.navigate('AddReview')}
             style={styles.addReviewButton}
+            labelStyle={{ fontSize: textSizes.body }}
           >
             Ajouter un avis
           </Button>
@@ -168,7 +174,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEE2E2',
   },
   featureText: {
-    fontSize: 14,
+    fontWeight: '500',
   },
   reviewsContainer: {
     gap: 16,

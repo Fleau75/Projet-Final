@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { Text, Button, TextInput, Surface, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTextSize } from '../theme/TextSizeContext';
 
 export default function LoginScreen({ navigation }) {
   const theme = useTheme();
+  const { textSizes } = useTextSize();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -33,78 +35,83 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
-    >
+      >
         <View style={styles.headerContainer}>
-          <Text variant="displayLarge" style={[styles.title, { color: theme.colors.primary }]}>
+          <Text style={[styles.title, { color: theme.colors.primary, fontSize: textSizes.title }]}>
             AccessPlus
           </Text>
-          <Text variant="titleLarge" style={styles.subtitle}>
-          Trouvez facilement des lieux accessibles
-        </Text>
-      </View>
+          <Text style={[styles.subtitle, { fontSize: textSizes.subtitle }]}>
+            Trouvez facilement des lieux accessibles
+          </Text>
+        </View>
 
         <Surface style={[styles.surface, { backgroundColor: theme.colors.surface }]}>
-        <TextInput
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          mode="outlined"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          style={styles.input}
+          <TextInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            mode="outlined"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            style={styles.input}
             left={<TextInput.Icon icon="email" />}
-        />
+            theme={{ fonts: { bodyLarge: { fontSize: textSizes.body } } }}
+          />
 
-        <TextInput
-          label="Mot de passe"
-          value={password}
-          onChangeText={setPassword}
-          mode="outlined"
-          secureTextEntry
-          style={styles.input}
+          <TextInput
+            label="Mot de passe"
+            value={password}
+            onChangeText={setPassword}
+            mode="outlined"
+            secureTextEntry
+            style={styles.input}
             left={<TextInput.Icon icon="lock" />}
-        />
+            theme={{ fonts: { bodyLarge: { fontSize: textSizes.body } } }}
+          />
 
-        {error ? (
-            <Text style={[styles.error, { color: theme.colors.error }]}>
-            {error}
+          {error ? (
+            <Text style={[styles.error, { color: theme.colors.error, fontSize: textSizes.body }]}>
+              {error}
             </Text>
-        ) : null}
+          ) : null}
 
-        <Button
-          mode="contained"
-          onPress={handleLogin}
-          loading={isLoading}
-          style={styles.button}
-        >
-          Se connecter
-        </Button>
+          <Button
+            mode="contained"
+            onPress={handleLogin}
+            loading={isLoading}
+            style={styles.button}
+            labelStyle={{ fontSize: textSizes.body }}
+          >
+            Se connecter
+          </Button>
 
-        <Button
-          mode="outlined"
-          onPress={() => navigation.replace('MainTabs')}
-          style={styles.button}
-        >
-          Continuer sans compte
-        </Button>
+          <Button
+            mode="outlined"
+            onPress={() => navigation.replace('MainTabs')}
+            style={styles.button}
+            labelStyle={{ fontSize: textSizes.body }}
+          >
+            Continuer sans compte
+          </Button>
 
-        <View style={styles.registerContainer}>
-            <Text variant="bodyMedium">
+          <View style={styles.registerContainer}>
+            <Text style={{ fontSize: textSizes.body }}>
               Vous n'avez pas de compte ?
             </Text>
-          <Button
-            mode="text"
+            <Button
+              mode="text"
               onPress={() => navigation.navigate('Register')}
-            style={styles.registerButton}
-          >
-            S'inscrire
-          </Button>
-        </View>
+              style={styles.registerButton}
+              labelStyle={{ fontSize: textSizes.body }}
+            >
+              S'inscrire
+            </Button>
+          </View>
         </Surface>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

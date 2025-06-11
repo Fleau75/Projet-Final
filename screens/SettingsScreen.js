@@ -17,10 +17,12 @@ import {
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '../theme/ThemeContext';
+import { useTextSize } from '../theme/TextSizeContext';
 
 export default function SettingsScreen({ navigation }) {
   const theme = useTheme();
   const { isDarkMode, toggleTheme } = useAppTheme();
+  const { isLargeText, toggleTextSize, textSizes } = useTextSize();
   
   // États pour les préférences d'accessibilité
   const [accessibilityPrefs, setAccessibilityPrefs] = useState({
@@ -28,8 +30,6 @@ export default function SettingsScreen({ navigation }) {
     requireElevator: false,
     requireAccessibleParking: false,
     requireAccessibleToilets: false,
-    highContrast: false,
-    largeText: false,
     screenReader: false,
     speechRate: 1.0,
     autoDescriptions: false,
@@ -72,8 +72,6 @@ export default function SettingsScreen({ navigation }) {
       requireElevator: false,
       requireAccessibleParking: false,
       requireAccessibleToilets: false,
-      highContrast: false,
-      largeText: false,
       screenReader: false,
       speechRate: 1.0,
       autoDescriptions: false,
@@ -94,14 +92,16 @@ export default function SettingsScreen({ navigation }) {
         {/* Préférences d'accessibilité */}
         <Card style={styles.card}>
           <Card.Content>
-            <Title style={styles.sectionTitle}>♿ Préférences d'accessibilité</Title>
-            <Text style={styles.sectionDescription}>
+            <Title style={[styles.sectionTitle, { fontSize: textSizes.title }]}>♿ Préférences d'accessibilité</Title>
+            <Text style={[styles.sectionDescription, { fontSize: textSizes.body }]}>
               Filtrez automatiquement les lieux selon vos besoins d'accessibilité
             </Text>
             
             <List.Item
               title="Rampe d'accès requise"
               description="Afficher uniquement les lieux avec rampe"
+              titleStyle={{ fontSize: textSizes.subtitle }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
               right={() => (
                 <Switch
                   value={accessibilityPrefs.requireRamp}
@@ -113,6 +113,8 @@ export default function SettingsScreen({ navigation }) {
             <List.Item
               title="Ascenseur requis"
               description="Afficher uniquement les lieux avec ascenseur"
+              titleStyle={{ fontSize: textSizes.subtitle }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
               right={() => (
                 <Switch
                   value={accessibilityPrefs.requireElevator}
@@ -124,6 +126,8 @@ export default function SettingsScreen({ navigation }) {
             <List.Item
               title="Parking accessible requis"
               description="Afficher uniquement les lieux avec parking PMR"
+              titleStyle={{ fontSize: textSizes.subtitle }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
               right={() => (
                 <Switch
                   value={accessibilityPrefs.requireAccessibleParking}
@@ -135,6 +139,8 @@ export default function SettingsScreen({ navigation }) {
             <List.Item
               title="Toilettes accessibles requises"
               description="Afficher uniquement les lieux avec toilettes PMR"
+              titleStyle={{ fontSize: textSizes.subtitle }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
               right={() => (
                 <Switch
                   value={accessibilityPrefs.requireAccessibleToilets}
@@ -148,11 +154,13 @@ export default function SettingsScreen({ navigation }) {
         {/* Préférences d'affichage */}
         <Card style={styles.card}>
           <Card.Content>
-            <Title style={styles.sectionTitle}>🎨 Apparence</Title>
+            <Title style={[styles.sectionTitle, { fontSize: textSizes.title }]}>🎨 Apparence</Title>
             
             <List.Item
               title="Mode sombre"
               description={isDarkMode ? "Interface sombre activée" : "Interface claire activée"}
+              titleStyle={{ fontSize: textSizes.subtitle }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
               left={props => <List.Icon {...props} icon={isDarkMode ? "weather-night" : "weather-sunny"} />}
               right={() => (
                 <Switch
@@ -165,23 +173,15 @@ export default function SettingsScreen({ navigation }) {
             <Divider style={styles.divider} />
             
             <List.Item
-              title="Contraste élevé"
-              description="Améliore la lisibilité pour les malvoyants"
-              right={() => (
-                <Switch
-                  value={accessibilityPrefs.highContrast}
-                  onValueChange={() => toggleAccessibilityPref('highContrast')}
-                />
-              )}
-            />
-            
-            <List.Item
               title="Texte agrandi"
-              description="Augmente la taille du texte"
+              description={isLargeText ? "Grande taille de texte activée" : "Taille de texte normale"}
+              titleStyle={{ fontSize: textSizes.subtitle }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
+              left={props => <List.Icon {...props} icon={isLargeText ? "format-size" : "format-text"} />}
               right={() => (
                 <Switch
-                  value={accessibilityPrefs.largeText}
-                  onValueChange={() => toggleAccessibilityPref('largeText')}
+                  value={isLargeText}
+                  onValueChange={toggleTextSize}
                 />
               )}
             />

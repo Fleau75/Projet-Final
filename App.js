@@ -11,6 +11,7 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ThemeProvider, useAppTheme } from './theme/ThemeContext';
+import { TextSizeProvider } from './theme/TextSizeContext';
 import LoadingOverlay from './components/LoadingOverlay';
 
 // Import des différents écrans de l'application
@@ -230,7 +231,9 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AppContent />
+        <TextSizeProvider>
+          <AppContent />
+        </TextSizeProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

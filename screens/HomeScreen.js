@@ -9,6 +9,7 @@ import { Searchbar, Chip, Text, SegmentedButtons, useTheme, Button } from 'react
 import PlaceCard from '../components/PlaceCard';
 import * as Location from 'expo-location';
 import { searchNearbyPlaces } from '../services/placesApi';
+import { useTextSize } from '../theme/TextSizeContext';
 
 /**
  * Liste des catégories de lieux disponibles dans l'application
@@ -190,6 +191,7 @@ const getAccessibilityLabel = (level) => {
 export default function HomeScreen({ navigation }) {
   // États pour gérer les filtres et la recherche
   const theme = useTheme();
+  const { textSizes } = useTextSize();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortValue, setSortValue] = useState('proximity');
@@ -336,7 +338,7 @@ export default function HomeScreen({ navigation }) {
   );
 
   const renderSectionHeader = (title) => (
-    <Text variant="titleLarge" style={styles.sectionTitle}>
+    <Text style={[styles.sectionHeader, { fontSize: textSizes.subtitle }]}>
       {title}
     </Text>
   );
@@ -415,7 +417,7 @@ export default function HomeScreen({ navigation }) {
               selected={selectedCategory === category.id}
               onPress={() => setSelectedCategory(category.id)}
               style={styles.categoryChip}
-              selectedColor={theme.colors.primary}
+              textStyle={{ fontSize: textSizes.body }}
             >
               {category.label}
             </Chip>
@@ -433,6 +435,7 @@ export default function HomeScreen({ navigation }) {
             onPress={() => setAccessibilityFilter('all')}
             style={styles.categoryChip}
             selectedColor={theme.colors.primary}
+            textStyle={{ fontSize: textSizes.body }}
           >
             🔍 Tous
           </Chip>
@@ -441,6 +444,7 @@ export default function HomeScreen({ navigation }) {
             onPress={() => setAccessibilityFilter('full')}
             style={styles.categoryChip}
             selectedColor={theme.colors.primary}
+            textStyle={{ fontSize: textSizes.body }}
           >
             ♿ Totalement accessible
           </Chip>
@@ -449,6 +453,7 @@ export default function HomeScreen({ navigation }) {
             onPress={() => setAccessibilityFilter('partial')}
             style={styles.categoryChip}
             selectedColor={theme.colors.primary}
+            textStyle={{ fontSize: textSizes.body }}
           >
             ⚡ Partiellement accessible
           </Chip>
@@ -458,9 +463,9 @@ export default function HomeScreen({ navigation }) {
           value={sortValue}
           onValueChange={setSortValue}
           buttons={[
-            { value: 'proximity', label: 'Distance' },
-            { value: 'rating', label: 'Note' },
-            { value: 'popular', label: 'Populaire' },
+            { value: 'proximity', label: '📍 Distance', labelStyle: { fontSize: textSizes.body } },
+            { value: 'rating', label: '⭐ Note', labelStyle: { fontSize: textSizes.body } },
+            { value: 'reviews', label: '💬 Avis', labelStyle: { fontSize: textSizes.body } },
           ]}
           style={styles.sortButtons}
         />
@@ -600,5 +605,18 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 8,
+  },
+  welcomeText: {
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    opacity: 0.7,
+    marginBottom: 16,
+  },
+  sectionHeader: {
+    fontWeight: 'bold',
+    marginVertical: 12,
+    paddingHorizontal: 16,
   },
 });

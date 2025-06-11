@@ -2,8 +2,11 @@ import React from 'react';
 import { View, StyleSheet, Image, ScrollView } from 'react-native';
 import { Surface, Text } from 'react-native-paper';
 import { Rating } from 'react-native-ratings';
+import { useTextSize } from '../theme/TextSizeContext';
 
 export default function ReviewCard({ review }) {
+  const { textSizes } = useTextSize();
+  
   return (
     <Surface style={styles.reviewCard}>
       <View style={styles.reviewHeader}>
@@ -12,11 +15,11 @@ export default function ReviewCard({ review }) {
             source={review.userPhoto ? { uri: review.userPhoto } : require('../assets/default-avatar.png')}
             style={styles.userPhoto}
           />
-          <Text variant="titleMedium" style={styles.userName}>
+          <Text style={[styles.userName, { fontSize: textSizes.subtitle }]}>
             {review.userName}
           </Text>
         </View>
-        <Text variant="bodySmall" style={styles.reviewDate}>
+        <Text style={[styles.reviewDate, { fontSize: textSizes.caption }]}>
           {new Date(review.date).toLocaleDateString()}
         </Text>
       </View>
@@ -28,7 +31,7 @@ export default function ReviewCard({ review }) {
         style={styles.reviewRating}
       />
 
-      <Text variant="bodyMedium" style={styles.reviewComment}>
+      <Text style={[styles.reviewComment, { fontSize: textSizes.body }]}>
         {review.comment}
       </Text>
 
