@@ -493,40 +493,23 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.welcomeContainer}>
           <Text style={[styles.welcomeText, { 
             color: theme.colors.onSurface, 
-            fontSize: textSizes.title,
+            fontSize: textSizes.subtitle,
             textAlign: 'center',
             marginBottom: 8 
           }]}>
             🌟 AccessPlus
           </Text>
           
-          <Text style={[styles.subtitle, { 
-            color: theme.colors.onSurface, 
-            fontSize: textSizes.body,
-            textAlign: 'center',
-            marginBottom: 10 
-          }]}>
-            Découvrez des lieux accessibles à tous
-          </Text>
-          
-          {/* Indicateur du nombre de lieux */}
-          <View style={styles.statsContainer}>
-            <Text style={[styles.statsText, { 
-              color: theme.colors.primary, 
-              fontSize: textSizes.body,
-              textAlign: 'center',
-              fontWeight: 'bold'
-            }]}>
-              📍 {places.length} lieux disponibles à Paris
-            </Text>
-            
+          {/* Bouton actualiser centré */}
+          <View style={styles.refreshContainer}>
             <Button 
-              mode="outlined" 
+              mode="text" 
               onPress={loadPlacesFromFirestore}
               loading={loading}
               disabled={loading}
               style={styles.refreshButton}
               compact
+              labelStyle={{ fontSize: textSizes.caption }}
             >
               🔄 Actualiser
             </Button>
@@ -647,7 +630,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 5,
-    paddingBottom: 10,
+    paddingBottom: 8,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     elevation: 4,
@@ -660,10 +643,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   categoriesContainer: {
-    marginBottom: 15,
+    marginBottom: 12,
   },
   accessibilityContainer: {
-    marginBottom: 15,
+    marginBottom: 12,
   },
   categories: {
     paddingRight: 20,
@@ -743,9 +726,9 @@ const styles = StyleSheet.create({
   },
   welcomeContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 16,
-    padding: 10,
-    marginBottom: 10,
+    borderRadius: 12,
+    padding: 8,
+    marginBottom: 8,
   },
   welcomeText: {
     fontWeight: '700',
@@ -799,20 +782,11 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     paddingHorizontal: 16,
   },
-  statsContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 12,
-    padding: 10,
-    marginTop: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  statsText: {
-    flex: 1,
-    marginRight: 10,
-  },
   refreshButton: {
-    minWidth: 100,
+    minWidth: 80,
+  },
+  refreshContainer: {
+    alignItems: 'center',
+    marginTop: 4,
   },
 });
