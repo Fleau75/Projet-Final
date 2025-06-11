@@ -45,12 +45,12 @@ const getHeaderStyle = (theme) => ({
   shadowOpacity: 0.3,
   shadowRadius: 6,
   borderBottomWidth: 0,
-  height: Platform.OS === 'ios' ? 100 : 70,
+  height: Platform.OS === 'ios' ? 60 : 50,
 });
 
 const getHeaderTitleStyle = () => ({
   fontWeight: '700',
-  fontSize: 20,
+  fontSize: 18,
   fontFamily: Platform.select({
     ios: 'SF Pro Display',
     android: 'Roboto',
