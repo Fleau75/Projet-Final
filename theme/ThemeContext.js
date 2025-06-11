@@ -51,11 +51,21 @@ export const ThemeProvider = ({ children }) => {
     }
   };
 
+  const resetToDefault = async () => {
+    try {
+      setIsDarkMode(false); // Revenir au thème clair par défaut
+      await AsyncStorage.setItem('theme_preference', 'light');
+    } catch (error) {
+      console.error('Erreur lors de la réinitialisation du thème:', error);
+    }
+  };
+
   const currentTheme = isDarkMode ? darkTheme : lightTheme;
 
   const value = {
     isDarkMode,
     toggleTheme,
+    resetToDefault,
     theme: currentTheme,
     isLoading,
   };

@@ -40,6 +40,15 @@ export const TextSizeProvider = ({ children }) => {
     }
   };
 
+  const resetToDefault = async () => {
+    try {
+      setIsLargeText(false); // Revenir à la taille normale par défaut
+      await AsyncStorage.setItem(TEXT_SIZE_KEY, 'false');
+    } catch (error) {
+      console.error('Erreur lors de la réinitialisation de la taille de texte:', error);
+    }
+  };
+
   // Facteurs de taille pour différents éléments de texte
   const textSizes = {
     title: isLargeText ? 24 : 18,
@@ -51,7 +60,7 @@ export const TextSizeProvider = ({ children }) => {
   };
 
   return (
-    <TextSizeContext.Provider value={{ isLargeText, toggleTextSize, textSizes }}>
+    <TextSizeContext.Provider value={{ isLargeText, toggleTextSize, resetToDefault, textSizes }}>
       {children}
     </TextSizeContext.Provider>
   );

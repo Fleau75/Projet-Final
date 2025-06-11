@@ -30,8 +30,8 @@ const SEARCH_RADIUS_STEP = 100;
 
 export default function SettingsScreen({ navigation }) {
   const theme = useTheme();
-  const { isDarkMode, toggleTheme } = useAppTheme();
-  const { isLargeText, toggleTextSize, textSizes } = useTextSize();
+  const { isDarkMode, toggleTheme, resetToDefault: resetTheme } = useAppTheme();
+  const { isLargeText, toggleTextSize, resetToDefault: resetTextSize, textSizes } = useTextSize();
   const { isScreenReaderEnabled } = useScreenReader();
   
   // États pour les préférences d'accessibilité
@@ -111,12 +111,23 @@ export default function SettingsScreen({ navigation }) {
     }));
   };
 
-  const toggleNotification = (key) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
+  const toggleNotification = useCallback(async (key) => {
+    try {
+      const newNotifications = {
+        ...notifications,
+        [key]: !notifications[key]
+      };
+      setNotifications(newNotifications);
+      await AsyncStorage.setItem('notifications', JSON.stringify(newNotifications));
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des notifications:', error);
+      Alert.alert(
+        "Erreur",
+        "Impossible de sauvegarder les préférences de notification",
+        [{ text: "OK" }]
+      );
+    }
+  }, [notifications]);
 
   const handleSaveSettings = async () => {
     try {
@@ -147,51 +158,72 @@ export default function SettingsScreen({ navigation }) {
     }
   };
 
-  const handleResetSettings = async () => {
-    try {
-      // Réinitialiser les préférences d'accessibilité
-      const defaultAccessibilityPrefs = {
-        requireRamp: false,
-        requireElevator: false,
-        requireAccessibleParking: false,
-        requireAccessibleToilets: false,
-      };
-      setAccessibilityPrefs(defaultAccessibilityPrefs);
-      await AsyncStorage.setItem('accessibilityPrefs', JSON.stringify(defaultAccessibilityPrefs));
+  const handleResetSettings = useCallback(async () => {
+    Alert.alert(
+      "Réinitialiser tous les paramètres",
+      "Êtes-vous sûr de vouloir réinitialiser TOUS les paramètres de l'application ? Cette action ne peut pas être annulée.",
+      [
+        {
+          text: "Annuler",
+          style: "cancel"
+        },
+        {
+          text: "Réinitialiser tout",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // Valeurs par défaut pour les paramètres locaux
+              const defaultAccessibilityPrefs = {
+                requireRamp: false,
+                requireElevator: false,
+                requireAccessibleParking: false,
+                requireAccessibleToilets: false,
+              };
+              
+              const defaultNotifications = {
+                newPlaces: true,
+                reviews: true,
+                updates: false,
+              };
+              
+              const defaultSearchRadius = SEARCH_RADIUS_DEFAULT;
+              const defaultMapStyle = 'standard';
 
-      // Réinitialiser les notifications
-      const defaultNotifications = {
-        newPlaces: true,
-        reviews: true,
-        updates: false,
-      };
-      setNotifications(defaultNotifications);
-      await AsyncStorage.setItem('notifications', JSON.stringify(defaultNotifications));
+              // Mettre à jour les états locaux
+              setAccessibilityPrefs(defaultAccessibilityPrefs);
+              setNotifications(defaultNotifications);
+              setSearchRadius(defaultSearchRadius);
+              setMapStyle(defaultMapStyle);
 
-      // Réinitialiser le rayon de recherche
-      const defaultSearchRadius = SEARCH_RADIUS_DEFAULT;
-      setSearchRadius(defaultSearchRadius);
-      await AsyncStorage.setItem('searchRadius', defaultSearchRadius.toString());
+              // Réinitialiser tous les contextes
+              await Promise.all([
+                resetTheme(), // Réinitialiser le thème (mode clair)
+                resetTextSize(), // Réinitialiser la taille de texte (normale)
+                // Sauvegarder les paramètres locaux
+                AsyncStorage.setItem('accessibilityPrefs', JSON.stringify(defaultAccessibilityPrefs)),
+                AsyncStorage.setItem('notifications', JSON.stringify(defaultNotifications)),
+                AsyncStorage.setItem('searchRadius', defaultSearchRadius.toString()),
+                AsyncStorage.setItem('mapStyle', defaultMapStyle),
+              ]);
 
-      // Réinitialiser le style de carte
-      const defaultMapStyle = 'standard';
-      setMapStyle(defaultMapStyle);
-      await AsyncStorage.setItem('mapStyle', defaultMapStyle);
-
-      Alert.alert(
-        "Succès",
-        "Vos paramètres ont été réinitialisés avec succès",
-        [{ text: "OK" }]
-      );
-    } catch (error) {
-      console.error('Erreur lors de la réinitialisation des paramètres:', error);
-      Alert.alert(
-        "Erreur",
-        "Une erreur est survenue lors de la réinitialisation des paramètres",
-        [{ text: "OK" }]
-      );
-    }
-  };
+              Alert.alert(
+                "Succès",
+                "Tous les paramètres ont été réinitialisés aux valeurs par défaut",
+                [{ text: "OK" }]
+              );
+            } catch (error) {
+              console.error('Erreur lors de la réinitialisation complète:', error);
+              Alert.alert(
+                "Erreur",
+                "Une erreur est survenue lors de la réinitialisation des paramètres",
+                [{ text: "OK" }]
+              );
+            }
+          }
+        }
+      ]
+    );
+  }, [resetTheme, resetTextSize]);
 
   const openAccessibilitySettings = async () => {
     try {
@@ -399,11 +431,18 @@ export default function SettingsScreen({ navigation }) {
         {/* Notifications */}
         <Card style={styles.card}>
           <Card.Content>
-            <Title style={styles.sectionTitle}>🔔 Notifications</Title>
+            <Title style={[styles.sectionTitle, { fontSize: textSizes.title }]}>🔔 Notifications</Title>
+            
+            <Text style={[styles.sectionDescription, { fontSize: textSizes.body }]}>
+              Gérez vos préférences de notifications pour rester informé
+            </Text>
             
             <List.Item
               title="Nouveaux lieux"
               description="Être notifié des nouveaux lieux accessibles"
+              titleStyle={{ fontSize: textSizes.subtitle }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
+              left={props => <List.Icon {...props} icon="map-marker-plus" />}
               right={() => (
                 <Switch
                   value={notifications.newPlaces}
@@ -415,6 +454,9 @@ export default function SettingsScreen({ navigation }) {
             <List.Item
               title="Nouveaux avis"
               description="Être notifié des avis sur mes lieux favoris"
+              titleStyle={{ fontSize: textSizes.subtitle }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
+              left={props => <List.Icon {...props} icon="star-plus" />}
               right={() => (
                 <Switch
                   value={notifications.reviews}
@@ -426,6 +468,9 @@ export default function SettingsScreen({ navigation }) {
             <List.Item
               title="Mises à jour"
               description="Être notifié des mises à jour de l'application"
+              titleStyle={{ fontSize: textSizes.subtitle }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
+              left={props => <List.Icon {...props} icon="update" />}
               right={() => (
                 <Switch
                   value={notifications.updates}
@@ -447,11 +492,15 @@ export default function SettingsScreen({ navigation }) {
           </Button>
           
           <Button 
-            mode="outlined" 
+            mode="contained" 
             onPress={handleResetSettings}
-            style={styles.resetButton}
+            style={[styles.resetButton, { backgroundColor: '#ff4444' }]}
+            labelStyle={{ fontSize: textSizes.body, color: 'white' }}
+            icon="refresh"
+            buttonColor="#ff4444"
+            textColor="white"
           >
-            Réinitialiser
+            Réinitialiser TOUS les paramètres
           </Button>
         </View>
 
