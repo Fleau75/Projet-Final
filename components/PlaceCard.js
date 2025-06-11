@@ -66,9 +66,8 @@ export default function PlaceCard({ place, onPress }) {
       accessibilityLabel={getAccessibilityDescription()}
     >
       <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]}>
-        <View style={styles.cardContent}>
-          {/* Container de l'image */}
-          <View style={styles.imageContainer}>
+        {/* Container de l'image - maintenant en haut */}
+        <View style={styles.imageContainer}>
           {place.image ? (
             <Image 
               source={{ uri: place.image }} 
@@ -89,7 +88,7 @@ export default function PlaceCard({ place, onPress }) {
           )}
         </View>
 
-        {/* Contenu textuel et informations */}
+        {/* Contenu textuel et informations - maintenant en dessous */}
         <View style={styles.content}>
           <Text 
             variant="titleMedium" 
@@ -150,7 +149,6 @@ export default function PlaceCard({ place, onPress }) {
             />
           </View>
         </View>
-        </View>
       </Surface>
     </Pressable>
   );
@@ -171,15 +169,11 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.15,
     shadowRadius: 8,
-  },
-  cardContent: {
-    flexDirection: 'row',
-    borderRadius: 16,
-    overflow: 'hidden',
+    overflow: 'hidden', // Important pour que l'image respecte le borderRadius
   },
   imageContainer: {
-    width: 90,
-    height: 100,
+    width: '100%',
+    height: 180, // Hauteur plus importante pour l'image
   },
   image: {
     width: '100%',
@@ -194,9 +188,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   content: {
-    flex: 1,
     padding: 16,
-    justifyContent: 'space-between',
   },
   title: {
     marginBottom: 6,
