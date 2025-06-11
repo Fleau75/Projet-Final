@@ -77,7 +77,7 @@ export default function MapScreen({ navigation }) {
           onChangeText={setSearchQuery}
           value={searchQuery}
           onSubmitEditing={handleSearch}
-          style={styles.searchBar}
+          style={[styles.searchBar, { borderColor: theme.colors.primary }]}
         />
       </View>
 
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 60 : 40,
+    top: Platform.OS === 'ios' ? 35 : 15,
     left: 0,
     right: 0,
     zIndex: 1,
@@ -148,6 +148,8 @@ const styles = StyleSheet.create({
     elevation: 4,
     borderRadius: 12,
     backgroundColor: 'white',
+    borderWidth: 2,
+    borderColor: 'transparent', // Par défaut, sera overridé par le thème
   },
   errorText: {
     textAlign: 'center',
