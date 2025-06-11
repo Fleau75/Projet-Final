@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Linking, Platform, Alert } from 'react-native';
 import { 
   Card, 
   Title, 
@@ -18,11 +18,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '../theme/ThemeContext';
 import { useTextSize } from '../theme/TextSizeContext';
+import { useScreenReader } from '../theme/ScreenReaderContext';
 
 export default function SettingsScreen({ navigation }) {
   const theme = useTheme();
   const { isDarkMode, toggleTheme } = useAppTheme();
   const { isLargeText, toggleTextSize, textSizes } = useTextSize();
+  const { isScreenReaderEnabled } = useScreenReader();
   
   // États pour les préférences d'accessibilité
   const [accessibilityPrefs, setAccessibilityPrefs] = useState({
@@ -30,9 +32,6 @@ export default function SettingsScreen({ navigation }) {
     requireElevator: false,
     requireAccessibleParking: false,
     requireAccessibleToilets: false,
-    screenReader: false,
-    speechRate: 1.0,
-    autoDescriptions: false,
   });
 
   // États pour les notifications
@@ -72,9 +71,6 @@ export default function SettingsScreen({ navigation }) {
       requireElevator: false,
       requireAccessibleParking: false,
       requireAccessibleToilets: false,
-      screenReader: false,
-      speechRate: 1.0,
-      autoDescriptions: false,
     });
     setNotifications({
       newPlaces: true,
@@ -83,6 +79,25 @@ export default function SettingsScreen({ navigation }) {
     });
     setSearchRadius(1500);
     setMapStyle('standard');
+  };
+
+  const openAccessibilitySettings = async () => {
+    try {
+      if (Platform.OS === 'ios') {
+        // Sur iOS 13+, on ne peut plus ouvrir directement les paramètres d'accessibilité
+        await Linking.openSettings();
+        // On affiche un message d'aide
+        Alert.alert(
+          "Paramètres d'accessibilité",
+          "Pour activer la lecture d'écran :\n1. Dans Réglages\n2. Allez dans Accessibilité\n3. Sélectionnez VoiceOver",
+          [{ text: "OK", style: "default" }]
+        );
+      } else {
+        await Linking.openSettings();
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'ouverture des paramètres:', error);
+    }
   };
 
   return (
@@ -188,105 +203,43 @@ export default function SettingsScreen({ navigation }) {
           </Card.Content>
         </Card>
 
-        {/* Lecture d'écran pour malvoyants */}
+        {/* Lecture d'écran */}
         <Card style={styles.card}>
           <Card.Content>
-            <Title style={styles.sectionTitle}>🔊 Lecture d'écran</Title>
-            <Text style={styles.sectionDescription}>
-              Fonctionnalités d'assistance vocale pour les malvoyants
+            <Title style={[styles.sectionTitle, { fontSize: textSizes.title }]}>🔊 Lecture d'écran</Title>
+            <Text style={[styles.sectionDescription, { fontSize: textSizes.body }]}>
+              Utilisez VoiceOver (iOS) ou TalkBack (Android) pour la lecture d'écran
             </Text>
             
             <List.Item
-              title="Activer la lecture d'écran"
-              description="Lecture automatique des éléments sélectionnés"
+              title="Lecture d'écran"
+              description={isScreenReaderEnabled ? "Lecture d'écran activée" : "Lecture d'écran désactivée"}
+              titleStyle={{ fontSize: textSizes.subtitle }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
+              left={props => <List.Icon {...props} icon={isScreenReaderEnabled ? "text-to-speech" : "text-to-speech-off"} />}
               right={() => (
                 <Switch
-                  value={accessibilityPrefs.screenReader}
-                  onValueChange={() => toggleAccessibilityPref('screenReader')}
+                  value={isScreenReaderEnabled}
+                  disabled={true}  // Désactivé car géré par le système
                 />
               )}
             />
             
-            <List.Item
-              title="Descriptions automatiques"
-              description="Décrit automatiquement les images et boutons"
-              right={() => (
-                <Switch
-                  value={accessibilityPrefs.autoDescriptions}
-                  onValueChange={() => toggleAccessibilityPref('autoDescriptions')}
-                />
-              )}
-            />
-            
-            {accessibilityPrefs.screenReader && (
-              <>
-                <Divider style={styles.divider} />
-                <Text style={styles.settingLabel}>
-                  Vitesse de lecture: {accessibilityPrefs.speechRate.toFixed(1)}x
-                </Text>
-                <View style={styles.speechRateContainer}>
-                  <Button 
-                    mode="outlined" 
-                    compact
-                    onPress={() => {
-                      const newRate = Math.max(0.5, accessibilityPrefs.speechRate - 0.1);
-                      setAccessibilityPrefs(prev => ({...prev, speechRate: newRate}));
-                    }}
-                    style={styles.rateButton}
-                  >
-                    - Lent
-                  </Button>
-                  
-                  <Text style={styles.rateDisplay}>
-                    {accessibilityPrefs.speechRate === 0.5 ? 'Très lent' :
-                     accessibilityPrefs.speechRate === 1.0 ? 'Normal' :
-                     accessibilityPrefs.speechRate === 1.5 ? 'Rapide' : 
-                     'Très rapide'}
-                  </Text>
-                  
-                  <Button 
-                    mode="outlined" 
-                    compact
-                    onPress={() => {
-                      const newRate = Math.min(2.0, accessibilityPrefs.speechRate + 0.1);
-                      setAccessibilityPrefs(prev => ({...prev, speechRate: newRate}));
-                    }}
-                    style={styles.rateButton}
-                  >
-                    + Rapide
-                  </Button>
-                </View>
-                
-                <Button 
-                  mode="contained" 
-                  onPress={() => {
-                    // Test de la lecture d'écran
-                    // TODO: Intégrer une vraie synthèse vocale
-                    // Texte test: `Bonjour, bienvenue dans AccessPlus. Vitesse de lecture: ${accessibilityPrefs.speechRate}`
-                  }}
-                  style={styles.testButton}
-                >
-                  🎤 Tester la lecture
-                </Button>
-              </>
-            )}
+            <Text style={[styles.hint, { fontSize: textSizes.caption, color: theme.colors.primary }]}>
+              La lecture d'écran se configure dans les paramètres d'accessibilité de votre appareil
+            </Text>
+
+            <Button
+              mode="outlined"
+              onPress={openAccessibilitySettings}
+              style={styles.settingsButton}
+              labelStyle={{ fontSize: textSizes.body }}
+              icon="cog"
+            >
+              Ouvrir les paramètres d'accessibilité
+            </Button>
           </Card.Content>
         </Card>
-
-        {/* Note d'information lecture d'écran */}
-        {accessibilityPrefs.screenReader && (
-          <Card style={[styles.card, { backgroundColor: '#E3F2FD' }]}>
-            <Card.Content>
-              <Title style={[styles.infoTitle, { color: '#1976D2' }]}>💡 Comment utiliser la lecture d'écran</Title>
-              <Text style={[styles.infoText, { color: '#1976D2' }]}>
-                • Touchez un élément pour l'entendre{'\n'}
-                • Balayez vers la droite pour naviguer{'\n'}
-                • Double-touchez pour activer{'\n'}
-                • Utilisez les gestes de votre lecteur d'écran habituel
-              </Text>
-            </Card.Content>
-          </Card>
-        )}
 
         {/* Préférences de recherche */}
         <Card style={styles.card}>
@@ -459,5 +412,14 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  hint: {
+    marginTop: 8,
+    fontStyle: 'italic',
+    paddingHorizontal: 16,
+  },
+  settingsButton: {
+    marginTop: 16,
+    marginHorizontal: 16,
   },
 }); 

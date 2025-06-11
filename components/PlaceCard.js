@@ -8,6 +8,7 @@ import React from 'react';
 import { View, StyleSheet, Image, Pressable } from 'react-native';
 import { Surface, Text, useTheme } from 'react-native-paper';
 import { Rating } from 'react-native-ratings';
+import { useScreenReader } from '../theme/ScreenReaderContext';
 
 /**
  * Composant pour afficher une icône d'accessibilité
@@ -19,10 +20,14 @@ import { Rating } from 'react-native-ratings';
 const AccessibilityIcon = ({ available, icon, label }) => {
   const theme = useTheme();
   return (
-    <View style={[
-      styles.accessibilityIcon,
-      { backgroundColor: available ? '#DCF7E3' : '#FEE2E2' }
-    ]}>
+    <View 
+      style={[
+        styles.accessibilityIcon,
+        { backgroundColor: available ? '#DCF7E3' : '#FEE2E2' }
+      ]}
+      accessible={true}
+      accessibilityLabel={`${label} ${available ? 'disponible' : 'non disponible'}`}
+    >
       <Text>{icon}</Text>
     </View>
   );
@@ -36,16 +41,46 @@ const AccessibilityIcon = ({ available, icon, label }) => {
  */
 export default function PlaceCard({ place, onPress }) {
   const theme = useTheme();
+  const { isScreenReaderEnabled } = useScreenReader();
+
+  // Prépare la description d'accessibilité
+  const getAccessibilityDescription = () => {
+    const features = [];
+    if (place.accessibility.ramp) features.push('rampe d\'accès');
+    if (place.accessibility.elevator) features.push('ascenseur');
+    if (place.accessibility.parking) features.push('parking accessible');
+    if (place.accessibility.toilets) features.push('toilettes adaptées');
+    
+    return `${place.name}. ${place.address}. Note: ${place.rating} sur 5, ${place.reviewCount} avis. ${
+      features.length > 0 
+        ? `Équipements accessibles: ${features.join(', ')}.` 
+        : 'Aucun équipement d\'accessibilité signalé.'
+    }`;
+  };
 
   return (
-    <Pressable onPress={onPress}>
+    <Pressable 
+      onPress={onPress}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel={getAccessibilityDescription()}
+    >
       <Surface style={styles.card}>
         {/* Container de l'image */}
         <View style={styles.imageContainer}>
           {place.image ? (
-            <Image source={{ uri: place.image }} style={styles.image} />
+            <Image 
+              source={{ uri: place.image }} 
+              style={styles.image}
+              accessible={true}
+              accessibilityLabel={`Photo de ${place.name}`}
+            />
           ) : (
-            <View style={[styles.placeholderImage, { backgroundColor: theme.colors.surfaceVariant }]}>
+            <View 
+              style={[styles.placeholderImage, { backgroundColor: theme.colors.surfaceVariant }]}
+              accessible={true}
+              accessibilityLabel="Pas de photo disponible"
+            >
               <Text variant="headlineMedium" style={{ color: theme.colors.onSurfaceVariant }}>
                 {place.name[0]}
               </Text>
@@ -55,16 +90,30 @@ export default function PlaceCard({ place, onPress }) {
 
         {/* Contenu textuel et informations */}
         <View style={styles.content}>
-          <Text variant="titleMedium" style={styles.title}>
+          <Text 
+            variant="titleMedium" 
+            style={styles.title}
+            accessible={true}
+            accessibilityRole="header"
+          >
             {place.name}
           </Text>
           
-          <Text variant="bodySmall" style={styles.address}>
+          <Text 
+            variant="bodySmall" 
+            style={styles.address}
+            accessible={true}
+            accessibilityLabel={`Adresse: ${place.address}`}
+          >
             {place.address}
           </Text>
 
           {/* Note et nombre d'avis */}
-          <View style={styles.ratingContainer}>
+          <View 
+            style={styles.ratingContainer}
+            accessible={true}
+            accessibilityLabel={`Note: ${place.rating} sur 5, ${place.reviewCount} avis`}
+          >
             <Rating
               readonly
               startingValue={place.rating}
@@ -81,7 +130,7 @@ export default function PlaceCard({ place, onPress }) {
             <AccessibilityIcon
               available={place.accessibility.ramp}
               icon="♿️"
-              label="Rampe"
+              label="Rampe d'accès"
             />
             <AccessibilityIcon
               available={place.accessibility.elevator}
@@ -91,12 +140,12 @@ export default function PlaceCard({ place, onPress }) {
             <AccessibilityIcon
               available={place.accessibility.parking}
               icon="🅿️"
-              label="Parking"
+              label="Parking accessible"
             />
-          <AccessibilityIcon
+            <AccessibilityIcon
               available={place.accessibility.toilets}
               icon="🚻"
-              label="Toilettes"
+              label="Toilettes adaptées"
             />
           </View>
         </View>

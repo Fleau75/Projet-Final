@@ -12,6 +12,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ThemeProvider, useAppTheme } from './theme/ThemeContext';
 import { TextSizeProvider } from './theme/TextSizeContext';
+import { ScreenReaderProvider } from './theme/ScreenReaderContext';
 import LoadingOverlay from './components/LoadingOverlay';
 
 // Import des différents écrans de l'application
@@ -175,45 +176,27 @@ function AppContent() {
           <Stack.Navigator
             initialRouteName="Login"
             screenOptions={{
-              headerStyle: {
-                backgroundColor: theme.colors.primary,
-              },
-              headerTintColor: '#fff',
-              headerTitleStyle: {
-                fontWeight: 'bold',
-              },
+              headerShown: false
             }}
           >
-            {/* Écran de connexion */}
-            <Stack.Screen 
-              name="Login" 
-              component={LoginScreen}
-              options={{ headerShown: false }}
-            />
-            
-            {/* Navigation principale par onglets */}
-            <Stack.Screen 
-              name="MainTabs" 
-              component={MainTabNavigator}
-              options={{ headerShown: false }}
-            />
-            
-            {/* Écrans modaux et de détail */}
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="MainTabs" component={MainTabNavigator} />
             <Stack.Screen 
               name="PlaceDetail" 
               component={PlaceDetailScreen}
               options={({ route }) => ({ 
                 title: route.params?.place?.name || 'Détails du lieu',
                 presentation: 'card',
+                headerShown: true,
               })}
             />
-            
             <Stack.Screen 
               name="AddReview" 
               component={AddReviewScreen}
               options={{ 
                 title: 'Ajouter un avis',
                 presentation: 'modal',
+                headerShown: true,
               }}
             />
           </Stack.Navigator>
@@ -232,7 +215,9 @@ export default function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <TextSizeProvider>
-          <AppContent />
+          <ScreenReaderProvider>
+            <AppContent />
+          </ScreenReaderProvider>
         </TextSizeProvider>
       </ThemeProvider>
     </SafeAreaProvider>
