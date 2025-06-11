@@ -601,31 +601,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
 
-        <View style={styles.welcomeContainer}>
-          <Text style={[styles.welcomeText, { 
-            color: theme.colors.onSurface, 
-            fontSize: textSizes.body,
-            textAlign: 'center',
-            marginBottom: 2 
-          }]}>
-            🌟 AccessPlus
-          </Text>
-          
-          {/* Bouton actualiser centré */}
-          <View style={styles.refreshContainer}>
-            <Button 
-              mode="text" 
-              onPress={loadPlacesFromFirestore}
-              loading={loading}
-              disabled={loading}
-              style={styles.refreshButton}
-              compact
-              labelStyle={{ fontSize: textSizes.caption }}
-            >
-              🔄 Actualiser
-            </Button>
-          </View>
-        </View>
+
 
         <ScrollView
           horizontal
@@ -705,6 +681,7 @@ export default function HomeScreen({ navigation }) {
         {!loading && (
           <>
             <View style={styles.resultsHeader}>
+              <View style={styles.headerLeft}></View>
               <Text style={styles.sectionTitle}>
                 📍 {selectedCategory === 'all' ? 'Tous les lieux' : categories.find(c => c.id === selectedCategory)?.label || 'Lieux'}
               </Text>
@@ -754,10 +731,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   categoriesContainer: {
-    marginBottom: 10,
+    marginBottom: 8,
   },
   accessibilityContainer: {
-    marginBottom: 10,
+    marginBottom: 8,
   },
   categories: {
     paddingRight: 20,
@@ -775,7 +752,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   sortButtons: {
-    marginBottom: 12,
+    marginBottom: 6,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: {
@@ -787,18 +764,21 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginTop: 5,
+    marginTop: 2,
     paddingHorizontal: 10,
   },
   section: {
     padding: 16,
   },
   sectionTitle: {
-    marginBottom: 16,
+    flex: 1,
     fontWeight: 'bold',
     fontSize: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    textAlign: 'center',
+    marginBottom: 0,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    marginLeft: -8,
   },
   list: {
     padding: 16,
@@ -835,16 +815,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 8,
   },
-  welcomeContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 8,
-    padding: 6,
-    marginBottom: 6,
-  },
-  welcomeText: {
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
+
   subtitle: {
     opacity: 0.8,
     fontWeight: '400',
@@ -855,17 +826,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 8,
     backgroundColor: 'rgba(0, 0, 0, 0.05)',
     borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  headerLeft: {
+    width: 60, // Même largeur que le countBadge pour équilibrer
   },
   countBadge: {
     backgroundColor: '#4CAF50',
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    minWidth: 40,
+    width: 60,
     alignItems: 'center',
   },
   countText: {
@@ -893,11 +867,5 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     paddingHorizontal: 16,
   },
-  refreshButton: {
-    minWidth: 80,
-  },
-  refreshContainer: {
-    alignItems: 'center',
-    marginTop: 2,
-  },
+
 });
