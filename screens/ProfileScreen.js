@@ -95,6 +95,33 @@ export default function ProfileScreen({ navigation, route }) {
     navigation.navigate('FavoritePlaces');
   };
 
+  const handleClearMapMarkers = () => {
+    Alert.alert(
+      "🗺️ Vider la carte",
+      "Supprimer tous vos marqueurs ?",
+      [
+        {
+          text: "Annuler",
+          style: "cancel"
+        },
+        {
+          text: "Vider",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              // Supprimer les marqueurs de AsyncStorage
+              await AsyncStorage.removeItem('mapMarkers');
+              Alert.alert("✅ Fait !", "Carte vidée avec succès");
+            } catch (error) {
+              console.error('Erreur lors de la suppression des marqueurs:', error);
+              Alert.alert("❌ Erreur", "Impossible de vider la carte");
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleLogout = () => {
     // Déconnexion et retour à l'écran de login
     navigation.reset({
@@ -168,6 +195,14 @@ export default function ProfileScreen({ navigation, route }) {
         {/* Options du profil */}
         <Card style={styles.optionsCard}>
           <Card.Content>
+            <List.Item
+              title="Vider la carte"
+              description="Supprimer tous mes marqueurs"
+              left={props => <List.Icon {...props} icon="map-marker-remove" />}
+              right={props => <List.Icon {...props} icon="chevron-right" />}
+              onPress={() => handleClearMapMarkers()}
+            />
+            <Divider />
             <List.Item
               title="Mes avis"
               description="Voir tous mes avis postés"
