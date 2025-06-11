@@ -3,11 +3,13 @@
  * Affiche la liste des lieux accessibles avec des options de filtrage et de tri
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, FlatList, ActivityIndicator } from 'react-native';
 import { Searchbar, Chip, Text, SegmentedButtons, useTheme, Button } from 'react-native-paper';
+import { useFocusEffect } from '@react-navigation/native';
 import PlaceCard from '../components/PlaceCard';
 import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { searchNearbyPlaces } from '../services/placesApi';
 import { useTextSize } from '../theme/TextSizeContext';
 
@@ -205,6 +207,32 @@ export default function HomeScreen({ navigation }) {
   // États pour les données des lieux
   const [places, setPlaces] = useState([]);
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
+  
+  // État pour le rayon de recherche
+  const [searchRadius, setSearchRadius] = useState(1000); // valeur par défaut 1000m
+
+  /**
+   * Fonction pour charger le rayon de recherche
+   */
+  const loadSearchRadius = useCallback(async () => {
+    try {
+      const savedRadius = await AsyncStorage.getItem('searchRadius');
+      if (savedRadius !== null) {
+        setSearchRadius(parseInt(savedRadius));
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement du rayon de recherche:', error);
+    }
+  }, []);
+
+  /**
+   * Effet pour recharger le rayon de recherche quand l'écran devient focus
+   */
+  useFocusEffect(
+    useCallback(() => {
+      loadSearchRadius();
+    }, [loadSearchRadius])
+  );
 
   /**
    * Effet pour gérer la géolocalisation au chargement
@@ -213,6 +241,9 @@ export default function HomeScreen({ navigation }) {
     (async () => {
       setIsLoadingLocation(true);
       try {
+        // Charger le rayon de recherche depuis AsyncStorage
+        await loadSearchRadius();
+
         // Vérifie si la localisation est activée
         const providerStatus = await Location.hasServicesEnabledAsync();
         if (!providerStatus) {
@@ -250,7 +281,7 @@ export default function HomeScreen({ navigation }) {
         setIsLoadingPlaces(false);
       }
     })();
-  }, []);
+  }, [loadSearchRadius]);
 
   const calculateDistance = (coords1, coords2) => {
     if (!coords1 || !coords2) {
@@ -393,7 +424,7 @@ export default function HomeScreen({ navigation }) {
         {userLocation && (
           <View style={[styles.locationInfo, { backgroundColor: theme.colors.surfaceVariant }]}>
             <Text style={[styles.locationText, { color: theme.colors.onSurface }]}>
-              📍 Position détectée
+              🔍 Rayon de recherche: {searchRadius >= 1000 ? (searchRadius/1000).toFixed(1) + ' km' : searchRadius + ' m'}
             </Text>
           </View>
         )}
