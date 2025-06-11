@@ -28,7 +28,8 @@ export default function ReviewCard({ review }) {
         readonly
         startingValue={review.rating}
         imageSize={20}
-        style={styles.reviewRating}
+        style={[styles.reviewRating, { backgroundColor: 'transparent' }]}
+        tintColor="transparent"
       />
 
       <Text style={[styles.reviewComment, { fontSize: textSizes.body }]}>

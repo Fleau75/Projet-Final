@@ -291,8 +291,8 @@ export default function MyReviewsScreen({ navigation }) {
                   imageSize={20}
                   readonly
                   startingValue={review.rating}
-                  style={styles.rating}
-                  tintColor={theme.colors.surface}
+                  style={[styles.rating, { backgroundColor: 'transparent' }]}
+                  tintColor="transparent"
                 />
                 <Text style={[styles.ratingText, { 
                   fontSize: textSizes.body,

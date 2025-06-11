@@ -118,7 +118,8 @@ export default function PlaceCard({ place, onPress }) {
               readonly
               startingValue={place.rating}
               imageSize={16}
-              style={styles.rating}
+              style={[styles.rating, { backgroundColor: 'transparent' }]}
+              tintColor="transparent"
             />
             <Text variant="bodySmall" style={styles.reviewCount}>
               ({place.reviewCount})

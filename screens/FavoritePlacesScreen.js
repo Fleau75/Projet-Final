@@ -299,8 +299,8 @@ export default function FavoritePlacesScreen({ navigation }) {
                 imageSize={16}
                 readonly
                 startingValue={place.rating}
-                style={styles.rating}
-                tintColor={theme.colors.surface}
+                style={[styles.rating, { backgroundColor: 'transparent' }]}
+                tintColor="transparent"
               />
               <Text style={[styles.ratingText, { fontSize: textSizes.caption }]}>
                 {place.rating} ({place.reviewCount})
