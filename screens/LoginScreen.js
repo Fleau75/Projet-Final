@@ -40,7 +40,7 @@ export default function LoginScreen({ navigation }) {
         style={styles.keyboardView}
       >
         <View style={styles.headerContainer}>
-          <Text style={[styles.title, { color: theme.colors.primary, fontSize: textSizes.title }]}>
+          <Text style={[styles.title, { color: theme.colors.primary, fontSize: 42 }]}>
             AccessPlus
           </Text>
           <Text style={[styles.subtitle, { fontSize: textSizes.subtitle }]}>
