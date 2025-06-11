@@ -186,8 +186,9 @@ export default function AddReviewScreen({ navigation }) {
             ratingCount={5}
             imageSize={40}
             onFinishRating={setRating}
-            style={[styles.rating, { backgroundColor: 'transparent' }]}
-            tintColor={theme.colors.surface}
+            style={styles.rating}
+            ratingColor="#FFD700"
+            ratingBackgroundColor="#E0E0E0"
           />
         </View>
 
