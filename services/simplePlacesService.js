@@ -31,6 +31,17 @@ class SimplePlacesService {
     }
   }
   
+  /**
+   * Convertit une photo_reference en URL d'image Google Places
+   * @param {string} photoReference - La référence de photo de Google Places
+   * @param {number} maxWidth - Largeur maximale de l'image (défaut: 400px)
+   * @returns {string} - URL de l'image
+   */
+  static getPhotoUrl(photoReference, maxWidth = 400) {
+    if (!photoReference) return null;
+    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photo_reference=${photoReference}&key=${GOOGLE_PLACES_API_KEY}`;
+  }
+  
   static async getNearbyPlaces(category = 'all', maxResults = 20, userLocation = null, searchRadius = null) {
     try {
       // Vérifier si l'API est accessible
@@ -84,29 +95,41 @@ class SimplePlacesService {
       }
       
       // Transformer les résultats au format de l'app
-      const places = data.results.slice(0, maxResults).map(place => ({
-        id: place.place_id,
-        name: place.name,
-        type: category,
-        address: place.vicinity || 'Paris, France',
-        coordinates: {
-          latitude: place.geometry.location.lat,
-          longitude: place.geometry.location.lng
-        },
-        rating: place.rating || 4.0,
-        accessibility: {
-          score: Math.floor(Math.random() * 3) + 3, // 3-5 pour la démo
-          features: ['Entrée accessible', 'Toilettes accessibles']
-        },
-        source: 'google_places',
-        photos: place.photos ? [place.photos[0].photo_reference] : []
-      }));
+      const places = data.results.slice(0, maxResults).map(place => {
+        // Récupérer l'URL de la première image si disponible
+        const imageUrl = place.photos && place.photos.length > 0 
+          ? this.getPhotoUrl(place.photos[0].photo_reference, 400)
+          : null;
+
+        return {
+          id: place.place_id,
+          name: place.name,
+          type: category,
+          address: place.vicinity || 'Paris, France',
+          coordinates: {
+            latitude: place.geometry.location.lat,
+            longitude: place.geometry.location.lng
+          },
+          rating: place.rating || 4.0,
+          accessibility: {
+            score: Math.floor(Math.random() * 3) + 3, // 3-5 pour la démo
+            features: ['Entrée accessible', 'Toilettes accessibles']
+          },
+          source: 'google_places',
+          image: imageUrl, // URL de l'image directement utilisable
+          photos: place.photos ? [place.photos[0].photo_reference] : [] // Garder pour compatibilité
+        };
+      });
       
       // Debug: Afficher les premiers lieux trouvés avec leurs adresses
       console.log('🔍 Premiers lieux Google Places trouvés:');
       places.slice(0, 5).forEach((place, index) => {
-        console.log(`${index + 1}. ${place.name} - ${place.address} (${place.coordinates.latitude.toFixed(4)}, ${place.coordinates.longitude.toFixed(4)})`);
+        console.log(`${index + 1}. ${place.name} - ${place.address} (${place.coordinates.latitude.toFixed(4)}, ${place.coordinates.longitude.toFixed(4)}) ${place.image ? '📸' : '❌'}`);
       });
+      
+      // Debug: Compter les lieux avec images
+      const placesWithImages = places.filter(place => place.image);
+      console.log(`📸 ${placesWithImages.length}/${places.length} lieux ont des images`);
       
       console.log(`✅ Google Places: ${places.length} lieux trouvés pour "${category}" dans un rayon de ${radius}m`);
       return places;

@@ -40,7 +40,7 @@ const staticPlaces = [
     type: 'culture',
     rating: 4.3,
     reviewCount: 89,
-    image: null,
+    image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&h=300&fit=crop',
     coordinates: {
       latitude: 48.8676,
       longitude: 2.3631
@@ -59,7 +59,7 @@ const staticPlaces = [
     type: 'restaurant',
     rating: 4.1,
     reviewCount: 156,
-    image: null,
+    image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop',
     coordinates: {
       latitude: 48.8665,
       longitude: 2.3731
@@ -78,7 +78,7 @@ const staticPlaces = [
     type: 'shopping',
     rating: 4.0,
     reviewCount: 234,
-    image: null,
+    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
     coordinates: {
       latitude: 48.8531,
       longitude: 2.3726
@@ -97,7 +97,7 @@ const staticPlaces = [
     type: 'health',
     rating: 3.8,
     reviewCount: 89,
-    image: null,
+    image: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop',
     coordinates: {
       latitude: 48.8479,
       longitude: 2.3939
