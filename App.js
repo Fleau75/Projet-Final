@@ -17,6 +17,7 @@ import LoadingOverlay from './components/LoadingOverlay';
 
 // Import des différents écrans de l'application
 import LoginScreen from './screens/LoginScreen';
+import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
 import MapScreen from './screens/MapScreen';
 import AddReviewScreen from './screens/AddReviewScreen';
@@ -170,6 +171,24 @@ function AppContent() {
             }}
           >
             <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen 
+              name="Register" 
+              component={RegisterScreen}
+              options={{ 
+                title: 'Inscription',
+                presentation: 'card',
+                headerShown: true,
+                headerBackTitle: '',
+                headerBackTitleVisible: false,
+                headerStyle: {
+                  backgroundColor: theme.colors.primary,
+                },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                },
+              }}
+            />
             <Stack.Screen name="MainTabs" component={MainTabNavigator} />
             <Stack.Screen 
               name="PlaceDetail" 
