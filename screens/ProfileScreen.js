@@ -87,12 +87,12 @@ export default function ProfileScreen({ navigation, route }) {
 
   const handleViewReviews = () => {
     // Navigation vers les avis de l'utilisateur
-    // TODO: Implémenter la visualisation des avis
+    navigation.navigate('MyReviews');
   };
 
   const handleViewFavorites = () => {
     // Navigation vers les lieux favoris
-    // TODO: Implémenter la visualisation des favoris
+    navigation.navigate('FavoritePlaces');
   };
 
   const handleLogout = () => {

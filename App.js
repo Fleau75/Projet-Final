@@ -22,6 +22,8 @@ import MapScreen from './screens/MapScreen';
 import AddReviewScreen from './screens/AddReviewScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
+import MyReviewsScreen from './screens/MyReviewsScreen';
+import FavoritePlacesScreen from './screens/FavoritePlacesScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import PlaceDetailScreen from './screens/PlaceDetailScreen';
 
@@ -199,6 +201,44 @@ function AppContent() {
                 title: 'Éditer le profil',
                 presentation: 'card',
                 headerShown: true,
+                headerBackTitle: '',
+                headerBackTitleVisible: false,
+                headerStyle: {
+                  backgroundColor: theme.colors.primary,
+                },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                },
+              }}
+            />
+            <Stack.Screen 
+              name="MyReviews" 
+              component={MyReviewsScreen}
+              options={{ 
+                title: 'Mes avis',
+                presentation: 'card',
+                headerShown: true,
+                headerBackTitle: '',
+                headerBackTitleVisible: false,
+                headerStyle: {
+                  backgroundColor: theme.colors.primary,
+                },
+                headerTintColor: '#fff',
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                },
+              }}
+            />
+            <Stack.Screen 
+              name="FavoritePlaces" 
+              component={FavoritePlacesScreen}
+              options={{ 
+                title: 'Lieux favoris',
+                presentation: 'card',
+                headerShown: true,
+                headerBackTitle: '',
+                headerBackTitleVisible: false,
                 headerStyle: {
                   backgroundColor: theme.colors.primary,
                 },
