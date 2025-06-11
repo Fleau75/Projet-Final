@@ -185,6 +185,18 @@ export default function MapScreen({ navigation }) {
     // L'utilisateur pourra cliquer sur le marqueur s'il veut voir les détails
   };
 
+  // Fonction pour recentrer sur la position de l'utilisateur
+  const centerOnUser = () => {
+    if (mapRef.current && location) {
+      mapRef.current.animateToRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      }, 800);
+    }
+  };
+
 
 
   const renderSearchResult = ({ item }) => (
@@ -273,7 +285,7 @@ export default function MapScreen({ navigation }) {
       {/* Barre de recherche */}
       <View style={[styles.searchContainer, { backgroundColor: 'transparent' }]}>
         <Searchbar
-          placeholder="Rechercher un lieu à Paris..."
+          placeholder="Rechercher lieux, restaurants, hôtels..."
           onChangeText={setSearchQuery}
           value={searchQuery}
           onSubmitEditing={handleSearch}
@@ -284,6 +296,15 @@ export default function MapScreen({ navigation }) {
           onIconPress={handleSearch}
         />
       </View>
+
+      {/* Bouton de recentrage sur l'utilisateur */}
+      <TouchableOpacity 
+        style={[styles.centerButton, { backgroundColor: theme.colors.surface }]}
+        onPress={centerOnUser}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.centerButtonText}>📍</Text>
+      </TouchableOpacity>
 
       {/* Résultats de recherche */}
       {showResults && (
@@ -391,6 +412,29 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+  },
+  centerButton: {
+    position: 'absolute',
+    bottom: 100,
+    left: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    zIndex: 1002,
+  },
+  centerButtonText: {
+    fontSize: 16,
+    textAlign: 'center',
   },
   resultsContainer: {
     position: 'absolute',
