@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { searchNearbyPlaces } from '../services/placesApi';
 import { useTextSize } from '../theme/TextSizeContext';
 import PlacesService from '../services/firebaseService';
+import SimplePlacesService from '../services/simplePlacesService';
 
 /**
  * Liste des catégories de lieux disponibles dans l'application
@@ -249,43 +250,56 @@ export default function HomeScreen({ navigation }) {
   );
 
   /**
-   * Fonction pour charger les lieux depuis Firestore + données statiques
+   * Fonction pour charger TOUS les lieux de Paris depuis Google Places API + Firebase
    */
   const loadPlacesFromFirestore = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('🚀 Chargement de tous les lieux de Paris...');
       
-      // Essayer de charger depuis Firebase
-      const firestorePlaces = await PlacesService.getAllPlaces();
+      // Charger depuis les différentes sources en parallèle
+      const [firestorePlaces, parisPlaces] = await Promise.all([
+        PlacesService.getAllPlaces().catch(() => []),
+        SimplePlacesService.getNearbyPlaces(selectedCategory, 20).catch((error) => {
+          console.warn('⚠️ Google Places erreur:', error.message);
+          return [];
+        })
+      ]);
       
-      if (firestorePlaces.length > 0) {
-        console.log(`✅ ${firestorePlaces.length} lieux chargés depuis Firebase`);
-        // Combiner Firebase + données statiques en évitant les doublons
-        const combined = [...firestorePlaces];
+      // Combiner toutes les sources en évitant les doublons
+      const allPlaces = [...firestorePlaces];
+      const existingNames = new Set(firestorePlaces.map(p => p.name.toLowerCase()));
+      
+      // Ajouter les lieux Google Places qui ne sont pas déjà dans Firebase
+      parisPlaces.forEach(place => {
+        if (!existingNames.has(place.name.toLowerCase())) {
+          allPlaces.push(place);
+          existingNames.add(place.name.toLowerCase());
+        }
+      });
+      
+      // Ajouter les lieux statiques comme fallback si besoin
+      if (allPlaces.length === 0) {
+        console.log('📦 Fallback sur les données statiques');
         staticPlaces.forEach(staticPlace => {
-          const exists = combined.some(place => 
-            place.name.toLowerCase() === staticPlace.name.toLowerCase()
-          );
-          if (!exists) {
-            combined.push(staticPlace);
+          if (!existingNames.has(staticPlace.name.toLowerCase())) {
+            allPlaces.push(staticPlace);
           }
         });
-        setPlaces(combined);
-      } else {
-        // Si Firebase est vide, utiliser les données statiques
-        console.log('📦 Utilisation des données statiques (Firebase vide)');
-        setPlaces(staticPlaces);
       }
+      
+      console.log(`✅ ${allPlaces.length} lieux total chargés (Firebase: ${firestorePlaces.length}, Google: ${parisPlaces.length})`);
+      setPlaces(allPlaces);
+      
     } catch (err) {
-      console.error('❌ Erreur Firebase, utilisation des données statiques:', err.message);
-      setError('Utilisation des données locales');
-      // En cas d'erreur Firebase, utiliser les données statiques
+      console.error('❌ Erreur lors du chargement:', err.message);
+      setError('Erreur de chargement - utilisation des données locales');
       setPlaces(staticPlaces);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedCategory]);
 
   /**
    * Effet pour charger les lieux au montage du composant
@@ -326,9 +340,8 @@ export default function HomeScreen({ navigation }) {
         });
         setUserLocation(location.coords);
         
-        // Google Places API désactivé temporairement pour éviter les erreurs
-        // TODO: Configurer une vraie clé API Google Places si nécessaire
-        console.log('Google Places API désactivé - utilisation des données Firestore uniquement');
+        // Google Places intégré avec le service principal
+        console.log('📍 Localisation obtenue, les lieux Google Places seront chargés via loadPlacesFromFirestore');
       } catch (error) {
         console.error('Erreur:', error);
         setLocationError('Impossible d\'obtenir votre position');
@@ -491,10 +504,33 @@ export default function HomeScreen({ navigation }) {
             color: theme.colors.onSurface, 
             fontSize: textSizes.body,
             textAlign: 'center',
-            marginBottom: 20 
+            marginBottom: 10 
           }]}>
             Découvrez des lieux accessibles à tous
           </Text>
+          
+          {/* Indicateur du nombre de lieux */}
+          <View style={styles.statsContainer}>
+            <Text style={[styles.statsText, { 
+              color: theme.colors.primary, 
+              fontSize: textSizes.body,
+              textAlign: 'center',
+              fontWeight: 'bold'
+            }]}>
+              📍 {places.length} lieux disponibles à Paris
+            </Text>
+            
+            <Button 
+              mode="outlined" 
+              onPress={loadPlacesFromFirestore}
+              loading={loading}
+              disabled={loading}
+              style={styles.refreshButton}
+              compact
+            >
+              🔄 Actualiser
+            </Button>
+          </View>
         </View>
 
         <ScrollView
@@ -762,5 +798,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginVertical: 12,
     paddingHorizontal: 16,
+  },
+  statsContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  statsText: {
+    flex: 1,
+    marginRight: 10,
+  },
+  refreshButton: {
+    minWidth: 100,
   },
 });
