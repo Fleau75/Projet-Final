@@ -45,7 +45,6 @@ const getHeaderStyle = (theme) => ({
   shadowOpacity: 0.3,
   shadowRadius: 6,
   borderBottomWidth: 0,
-  height: Platform.OS === 'ios' ? 60 : 50,
 });
 
 const getHeaderTitleStyle = () => ({

@@ -71,47 +71,49 @@ export default function MapScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
+      <MapView
+          provider={PROVIDER_GOOGLE}
+          style={styles.map}
+          initialRegion={{
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        >
+          {/* Marqueur de position actuelle */}
+          <Marker
+            coordinate={{
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            }}
+            title="Ma position"
+            pinColor="#2563EB"
+          />
+
+          {/* Marqueurs des lieux accessibles */}
+          {places.map((place) => (
+            <Marker
+              key={place.id}
+              coordinate={place.coordinate}
+              title={place.name}
+              description={`Type: ${place.type}`}
+              onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place })}
+            />
+                  ))}
+      </MapView>
+
+      <View style={[styles.searchContainer, { backgroundColor: 'transparent' }]}>
         <Searchbar
           placeholder="Rechercher un lieu..."
           onChangeText={setSearchQuery}
           value={searchQuery}
           onSubmitEditing={handleSearch}
-          style={[styles.searchBar, { borderColor: theme.colors.primary }]}
+          style={[styles.searchBar, { 
+            backgroundColor: theme.colors.surface,
+          }]}
         />
       </View>
-
-      <MapView
-        provider={PROVIDER_GOOGLE}
-        style={styles.map}
-        initialRegion={{
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
-      >
-        {/* Marqueur de position actuelle */}
-        <Marker
-          coordinate={{
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-          }}
-          title="Ma position"
-          pinColor="#2563EB"
-        />
-
-        {/* Marqueurs des lieux accessibles */}
-        {places.map((place) => (
-          <Marker
-            key={place.id}
-            coordinate={place.coordinate}
-            title={place.name}
-            description={`Type: ${place.type}`}
-            onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place })}
-          />
-        ))}
-      </MapView>
 
       <View style={styles.fabContainer}>
         <FAB
@@ -131,25 +133,28 @@ export default function MapScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
   },
   map: {
     flex: 1,
   },
   searchContainer: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 35 : 15,
-    left: 0,
-    right: 0,
-    zIndex: 1,
-    padding: 16,
+    top: Platform.OS === 'ios' ? 50 : 30,
+    left: 16,
+    right: 16,
+    zIndex: 10,
   },
   searchBar: {
-    elevation: 4,
-    borderRadius: 12,
-    backgroundColor: 'white',
-    borderWidth: 2,
-    borderColor: 'transparent', // Par défaut, sera overridé par le thème
+    elevation: 6,
+    borderRadius: 25,
+    borderWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   errorText: {
     textAlign: 'center',

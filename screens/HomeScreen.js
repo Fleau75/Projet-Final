@@ -12,6 +12,7 @@ import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { searchNearbyPlaces } from '../services/placesApi';
 import { useTextSize } from '../theme/TextSizeContext';
+import PlacesService from '../services/firebaseService';
 
 /**
  * Liste des catégories de lieux disponibles dans l'application
@@ -27,15 +28,14 @@ const categories = [
 ];
 
 /**
- * Données de test pour les lieux
- * À remplacer par les données réelles de l'API
+ * Données statiques de fallback (utilisées si Firebase ne fonctionne pas)
  */
-const places = [
-    {
-    id: '1',
+const staticPlaces = [
+  {
+    id: 'static-1',
     name: 'Restaurant Le Marais',
     address: '35 rue des Archives, 75003 Paris',
-      type: 'restaurant',
+    type: 'restaurant',
     rating: 4.5,
     reviewCount: 42,
     image: null,
@@ -43,15 +43,15 @@ const places = [
       latitude: 48.8627,
       longitude: 2.3578
     },
-      accessibility: {
-        ramp: true,
+    accessibility: {
+      ramp: true,
       elevator: true,
       parking: true,
       toilets: true,
     },
-    },
-    {
-    id: '2',
+  },
+  {
+    id: 'static-2',
     name: 'Musée Carnavalet',
     address: '23 Rue de Sévigné, 75003 Paris',
     type: 'culture',
@@ -62,15 +62,15 @@ const places = [
       latitude: 48.8578,
       longitude: 2.3622
     },
-      accessibility: {
-        ramp: true,
+    accessibility: {
+      ramp: true,
       elevator: true,
       parking: true,
       toilets: true,
     },
-    },
-    {
-    id: '3',
+  },
+  {
+    id: 'static-3',
     name: 'BHV Marais',
     address: '52 Rue de Rivoli, 75004 Paris',
     type: 'shopping',
@@ -81,15 +81,15 @@ const places = [
       latitude: 48.8571,
       longitude: 2.3519
     },
-      accessibility: {
-        ramp: true,
+    accessibility: {
+      ramp: true,
       elevator: true,
       parking: true,
       toilets: true,
     },
-    },
-    {
-    id: '4',
+  },
+  {
+    id: 'static-4',
     name: 'Café Saint-Régis',
     address: '6 Rue Jean du Bellay, 75004 Paris',
     type: 'restaurant',
@@ -100,15 +100,15 @@ const places = [
       latitude: 48.8524,
       longitude: 2.3568
     },
-      accessibility: {
-        ramp: true,
+    accessibility: {
+      ramp: true,
       elevator: false,
       parking: true,
       toilets: true,
     },
   },
   {
-    id: '5',
+    id: 'static-5',
     name: 'Bibliothèque de l\'Arsenal',
     address: '1 Rue de Sully, 75004 Paris',
     type: 'education',
@@ -121,13 +121,13 @@ const places = [
     },
     accessibility: {
       ramp: true,
-        elevator: true,
+      elevator: true,
       parking: true,
       toilets: true,
     },
   },
   {
-    id: '6',
+    id: 'static-6',
     name: 'Place des Vosges',
     address: 'Place des Vosges, 75004 Paris',
     type: 'culture',
@@ -144,8 +144,8 @@ const places = [
       parking: true,
       toilets: true,
     },
-    },
-  ];
+  },
+];
 
 /**
  * Calcule le niveau d'accessibilité d'un lieu
@@ -199,13 +199,17 @@ export default function HomeScreen({ navigation }) {
   const [sortValue, setSortValue] = useState('proximity');
   const [accessibilityFilter, setAccessibilityFilter] = useState('all');
   
+  // États pour les données depuis Firestore
+  const [places, setPlaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   // États pour la géolocalisation
   const [userLocation, setUserLocation] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   
-  // États pour les données des lieux
-  const [places, setPlaces] = useState([]);
+  // État combiné pour le chargement des lieux
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
   
   // État pour le rayon de recherche
@@ -233,6 +237,62 @@ export default function HomeScreen({ navigation }) {
       loadSearchRadius();
     }, [loadSearchRadius])
   );
+
+  /**
+   * Effet pour recharger les lieux quand l'écran devient focus
+   * Utile si des lieux ont été ajoutés/modifiés dans d'autres écrans
+   */
+  useFocusEffect(
+    useCallback(() => {
+      loadPlacesFromFirestore();
+    }, [loadPlacesFromFirestore])
+  );
+
+  /**
+   * Fonction pour charger les lieux depuis Firestore + données statiques
+   */
+  const loadPlacesFromFirestore = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Essayer de charger depuis Firebase
+      const firestorePlaces = await PlacesService.getAllPlaces();
+      
+      if (firestorePlaces.length > 0) {
+        console.log(`✅ ${firestorePlaces.length} lieux chargés depuis Firebase`);
+        // Combiner Firebase + données statiques en évitant les doublons
+        const combined = [...firestorePlaces];
+        staticPlaces.forEach(staticPlace => {
+          const exists = combined.some(place => 
+            place.name.toLowerCase() === staticPlace.name.toLowerCase()
+          );
+          if (!exists) {
+            combined.push(staticPlace);
+          }
+        });
+        setPlaces(combined);
+      } else {
+        // Si Firebase est vide, utiliser les données statiques
+        console.log('📦 Utilisation des données statiques (Firebase vide)');
+        setPlaces(staticPlaces);
+      }
+    } catch (err) {
+      console.error('❌ Erreur Firebase, utilisation des données statiques:', err.message);
+      setError('Utilisation des données locales');
+      // En cas d'erreur Firebase, utiliser les données statiques
+      setPlaces(staticPlaces);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  /**
+   * Effet pour charger les lieux au montage du composant
+   */
+  useEffect(() => {
+    loadPlacesFromFirestore();
+  }, [loadPlacesFromFirestore]);
 
   /**
    * Effet pour gérer la géolocalisation au chargement
@@ -266,13 +326,9 @@ export default function HomeScreen({ navigation }) {
         });
         setUserLocation(location.coords);
         
-        // Charger les lieux une fois la position obtenue
-        setIsLoadingPlaces(true);
-        const nearbyPlaces = await searchNearbyPlaces(
-          location.coords.latitude,
-          location.coords.longitude
-        );
-        setPlaces(nearbyPlaces);
+        // Google Places API désactivé temporairement pour éviter les erreurs
+        // TODO: Configurer une vraie clé API Google Places si nécessaire
+        console.log('Google Places API désactivé - utilisation des données Firestore uniquement');
       } catch (error) {
         console.error('Erreur:', error);
         setLocationError('Impossible d\'obtenir votre position');
@@ -315,17 +371,17 @@ export default function HomeScreen({ navigation }) {
       const accessLevel = getAccessibilityLevel(place);
       const isAccessible = accessibilityFilter === 'all' || 
                           accessibilityFilter === accessLevel ||
-                          (accessibilityFilter === 'partial' && accessLevel === 'full');
+                          (accessibilityFilter === 'partial' && (accessLevel === 'full' || accessLevel === 'partial'));
       return matchesCategory && isAccessible;
     })
     .map(place => ({
       ...place,
-      distance: calculateDistance(userLocation, place.coordinates),
+      distance: userLocation ? calculateDistance(userLocation, place.coordinates) : 0,
       accessibilityLevel: getAccessibilityLevel(place),
       accessibilityLabel: getAccessibilityLabel(getAccessibilityLevel(place))
     }))
     .sort((a, b) => {
-      if (sortValue === 'proximity') {
+      if (sortValue === 'proximity' && userLocation) {
         return a.distance - b.distance;
       } else if (sortValue === 'rating') {
         return b.rating - a.rating;
@@ -355,16 +411,10 @@ export default function HomeScreen({ navigation }) {
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 3);
 
-  const renderPlace = ({ item }) => (
-    <PlaceCard
-      place={{
-        ...item,
-        distance: item.distance < Infinity ? item.distance.toFixed(1) + ' km' : null,
-        accessibilityLabel: item.accessibilityLabel
-      }}
-      onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place: item })}
-    />
-  );
+  // Debug: Firebase fonctionne !
+  // console.log(`🔍 Debug: ${places.length} lieux total`);
+
+  // Fonction renderPlace supprimée - affichage simplifié
 
   const renderSectionHeader = (title) => (
     <Text style={[styles.sectionHeader, { fontSize: textSizes.subtitle }]}>
@@ -374,7 +424,7 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface, paddingTop: 40 }]}>
         {locationError && (
           <View style={[styles.errorContainer, { backgroundColor: theme.colors.errorContainer }]}>
             <Text style={[styles.errorText, { color: theme.colors.error }]}>⚠️ {locationError}</Text>
@@ -427,23 +477,25 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
 
-        <Text style={[styles.welcomeText, { 
-          color: theme.colors.onSurface, 
-          fontSize: textSizes.title,
-          textAlign: 'center',
-          marginBottom: 8 
-        }]}>
-          Découvrez des lieux accessibles
-        </Text>
-        
-        <Text style={[styles.subtitle, { 
-          color: theme.colors.onSurface, 
-          fontSize: textSizes.body,
-          textAlign: 'center',
-          marginBottom: 20 
-        }]}>
-          Explorez et partagez vos expériences
-        </Text>
+        <View style={styles.welcomeContainer}>
+          <Text style={[styles.welcomeText, { 
+            color: theme.colors.onSurface, 
+            fontSize: textSizes.title,
+            textAlign: 'center',
+            marginBottom: 8 
+          }]}>
+            🌟 AccessPlus
+          </Text>
+          
+          <Text style={[styles.subtitle, { 
+            color: theme.colors.onSurface, 
+            fontSize: textSizes.body,
+            textAlign: 'center',
+            marginBottom: 20 
+          }]}>
+            Découvrez des lieux accessibles à tous
+          </Text>
+        </View>
 
         <ScrollView
           horizontal
@@ -511,52 +563,43 @@ export default function HomeScreen({ navigation }) {
         />
       </View>
 
-      {selectedCategory === 'all' && accessibilityFilter === 'all' && (
-        <ScrollView style={styles.content}>
-          <View style={styles.section}>
-            {renderSectionHeader('✨ Mieux notés')}
-            {topRatedPlaces.map(place => (
-              <PlaceCard
-                key={place.id}
-                place={{
-                  ...place,
-                  accessibilityLabel: place.accessibilityLabel
-                }}
-                onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place })}
-              />
-            ))}
+      {/* Affichage simple de TOUS les lieux */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+            <Text style={styles.loadingText}>Chargement...</Text>
           </View>
-
-          <View style={styles.section}>
-            {renderSectionHeader('📍 À proximité')}
-            {nearbyPlaces.map(place => (
-          <PlaceCard
-            key={place.id}
-                place={{
-                  ...place,
-                  distance: place.distance < Infinity ? place.distance.toFixed(1) + ' km' : null,
-                  accessibilityLabel: place.accessibilityLabel
-                }}
-            onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place })}
-          />
-        ))}
-      </View>
-    </ScrollView>
-      )}
-
-      {(selectedCategory !== 'all' || accessibilityFilter !== 'all') && (
-        <FlatList
-          data={sortedAndFilteredPlaces}
-          renderItem={renderPlace}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.list}
-          ListHeaderComponent={() => (
-            <Text variant="titleMedium" style={styles.resultsCount}>
-              {sortedAndFilteredPlaces.length} résultat{sortedAndFilteredPlaces.length > 1 ? 's' : ''}
-            </Text>
-          )}
-        />
-      )}
+        )}
+        
+        {!loading && (
+          <>
+            <View style={styles.resultsHeader}>
+              <Text style={styles.sectionTitle}>
+                📍 {selectedCategory === 'all' ? 'Tous les lieux' : categories.find(c => c.id === selectedCategory)?.label || 'Lieux'}
+              </Text>
+              <View style={styles.countBadge}>
+                <Text style={styles.countText}>{sortedAndFilteredPlaces.length}</Text>
+              </View>
+            </View>
+            
+            {sortedAndFilteredPlaces.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>😔 Aucun lieu trouvé</Text>
+                <Text style={styles.emptyStateSubtext}>Essayez de modifier vos filtres</Text>
+              </View>
+            ) : (
+              sortedAndFilteredPlaces.map((place, index) => (
+                <PlaceCard
+                  key={`${place.id}-${index}`}
+                  place={place}
+                  onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place })}
+                />
+              ))
+            )}
+          </>
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -566,9 +609,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 12,
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingTop: 5,
+    paddingBottom: 10,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     elevation: 4,
@@ -581,10 +624,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   categoriesContainer: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   accessibilityContainer: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   categories: {
     paddingRight: 20,
@@ -614,6 +657,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    marginTop: 5,
+    paddingHorizontal: 10,
   },
   section: {
     padding: 16,
@@ -621,6 +666,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginBottom: 16,
     fontWeight: 'bold',
+    fontSize: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   list: {
     padding: 16,
@@ -657,6 +705,12 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 8,
   },
+  welcomeContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    padding: 10,
+    marginBottom: 10,
+  },
   welcomeText: {
     fontWeight: '700',
     letterSpacing: 0.5,
@@ -665,6 +719,44 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     fontWeight: '400',
     letterSpacing: 0.3,
+  },
+  resultsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  countBadge: {
+    backgroundColor: '#4CAF50',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    minWidth: 40,
+    alignItems: 'center',
+  },
+  countText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  emptyState: {
+    alignItems: 'center',
+    padding: 40,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    opacity: 0.7,
+    textAlign: 'center',
   },
   sectionHeader: {
     fontWeight: 'bold',

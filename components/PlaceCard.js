@@ -65,7 +65,7 @@ export default function PlaceCard({ place, onPress }) {
       accessibilityRole="button"
       accessibilityLabel={getAccessibilityDescription()}
     >
-      <Surface style={styles.card}>
+      <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         {/* Container de l'image */}
         <View style={styles.imageContainer}>
           {place.image ? (
@@ -92,7 +92,7 @@ export default function PlaceCard({ place, onPress }) {
         <View style={styles.content}>
           <Text 
             variant="titleMedium" 
-            style={styles.title}
+            style={[styles.title, { color: theme.colors.onSurface }]}
             accessible={true}
             accessibilityRole="header"
           >
@@ -162,33 +162,48 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     marginBottom: 16,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    elevation: 2,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
   imageContainer: {
-    width: 100,
+    width: 120,
+    height: 140,
   },
   image: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
   placeholderImage: {
     width: '100%',
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f5f5f5',
   },
   content: {
     flex: 1,
-    padding: 12,
+    padding: 16,
+    justifyContent: 'space-between',
   },
   title: {
-    marginBottom: 4,
+    marginBottom: 6,
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   address: {
-    marginBottom: 8,
+    marginBottom: 10,
     opacity: 0.7,
+    fontSize: 13,
+    lineHeight: 18,
   },
   ratingContainer: {
     flexDirection: 'row',

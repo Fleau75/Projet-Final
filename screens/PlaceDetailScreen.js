@@ -77,7 +77,8 @@ export default function PlaceDetailScreen({ navigation, route }) {
             readonly
             startingValue={averageRating}
             imageSize={24}
-            style={styles.rating}
+            style={[styles.rating, { backgroundColor: 'transparent' }]}
+            tintColor="transparent"
           />
           <Text style={{ fontSize: textSizes.body }}>
             {averageRating.toFixed(1)} ({reviews.length} avis)
@@ -98,19 +99,9 @@ export default function PlaceDetailScreen({ navigation, route }) {
       </Surface>
 
       <Surface style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { fontSize: textSizes.subtitle }]}>
-            Avis
-          </Text>
-          <Button
-            mode="contained"
-            onPress={() => navigation.navigate('AddReview')}
-            style={styles.addReviewButton}
-            labelStyle={{ fontSize: textSizes.body }}
-          >
-            Ajouter un avis
-          </Button>
-        </View>
+        <Text style={[styles.sectionTitle, { fontSize: textSizes.subtitle }]}>
+          Avis ({reviews.length})
+        </Text>
 
         <View style={styles.reviewsContainer}>
           {reviews.map((review) => (

@@ -181,15 +181,26 @@ export default function AddReviewScreen({ navigation }) {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Note globale
           </Text>
-          <Rating
-            type="star"
-            ratingCount={5}
-            imageSize={40}
-            onFinishRating={setRating}
-            style={styles.rating}
-            ratingColor="#FFD700"
-            ratingBackgroundColor="#E0E0E0"
-          />
+          <View style={styles.customRatingContainer}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <TouchableOpacity 
+                key={star} 
+                onPress={() => {
+                  console.log('Star pressed:', star);
+                  setRating(star);
+                }}
+                style={styles.starButton}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.starText, { color: star <= rating ? '#FFD700' : '#E0E0E0' }]}>
+                  ★
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={{ marginTop: 10, textAlign: 'center' }}>
+            Note sélectionnée: {rating}/5
+          </Text>
         </View>
 
         <View style={styles.section}>
@@ -391,5 +402,24 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: 8,
+  },
+  customRatingContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  starButton: {
+    padding: 8,
+    marginHorizontal: 4,
+    borderRadius: 20,
+    minWidth: 40,
+    alignItems: 'center',
+  },
+  starText: {
+    fontSize: 35,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
   },
 }); 
