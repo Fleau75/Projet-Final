@@ -178,8 +178,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   imageContainer: {
-    width: 120,
-    height: 140,
+    width: 90,
+    height: 100,
   },
   image: {
     width: '100%',

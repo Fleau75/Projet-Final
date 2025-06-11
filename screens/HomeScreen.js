@@ -604,9 +604,9 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.welcomeContainer}>
           <Text style={[styles.welcomeText, { 
             color: theme.colors.onSurface, 
-            fontSize: textSizes.subtitle,
+            fontSize: textSizes.body,
             textAlign: 'center',
-            marginBottom: 8 
+            marginBottom: 2 
           }]}>
             🌟 AccessPlus
           </Text>
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 5,
-    paddingBottom: 8,
+    paddingBottom: 6,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     elevation: 4,
@@ -754,10 +754,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   categoriesContainer: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   accessibilityContainer: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   categories: {
     paddingRight: 20,
@@ -837,9 +837,9 @@ const styles = StyleSheet.create({
   },
   welcomeContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    padding: 8,
-    marginBottom: 8,
+    borderRadius: 8,
+    padding: 6,
+    marginBottom: 6,
   },
   welcomeText: {
     fontWeight: '700',
@@ -898,6 +898,6 @@ const styles = StyleSheet.create({
   },
   refreshContainer: {
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 2,
   },
 });
