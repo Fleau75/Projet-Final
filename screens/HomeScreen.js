@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, FlatList, ActivityIndicator } from 'react-native';
-import { Searchbar, Chip, Text, SegmentedButtons, useTheme, Button } from 'react-native-paper';
+import { Chip, Text, SegmentedButtons, useTheme, Button } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import PlaceCard from '../components/PlaceCard';
 import * as Location from 'expo-location';
@@ -194,7 +194,7 @@ export default function HomeScreen({ navigation }) {
   // États pour gérer les filtres et la recherche
   const theme = useTheme();
   const { textSizes } = useTextSize();
-  const [searchQuery, setSearchQuery] = useState('');
+
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortValue, setSortValue] = useState('proximity');
   const [accessibilityFilter, setAccessibilityFilter] = useState('all');
@@ -311,14 +311,12 @@ export default function HomeScreen({ navigation }) {
 
   const sortedAndFilteredPlaces = places
     .filter(place => {
-      const matchesSearch = place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          place.address.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || place.type === selectedCategory;
       const accessLevel = getAccessibilityLevel(place);
       const isAccessible = accessibilityFilter === 'all' || 
                           accessibilityFilter === accessLevel ||
                           (accessibilityFilter === 'partial' && accessLevel === 'full');
-      return matchesSearch && matchesCategory && isAccessible;
+      return matchesCategory && isAccessible;
     })
     .map(place => ({
       ...place,
@@ -429,12 +427,23 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
 
-        <Searchbar
-          placeholder="Rechercher un lieu..."
-          onChangeText={setSearchQuery}
-          value={searchQuery}
-          style={styles.searchBar}
-        />
+        <Text style={[styles.welcomeText, { 
+          color: theme.colors.onSurface, 
+          fontSize: textSizes.title,
+          textAlign: 'center',
+          marginBottom: 8 
+        }]}>
+          Découvrez des lieux accessibles
+        </Text>
+        
+        <Text style={[styles.subtitle, { 
+          color: theme.colors.onSurface, 
+          fontSize: textSizes.body,
+          textAlign: 'center',
+          marginBottom: 20 
+        }]}>
+          Explorez et partagez vos expériences
+        </Text>
 
         <ScrollView
           horizontal
@@ -502,7 +511,7 @@ export default function HomeScreen({ navigation }) {
         />
       </View>
 
-      {!searchQuery && selectedCategory === 'all' && accessibilityFilter === 'all' && (
+      {selectedCategory === 'all' && accessibilityFilter === 'all' && (
         <ScrollView style={styles.content}>
           <View style={styles.section}>
             {renderSectionHeader('✨ Mieux notés')}
@@ -535,7 +544,7 @@ export default function HomeScreen({ navigation }) {
     </ScrollView>
       )}
 
-      {(searchQuery || selectedCategory !== 'all' || accessibilityFilter !== 'all') && (
+      {(selectedCategory !== 'all' || accessibilityFilter !== 'all') && (
         <FlatList
           data={sortedAndFilteredPlaces}
           renderItem={renderPlace}
@@ -557,9 +566,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 8,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingTop: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     elevation: 4,
@@ -567,30 +576,41 @@ const styles = StyleSheet.create({
     shadowOffset: {
       width: 0,
       height: 2,
-  },
+    },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  searchBar: {
-    elevation: 0,
-    borderRadius: 12,
-    marginBottom: 16,
-  },
   categoriesContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   accessibilityContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   categories: {
-    paddingRight: 16,
-    gap: 8,
+    paddingRight: 20,
+    gap: 12,
   },
   categoryChip: {
-    marginRight: 8,
+    marginRight: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   sortButtons: {
-    marginBottom: 8,
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   content: {
     flex: 1,
@@ -638,12 +658,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   welcomeText: {
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   subtitle: {
-    opacity: 0.7,
-    marginBottom: 16,
+    opacity: 0.8,
+    fontWeight: '400',
+    letterSpacing: 0.3,
   },
   sectionHeader: {
     fontWeight: 'bold',
