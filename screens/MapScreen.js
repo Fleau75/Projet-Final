@@ -9,6 +9,7 @@ import { searchNearbyPlaces } from '../services/placesApi';
 import { searchPlacesByText } from '../services/placesSearch';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { AccessibilityService } from '../services/accessibilityService';
 
 // Style de carte sombre pour Google Maps
 const darkMapStyle = [
@@ -48,6 +49,13 @@ export default function MapScreen({ navigation }) {
   const [places, setPlaces] = useState([]);
   const [lastAddedPlace, setLastAddedPlace] = useState(null); // Pour tracker le dernier lieu ajouté
   const [mapKey, setMapKey] = useState(0); // Pour forcer le re-rendu quand nécessaire
+  const [accessibilityPrefs, setAccessibilityPrefs] = useState({
+    requireRamp: false,
+    requireElevator: false,
+    requireAccessibleParking: false,
+    requireAccessibleToilets: false,
+  });
+  const [filteredPlaces, setFilteredPlaces] = useState([]);
 
   // Position par défaut sur Paris
   const defaultParisLocation = {
@@ -77,12 +85,23 @@ export default function MapScreen({ navigation }) {
     })();
   }, []);
 
-  // Charger les marqueurs sauvegardés
+  // Charger les marqueurs sauvegardés et les préférences d'accessibilité
   const loadSavedMarkers = async () => {
     try {
       const savedMarkers = await AsyncStorage.getItem('mapMarkers');
       if (savedMarkers) {
-        setPlaces(JSON.parse(savedMarkers));
+        const allPlaces = JSON.parse(savedMarkers);
+        setPlaces(allPlaces);
+        
+        // Charger les préférences d'accessibilité et filtrer
+        const prefs = await AccessibilityService.loadAccessibilityPreferences();
+        setAccessibilityPrefs(prefs);
+        
+        // Filtrer les lieux selon les préférences
+        const filtered = allPlaces.filter(place => 
+          AccessibilityService.meetsAccessibilityPreferences(place, prefs)
+        );
+        setFilteredPlaces(filtered);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des marqueurs:', error);
@@ -155,7 +174,13 @@ export default function MapScreen({ navigation }) {
         radius: 20000 // 20km pour couvrir tout Paris
       }, 100); // Limite à 100 résultats
 
-      setSearchResults(results);
+      // Filtrer les résultats selon les préférences d'accessibilité
+      const filteredResults = results.filter(place => 
+        AccessibilityService.meetsAccessibilityPreferences(place, accessibilityPrefs)
+      );
+
+      setSearchResults(filteredResults);
+      console.log(`🔍 Recherche: ${results.length} résultats trouvés, ${filteredResults.length} après filtrage d'accessibilité`);
     } catch (error) {
       console.error('Erreur de recherche:', error);
       setSearchResults([]);
@@ -177,6 +202,12 @@ export default function MapScreen({ navigation }) {
     // Ajouter le lieu sélectionné aux marqueurs de la carte
     const newPlaces = [...places, placeWithDate];
     setPlaces(newPlaces);
+    
+    // Filtrer selon les préférences d'accessibilité
+    const filtered = newPlaces.filter(place => 
+      AccessibilityService.meetsAccessibilityPreferences(place, accessibilityPrefs)
+    );
+    setFilteredPlaces(filtered);
     
     // Forcer la mise à jour immédiate de la carte pour afficher le marqueur
     setMapKey(prev => prev + 1);
@@ -275,8 +306,8 @@ export default function MapScreen({ navigation }) {
           pinColor="#2563EB"
         />
 
-        {/* Marqueurs des lieux sélectionnés */}
-        {places.map((place) => (
+        {/* Marqueurs des lieux sélectionnés (filtrés selon les préférences d'accessibilité) */}
+        {filteredPlaces.map((place) => (
           <Marker
             key={place.id}
             coordinate={place.coordinates}
@@ -301,6 +332,15 @@ export default function MapScreen({ navigation }) {
           }]}
           onIconPress={handleSearch}
         />
+        
+        {/* Indicateur des préférences d'accessibilité actives */}
+        {AccessibilityService.hasActivePreferences(accessibilityPrefs) && (
+          <View style={[styles.preferencesIndicator, { backgroundColor: theme.colors.primaryContainer }]}>
+            <Text style={[styles.preferencesText, { color: theme.colors.onPrimaryContainer }]}>
+              🔧 Filtres actifs: {AccessibilityService.getActivePreferencesText(accessibilityPrefs)}
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Bouton de recentrage sur l'utilisateur */}
@@ -320,7 +360,7 @@ export default function MapScreen({ navigation }) {
             borderBottomColor: theme.colors.outline 
           }]}>
             <Text variant="titleMedium" style={[styles.resultsTitle, { color: theme.colors.onSurface }]}>
-              Résultats de recherche ({searchResults.length}/100)
+              Résultats de recherche ({searchResults.length}{AccessibilityService.hasActivePreferences(accessibilityPrefs) ? ' filtrés' : ''})
             </Text>
             <TouchableOpacity onPress={() => setShowResults(false)}>
               <MaterialCommunityIcons 
@@ -418,6 +458,24 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+  },
+  preferencesIndicator: {
+    marginTop: 8,
+    padding: 8,
+    borderRadius: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+  },
+  preferencesText: {
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   centerButton: {
     position: 'absolute',

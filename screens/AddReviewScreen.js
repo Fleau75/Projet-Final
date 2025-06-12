@@ -6,6 +6,7 @@ import CustomRating from '../components/CustomRating';
 import { searchPlaces } from '../services/placesSearch';
 import { useAppTheme } from '../theme/ThemeContext';
 import { ReviewsService } from '../services/firebaseService';
+import { AccessibilityService } from '../services/accessibilityService';
 
 export default function AddReviewScreen({ navigation, route }) {
   const theme = useTheme();
@@ -24,12 +25,25 @@ export default function AddReviewScreen({ navigation, route }) {
     parking: false,
     toilets: false,
   });
+  const [accessibilityPrefs, setAccessibilityPrefs] = useState({
+    requireRamp: false,
+    requireElevator: false,
+    requireAccessibleParking: false,
+    requireAccessibleToilets: false,
+  });
 
-  // Effet pour afficher le lieu pré-sélectionné
+  // Effet pour afficher le lieu pré-sélectionné et charger les préférences
   useEffect(() => {
     if (route.params?.place) {
       console.log('🏠 Lieu pré-sélectionné:', route.params.place.name);
     }
+    
+    // Charger les préférences d'accessibilité
+    const loadPrefs = async () => {
+      const prefs = await AccessibilityService.loadAccessibilityPreferences();
+      setAccessibilityPrefs(prefs);
+    };
+    loadPrefs();
   }, [route.params?.place]);
 
   // Effet pour la recherche de lieux
@@ -39,7 +53,14 @@ export default function AddReviewScreen({ navigation, route }) {
         setIsSearching(true);
         try {
           const results = await searchPlaces(searchQuery);
-          setSearchResults(results);
+          
+          // Filtrer les résultats selon les préférences d'accessibilité
+          const filteredResults = results.filter(place => 
+            AccessibilityService.meetsAccessibilityPreferences(place, accessibilityPrefs)
+          );
+          
+          setSearchResults(filteredResults);
+          console.log(`🔍 AddReview: ${results.length} résultats trouvés, ${filteredResults.length} après filtrage d'accessibilité`);
         } catch (error) {
           console.error('Erreur de recherche:', error);
         } finally {

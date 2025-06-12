@@ -14,6 +14,7 @@ import { searchNearbyPlaces } from '../services/placesApi';
 import { useTextSize } from '../theme/TextSizeContext';
 import PlacesService from '../services/firebaseService';
 import SimplePlacesService from '../services/simplePlacesService';
+import { AccessibilityService } from '../services/accessibilityService';
 
 /**
  * Liste des catégories de lieux disponibles dans l'application
@@ -293,6 +294,14 @@ export default function HomeScreen({ navigation }) {
   
   // État pour le rayon de recherche
   const [searchRadius, setSearchRadius] = useState(1000); // valeur par défaut 1000m
+  
+  // État pour les préférences d'accessibilité depuis les réglages
+  const [accessibilityPrefs, setAccessibilityPrefs] = useState({
+    requireRamp: false,
+    requireElevator: false,
+    requireAccessibleParking: false,
+    requireAccessibleToilets: false,
+  });
 
   /**
    * Fonction pour charger le rayon de recherche
@@ -309,12 +318,26 @@ export default function HomeScreen({ navigation }) {
   }, []);
 
   /**
-   * Effet pour recharger le rayon de recherche quand l'écran devient focus
+   * Fonction pour charger les préférences d'accessibilité depuis les réglages
+   */
+  const loadAccessibilityPrefs = useCallback(async () => {
+    try {
+      const prefs = await AccessibilityService.loadAccessibilityPreferences();
+      setAccessibilityPrefs(prefs);
+      console.log('🔧 Préférences d\'accessibilité chargées:', prefs);
+    } catch (error) {
+      console.error('Erreur lors du chargement des préférences d\'accessibilité:', error);
+    }
+  }, []);
+
+  /**
+   * Effet pour recharger le rayon de recherche et les préférences d'accessibilité quand l'écran devient focus
    */
   useFocusEffect(
     useCallback(() => {
       loadSearchRadius();
-    }, [loadSearchRadius])
+      loadAccessibilityPrefs();
+    }, [loadSearchRadius, loadAccessibilityPrefs])
   );
 
   /**
@@ -505,6 +528,13 @@ export default function HomeScreen({ navigation }) {
     return distance;
   };
 
+  /**
+   * Vérifie si un lieu respecte les préférences d'accessibilité de l'utilisateur
+   */
+  const meetsAccessibilityPreferences = useCallback((place) => {
+    return AccessibilityService.meetsAccessibilityPreferences(place, accessibilityPrefs);
+  }, [accessibilityPrefs]);
+
   const sortedAndFilteredPlaces = places
     .filter(place => {
       const matchesCategory = selectedCategory === 'all' || place.type === selectedCategory;
@@ -512,7 +542,8 @@ export default function HomeScreen({ navigation }) {
       const isAccessible = accessibilityFilter === 'all' || 
                           accessibilityFilter === accessLevel ||
                           (accessibilityFilter === 'partial' && (accessLevel === 'full' || accessLevel === 'partial'));
-      return matchesCategory && isAccessible;
+      const meetsPreferences = meetsAccessibilityPreferences(place);
+      return matchesCategory && isAccessible && meetsPreferences;
     })
     .map(place => ({
       ...place,
@@ -627,6 +658,15 @@ export default function HomeScreen({ navigation }) {
           <View style={[styles.locationInfo, { backgroundColor: theme.colors.surfaceVariant }]}>
             <Text style={[styles.locationText, { color: theme.colors.onSurface }]}>
               🔍 Rayon de recherche: {searchRadius >= 1000 ? (searchRadius/1000).toFixed(1) + ' km' : searchRadius + ' m'}
+            </Text>
+          </View>
+        )}
+
+        {/* Indicateur des préférences d'accessibilité actives */}
+        {AccessibilityService.hasActivePreferences(accessibilityPrefs) && (
+          <View style={[styles.preferencesInfo, { backgroundColor: theme.colors.primaryContainer }]}>
+            <Text style={[styles.preferencesText, { color: theme.colors.onPrimaryContainer }]}>
+              🔧 Filtres d'accessibilité actifs: {AccessibilityService.getActivePreferencesText(accessibilityPrefs)}
             </Text>
           </View>
         )}
@@ -841,6 +881,15 @@ const styles = StyleSheet.create({
   },
   locationText: {
     
+  },
+  preferencesInfo: {
+    padding: 8,
+    marginBottom: 16,
+    borderRadius: 8,
+  },
+  preferencesText: {
+    fontSize: 12,
+    fontWeight: '500',
   },
   loadingText: {
     marginTop: 8,

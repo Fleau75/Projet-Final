@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { AccessibilityService } from '../services/accessibilityService';
 
 const { width } = Dimensions.get('window');
 
@@ -47,6 +48,12 @@ export default function LocationHistoryScreen({ navigation }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState('recent'); // recent, name, rating, distance
   const [isLoading, setIsLoading] = useState(true);
+  const [accessibilityPrefs, setAccessibilityPrefs] = useState({
+    requireRamp: false,
+    requireElevator: false,
+    requireAccessibleParking: false,
+    requireAccessibleToilets: false,
+  });
 
   // Charger les lieux de la carte depuis AsyncStorage
   const loadMapPlaces = async () => {
@@ -65,6 +72,10 @@ export default function LocationHistoryScreen({ navigation }) {
       } else {
         setMapPlaces([]);
       }
+      
+      // Charger les préférences d'accessibilité
+      const prefs = await AccessibilityService.loadAccessibilityPreferences();
+      setAccessibilityPrefs(prefs);
     } catch (error) {
       console.error('Erreur lors du chargement de l\'historique:', error);
       setMapPlaces([]);
@@ -107,6 +118,11 @@ export default function LocationHistoryScreen({ navigation }) {
         place.type === selectedCategory
       );
     }
+
+    // Filtrer par préférences d'accessibilité
+    filtered = filtered.filter(place => 
+      AccessibilityService.meetsAccessibilityPreferences(place, accessibilityPrefs)
+    );
 
     // Trier
     switch (sortBy) {

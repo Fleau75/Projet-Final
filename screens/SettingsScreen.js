@@ -128,11 +128,18 @@ export default function SettingsScreen({ navigation, route }) {
     }
   }, []);
 
-  const toggleAccessibilityPref = (key) => {
-    setAccessibilityPrefs(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+  const toggleAccessibilityPref = async (key) => {
+    try {
+      const newPrefs = {
+        ...accessibilityPrefs,
+        [key]: !accessibilityPrefs[key]
+      };
+      setAccessibilityPrefs(newPrefs);
+      await AsyncStorage.setItem('accessibilityPrefs', JSON.stringify(newPrefs));
+      console.log('🔧 Préférences d\'accessibilité sauvegardées:', newPrefs);
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde des préférences d\'accessibilité:', error);
+    }
   };
 
   const toggleNotification = useCallback(async (key) => {
