@@ -156,7 +156,7 @@ export default function PlaceDetailScreen({ navigation, route }) {
       {/* En-tête principal */}
       <Surface style={styles.headerSurface}>
         <Text style={[styles.title, { fontSize: textSizes.title, color: theme.colors.onSurface }]}>
-          {place.name}
+          {place.reviewCount ? `${place.reviewCount} avis Google` : 'Aucun avis Google'}
         </Text>
         
         <Text style={[styles.address, { fontSize: textSizes.body, color: theme.colors.onSurface }]}>
@@ -171,7 +171,7 @@ export default function PlaceDetailScreen({ navigation, route }) {
             style={styles.rating}
           />
           <Text style={{ fontSize: textSizes.body, color: theme.colors.onSurface }}>
-            {place.rating ? place.rating.toFixed(1) : '0'} ({place.reviewCount || 0} avis Google)
+            {place.rating ? place.rating.toFixed(1) : '0'}
           </Text>
         </View>
 

@@ -18,8 +18,8 @@ export const searchPlaces = async (query) => {
 
     if (data.status === 'OK') {
       // Récupérer les détails complets pour chaque lieu
-      const placesWithDetails = await Promise.all(
-        data.results.slice(0, 10).map(async (place) => {
+          const placesWithDetails = await Promise.all(
+      data.results.slice(0, 15).map(async (place) => {
           try {
             const details = await getPlaceDetails(place.place_id);
             return {

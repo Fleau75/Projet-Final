@@ -33,7 +33,7 @@ export const searchNearbyPlaces = async (latitude, longitude, radius = 1500) => 
 
     // Pour chaque lieu, récupérer les détails complets avec les vrais avis
     const placesWithDetails = await Promise.all(
-      response.data.results.slice(0, 20).map(async (place) => {
+      response.data.results.slice(0, 35).map(async (place) => {
         try {
           const details = await getPlaceDetails(place.place_id);
           return {
