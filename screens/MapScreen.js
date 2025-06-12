@@ -36,7 +36,7 @@ const darkMapStyle = [
   { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#3d3d3d" }] }
 ];
 
-export default function MapScreen({ navigation }) {
+export default function MapScreen({ navigation, route }) {
   const theme = useTheme();
   const { isDarkMode } = useAppTheme(); // Récupérer l'état du thème sombre
   const mapRef = useRef(null); // Référence pour contrôler la carte
@@ -241,6 +241,28 @@ export default function MapScreen({ navigation }) {
       }, 100); // Délai pour laisser la carte se re-rendre
     }
   }, [lastAddedPlace]);
+
+  // Centrer sur un lieu spécifique depuis les paramètres de navigation
+  useEffect(() => {
+    const centerOnPlace = route?.params?.centerOnPlace;
+    if (centerOnPlace && mapRef.current) {
+      console.log('🎯 Centrage sur le lieu:', centerOnPlace.name);
+      console.log('📍 Coordonnées:', centerOnPlace.coordinates);
+      
+      // Attendre que la carte soit prête
+      setTimeout(() => {
+        mapRef.current.animateToRegion({
+          latitude: centerOnPlace.coordinates.latitude,
+          longitude: centerOnPlace.coordinates.longitude,
+          latitudeDelta: 0.01, // Zoom plus proche pour bien voir le lieu
+          longitudeDelta: 0.01,
+        }, 1000); // Animation un peu plus lente pour bien voir
+      }, 500); // Délai plus long pour s'assurer que la carte est prête
+      
+      // Nettoyer le paramètre pour éviter les re-centrages
+      navigation.setParams({ centerOnPlace: null });
+    }
+  }, [route?.params?.centerOnPlace, mapRef]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {

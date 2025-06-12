@@ -201,7 +201,29 @@ export default function LocationHistoryScreen({ navigation }) {
         <Card.Actions>
           <Button 
             mode="outlined" 
-            onPress={() => navigation.navigate('Map')}
+            onPress={() => {
+              console.log('🗺️ Clic sur "Voir sur la carte" pour:', placeName);
+              
+              try {
+                // Approche 1: Retourner aux MainTabs puis naviguer vers Map
+                console.log('🔄 Retour vers MainTabs puis Map');
+                navigation.navigate('MainTabs', { 
+                  screen: 'Map',
+                  params: { centerOnPlace: place }
+                });
+                
+                console.log('✅ Navigation vers Map réussie');
+              } catch (error) {
+                console.error('❌ Erreur navigation:', error);
+                
+                // Fallback: goBack puis navigation
+                console.log('🔄 Fallback: goBack puis navigate');
+                navigation.goBack();
+                setTimeout(() => {
+                  navigation.navigate('MainTabs', { screen: 'Map' });
+                }, 200);
+              }
+            }}
             icon="map"
           >
             Voir sur la carte
@@ -232,7 +254,21 @@ export default function LocationHistoryScreen({ navigation }) {
       </Text>
       <Button 
         mode="contained" 
-        onPress={() => navigation.navigate('Map')}
+        onPress={() => {
+          console.log('🗺️ Clic sur "Explorer la carte"');
+          try {
+            // Naviguer vers l'onglet Map
+            navigation.navigate('MainTabs', { screen: 'Map' });
+            console.log('✅ Navigation vers Map explorer réussie');
+          } catch (error) {
+            console.error('❌ Erreur navigation explorer:', error);
+            // Fallback
+            navigation.goBack();
+            setTimeout(() => {
+              navigation.navigate('MainTabs', { screen: 'Map' });
+            }, 200);
+          }
+        }}
         style={styles.exploreButton}
       >
         Explorer la carte
