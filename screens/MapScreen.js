@@ -168,15 +168,21 @@ export default function MapScreen({ navigation }) {
     setShowResults(false);
     setSearchQuery(''); // Vider la barre de recherche pour permettre une nouvelle recherche
     
+    // Ajouter une date d'ajout au lieu
+    const placeWithDate = {
+      ...place,
+      addedDate: new Date().toISOString()
+    };
+    
     // Ajouter le lieu sélectionné aux marqueurs de la carte
-    const newPlaces = [...places, place];
+    const newPlaces = [...places, placeWithDate];
     setPlaces(newPlaces);
     
     // Forcer la mise à jour immédiate de la carte pour afficher le marqueur
     setMapKey(prev => prev + 1);
     
     // Déclencher le centrage via le state après que le marqueur soit visible
-    setLastAddedPlace(place);
+    setLastAddedPlace(placeWithDate);
     
     // Sauvegarder automatiquement
     saveMarkers(newPlaces);

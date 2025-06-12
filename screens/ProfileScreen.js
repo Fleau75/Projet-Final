@@ -126,9 +126,9 @@ export default function ProfileScreen({ navigation, route }) {
     navigation.navigate('MyReviews');
   };
 
-  const handleViewFavorites = () => {
-    // Navigation vers les lieux favoris
-    navigation.navigate('FavoritePlaces');
+  const handleViewLocationHistory = () => {
+    // Navigation vers l'historique de lieu
+    navigation.navigate('LocationHistory');
   };
 
   const handleClearMapMarkers = () => {
@@ -230,7 +230,7 @@ export default function ProfileScreen({ navigation, route }) {
               </View>
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>{userInfo.favoritePlaces}</Text>
-                <Text style={styles.statLabel}>Lieux favoris</Text>
+                <Text style={styles.statLabel}>Lieux ajoutés</Text>
               </View>
             </View>
           </Card.Content>
@@ -256,11 +256,11 @@ export default function ProfileScreen({ navigation, route }) {
             />
             <Divider />
             <List.Item
-              title="Lieux favoris"
-              description="Mes lieux sauvegardés"
-              left={props => <List.Icon {...props} icon="heart" />}
+              title="Historique de lieu"
+              description="Lieux ajoutés sur la carte"
+              left={props => <List.Icon {...props} icon="map-marker" />}
               right={props => <List.Icon {...props} icon="chevron-right" />}
-              onPress={handleViewFavorites}
+              onPress={handleViewLocationHistory}
             />
             <Divider />
             <List.Item

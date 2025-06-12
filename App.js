@@ -25,7 +25,7 @@ import AddReviewScreen from './screens/AddReviewScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
 import MyReviewsScreen from './screens/MyReviewsScreen';
-import FavoritePlacesScreen from './screens/FavoritePlacesScreen';
+import LocationHistoryScreen from './screens/LocationHistoryScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import PlaceDetailScreen from './screens/PlaceDetailScreen';
 
@@ -257,10 +257,10 @@ function AppContent() {
               }}
             />
             <Stack.Screen 
-              name="FavoritePlaces" 
-              component={FavoritePlacesScreen}
+              name="LocationHistory" 
+              component={LocationHistoryScreen}
               options={{ 
-                title: 'Lieux favoris',
+                title: 'Historique de lieu',
                 presentation: 'card',
                 headerShown: true,
                 headerBackTitle: '',
