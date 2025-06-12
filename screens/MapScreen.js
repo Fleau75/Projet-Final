@@ -128,12 +128,39 @@ export default function MapScreen({ navigation, route }) {
       const savedMarkers = await AsyncStorage.getItem('mapMarkers');
       if (savedMarkers) {
         const allPlaces = JSON.parse(savedMarkers);
+        console.log(`📁 Chargement de ${allPlaces.length} marqueurs sauvegardés`);
+        
+        // Si on a déjà une position, l'utiliser, sinon essayer de la récupérer
+        let currentLocation = location;
+        if (!currentLocation) {
+          console.log('📍 Tentative de récupération de la position actuelle...');
+          try {
+            const newLocation = await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.Balanced,
+              maximumAge: 30000, // Accepter une position vieille de 30 secondes max
+            });
+            currentLocation = newLocation;
+            setLocation(newLocation);
+            console.log(`📍 Position récupérée: ${newLocation.coords.latitude}, ${newLocation.coords.longitude}`);
+          } catch (error) {
+            console.log('⚠️ Impossible de récupérer la position, utilisation de la position par défaut');
+            currentLocation = defaultParisLocation;
+          }
+        }
         
         // Ajouter la distance à chaque lieu sauvegardé
-        const placesWithDistance = allPlaces.map(place => ({
-          ...place,
-          distance: location ? calculateDistance(location.coords, place.coordinates) : 0
-        }));
+        const placesWithDistance = allPlaces.map(place => {
+          const distance = currentLocation ? calculateDistance(currentLocation.coords, place.coordinates) : 0;
+          if (currentLocation) {
+            console.log(`📏 Distance calculée pour ${place.name}: ${distance.toFixed(3)}km`);
+          } else {
+            console.log(`⏳ Position non disponible, distance temporaire pour ${place.name}: 0km`);
+          }
+          return {
+            ...place,
+            distance
+          };
+        });
         
         setPlaces(placesWithDistance);
         
@@ -164,34 +191,75 @@ export default function MapScreen({ navigation, route }) {
   // Charger les marqueurs au montage et quand on revient sur l'écran
   useFocusEffect(
     React.useCallback(() => {
+      console.log('🔄 Focus sur MapScreen, rechargement des marqueurs');
       loadSavedMarkers();
-    }, [])
+      
+      // Recharger aussi les préférences d'accessibilité
+      const loadPreferences = async () => {
+        try {
+          const prefs = await AccessibilityService.loadAccessibilityPreferences();
+          console.log('🔧 Préférences rechargées:', prefs);
+          setAccessibilityPrefs(prefs);
+        } catch (error) {
+          console.error('Erreur lors du rechargement des préférences:', error);
+        }
+      };
+      
+      loadPreferences();
+    }, []) // Pas de dépendances pour éviter la boucle infinie
   );
 
-  // Recalculer les distances quand la position de l'utilisateur est disponible
+  // Recalculer les distances quand la position de l'utilisateur devient disponible
   useEffect(() => {
     if (location && places.length > 0) {
       console.log('🔄 Recalcul des distances pour les marqueurs existants');
       console.log(`📍 Position utilisateur: ${location.coords.latitude}, ${location.coords.longitude}`);
       
-      const placesWithUpdatedDistance = places.map(place => {
-        const distance = calculateDistance(location.coords, place.coordinates);
-        console.log(`📏 ${place.name}: ${distance.toFixed(3)}km`);
-        return {
-          ...place,
-          distance
-        };
-      });
+      // Vérifier si les places ont des distances invalides (nulles ou zéro)
+      const placesWithInvalidDistances = places.filter(place => !place.distance || place.distance === 0);
       
-      setPlaces(placesWithUpdatedDistance);
+      if (placesWithInvalidDistances.length > 0) {
+        console.log(`📏 ${placesWithInvalidDistances.length} lieux avec distances invalides détectés, recalcul nécessaire`);
+        const placesWithUpdatedDistance = places.map(place => {
+          if (!place.distance || place.distance === 0) {
+            const distance = calculateDistance(location.coords, place.coordinates);
+            console.log(`📏 ${place.name}: ${distance.toFixed(3)}km (recalculé)`);
+            return {
+              ...place,
+              distance
+            };
+          }
+          return place; // Garder la distance existante si elle est valide
+        });
+        
+        setPlaces(placesWithUpdatedDistance);
+        
+        // Mettre à jour aussi les lieux filtrés
+        const filtered = placesWithUpdatedDistance.filter(place => 
+          AccessibilityService.meetsAccessibilityPreferences(place, accessibilityPrefs)
+        );
+        setFilteredPlaces(filtered);
+        
+        // Sauvegarder les distances mises à jour
+        saveMarkers(placesWithUpdatedDistance);
+      }
+    }
+  }, [location, places.length]); // Se déclenche quand location change ou nombre de places change
+
+  // Refiltrer les marqueurs quand les préférences d'accessibilité changent
+  useEffect(() => {
+    if (places.length > 0) {
+      console.log('🔄 Refiltrage automatique suite au changement de préférences');
+      console.log('🔧 Préférences actuelles:', accessibilityPrefs);
       
-      // Mettre à jour aussi les lieux filtrés
-      const filtered = placesWithUpdatedDistance.filter(place => 
+      const filtered = places.filter(place => 
         AccessibilityService.meetsAccessibilityPreferences(place, accessibilityPrefs)
       );
+      
+      console.log(`📊 Filtrage: ${places.length} lieux total → ${filtered.length} lieux affichés`);
       setFilteredPlaces(filtered);
     }
-  }, [location]); // Se déclenche quand location change
+  }, [accessibilityPrefs, places]); // Se déclenche quand les préférences ou les places changent
 
   // Écouter les changements d'AsyncStorage en temps réel
   useEffect(() => {

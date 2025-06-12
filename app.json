@@ -4,13 +4,13 @@
     "slug": "accessplus",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/default-avatar.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#2563EB"
-    },
+          "splash": {
+        "image": "./assets/default-avatar.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#2563EB"
+      },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -26,11 +26,11 @@
         "NSLocationWhenInUseUsageDescription": "Cette application nécessite l'accès à votre localisation pour trouver les lieux accessibles autour de vous."
       }
     },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#2563EB"
-      },
+          "android": {
+        "adaptiveIcon": {
+          "foregroundImage": "./assets/default-avatar.png",
+          "backgroundColor": "#2563EB"
+        },
       "package": "com.accessplus.app",
       "config": {
         "googleMaps": {
@@ -45,9 +45,9 @@
         "ACCESS_COARSE_LOCATION"
       ]
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
+          "web": {
+        "favicon": "./assets/default-avatar.png"
+      },
     "plugins": [
       [
         "expo-image-picker",
