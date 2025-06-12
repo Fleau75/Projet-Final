@@ -43,6 +43,17 @@ export default function PlaceCard({ place, onPress }) {
   const theme = useTheme();
   const { isScreenReaderEnabled } = useScreenReader();
 
+  // Fonction pour formater la distance
+  const formatDistance = (distance) => {
+    if (!distance && distance !== 0) return '';
+    
+    if (distance < 1) {
+      return `${Math.round(distance * 1000)}m`;
+    } else {
+      return `${distance.toFixed(1)}km`;
+    }
+  };
+
   // Prépare la description d'accessibilité
   const getAccessibilityDescription = () => {
     const features = [];
@@ -51,7 +62,9 @@ export default function PlaceCard({ place, onPress }) {
     if (place.accessibility.parking) features.push('parking accessible');
     if (place.accessibility.toilets) features.push('toilettes adaptées');
     
-    return `${place.name}. ${place.address}. Note: ${place.rating} sur 5, ${place.reviewCount} avis. ${
+    const distanceText = place.distance !== undefined ? ` Distance: ${formatDistance(place.distance)}.` : '';
+    
+    return `${place.name}. ${place.address}.${distanceText} Note: ${place.rating} sur 5, ${place.reviewCount} avis. ${
       features.length > 0 
         ? `Équipements accessibles: ${features.join(', ')}.` 
         : 'Aucun équipement d\'accessibilité signalé.'
@@ -124,6 +137,19 @@ export default function PlaceCard({ place, onPress }) {
               ({place.reviewCount})
             </Text>
           </View>
+
+          {/* Distance */}
+          {place.distance !== undefined && (
+            <View 
+              style={styles.distanceContainer}
+              accessible={true}
+              accessibilityLabel={`Distance: ${formatDistance(place.distance)}`}
+            >
+              <Text style={[styles.distanceText, { color: theme.colors.primary }]}>
+                📍 {formatDistance(place.distance)}
+              </Text>
+            </View>
+          )}
 
           {/* Icônes d'accessibilité */}
           <View style={styles.accessibilityContainer}>
@@ -222,5 +248,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  distanceContainer: {
+    marginBottom: 12,
+  },
+  distanceText: {
+    fontSize: 13,
+    opacity: 0.7,
   },
 }); 

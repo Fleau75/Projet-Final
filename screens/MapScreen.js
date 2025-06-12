@@ -66,6 +66,42 @@ export default function MapScreen({ navigation }) {
     }
   };
 
+  // Fonction pour calculer la distance entre deux points
+  const calculateDistance = (coords1, coords2) => {
+    if (!coords1 || !coords2) {
+      return Infinity;
+    }
+    
+    // Conversion en radians
+    const lat1 = coords1.latitude * Math.PI / 180;
+    const lon1 = coords1.longitude * Math.PI / 180;
+    const lat2 = coords2.latitude * Math.PI / 180;
+    const lon2 = coords2.longitude * Math.PI / 180;
+
+    // Formule de Haversine
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = lat2 - lat1;
+    const dLon = lon2 - lon1;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+
+    return distance;
+  };
+
+  // Fonction pour formater la distance
+  const formatDistance = (distance) => {
+    if (!distance && distance !== 0) return '';
+    
+    if (distance < 1) {
+      return `${Math.round(distance * 1000)}m`;
+    } else {
+      return `${distance.toFixed(1)}km`;
+    }
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -92,14 +128,21 @@ export default function MapScreen({ navigation }) {
       const savedMarkers = await AsyncStorage.getItem('mapMarkers');
       if (savedMarkers) {
         const allPlaces = JSON.parse(savedMarkers);
-        setPlaces(allPlaces);
+        
+        // Ajouter la distance à chaque lieu sauvegardé
+        const placesWithDistance = allPlaces.map(place => ({
+          ...place,
+          distance: location ? calculateDistance(location.coords, place.coordinates) : 0
+        }));
+        
+        setPlaces(placesWithDistance);
         
         // Charger les préférences d'accessibilité et filtrer
         const prefs = await AccessibilityService.loadAccessibilityPreferences();
         setAccessibilityPrefs(prefs);
         
         // Filtrer les lieux selon les préférences
-        const filtered = allPlaces.filter(place => 
+        const filtered = placesWithDistance.filter(place => 
           AccessibilityService.meetsAccessibilityPreferences(place, prefs)
         );
         setFilteredPlaces(filtered);
@@ -125,6 +168,31 @@ export default function MapScreen({ navigation }) {
     }, [])
   );
 
+  // Recalculer les distances quand la position de l'utilisateur est disponible
+  useEffect(() => {
+    if (location && places.length > 0) {
+      console.log('🔄 Recalcul des distances pour les marqueurs existants');
+      console.log(`📍 Position utilisateur: ${location.coords.latitude}, ${location.coords.longitude}`);
+      
+      const placesWithUpdatedDistance = places.map(place => {
+        const distance = calculateDistance(location.coords, place.coordinates);
+        console.log(`📏 ${place.name}: ${distance.toFixed(3)}km`);
+        return {
+          ...place,
+          distance
+        };
+      });
+      
+      setPlaces(placesWithUpdatedDistance);
+      
+      // Mettre à jour aussi les lieux filtrés
+      const filtered = placesWithUpdatedDistance.filter(place => 
+        AccessibilityService.meetsAccessibilityPreferences(place, accessibilityPrefs)
+      );
+      setFilteredPlaces(filtered);
+    }
+  }, [location]); // Se déclenche quand location change
+
   // Écouter les changements d'AsyncStorage en temps réel
   useEffect(() => {
     const checkStorageChanges = setInterval(async () => {
@@ -135,11 +203,18 @@ export default function MapScreen({ navigation }) {
         // Si le nombre de marqueurs a changé, mettre à jour l'affichage
         if (currentMarkers.length !== places.length) {
           console.log(`🔄 Synchronisation: ${places.length} → ${currentMarkers.length} marqueurs`);
-          setPlaces(currentMarkers);
+          
+          // Ajouter la distance à chaque marqueur
+          const markersWithDistance = currentMarkers.map(place => ({
+            ...place,
+            distance: location ? calculateDistance(location.coords, place.coordinates) : 0
+          }));
+          
+          setPlaces(markersWithDistance);
           
           // Filtrer selon les préférences d'accessibilité
           const prefs = await AccessibilityService.loadAccessibilityPreferences();
-          const filtered = currentMarkers.filter(place => 
+          const filtered = markersWithDistance.filter(place => 
             AccessibilityService.meetsAccessibilityPreferences(place, prefs)
           );
           setFilteredPlaces(filtered);
@@ -167,8 +242,6 @@ export default function MapScreen({ navigation }) {
     }
   }, [lastAddedPlace]);
 
-
-
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       setSearchResults([]);
@@ -187,12 +260,21 @@ export default function MapScreen({ navigation }) {
         radius: 20000 // 20km pour couvrir tout Paris
       }, 100); // Limite à 100 résultats
 
+      // Ajouter la distance à chaque résultat
+      const resultsWithDistance = results.map(place => ({
+        ...place,
+        distance: location ? calculateDistance(location.coords, place.coordinates) : 0
+      }));
+
       // Filtrer les résultats selon les préférences d'accessibilité
-      const filteredResults = results.filter(place => 
+      const filteredResults = resultsWithDistance.filter(place => 
         AccessibilityService.meetsAccessibilityPreferences(place, accessibilityPrefs)
       );
 
-      setSearchResults(filteredResults);
+      // Trier par distance
+      const sortedResults = filteredResults.sort((a, b) => a.distance - b.distance);
+
+      setSearchResults(sortedResults);
       console.log(`🔍 Recherche: ${results.length} résultats trouvés, ${filteredResults.length} après filtrage d'accessibilité`);
     } catch (error) {
       console.error('Erreur de recherche:', error);
@@ -206,10 +288,11 @@ export default function MapScreen({ navigation }) {
     setShowResults(false);
     setSearchQuery(''); // Vider la barre de recherche pour permettre une nouvelle recherche
     
-    // Ajouter une date d'ajout au lieu
+    // Ajouter une date d'ajout et recalculer la distance au lieu
     const placeWithDate = {
       ...place,
-      addedDate: new Date().toISOString()
+      addedDate: new Date().toISOString(),
+      distance: location ? calculateDistance(location.coords, place.coordinates) : 0
     };
     
     // Ajouter le lieu sélectionné aux marqueurs de la carte
@@ -268,8 +351,6 @@ export default function MapScreen({ navigation }) {
     }
   };
 
-
-
   const renderSearchResult = ({ item }) => (
     <TouchableOpacity 
       onPress={() => handlePlaceSelect(item)}
@@ -287,6 +368,11 @@ export default function MapScreen({ navigation }) {
             <Text style={[styles.resultRating, { color: theme.colors.onSurfaceVariant }]}>
               ⭐ {item.rating.toFixed(1)} ({item.reviewCount})
             </Text>
+            {item.distance !== undefined && (
+              <Text style={[styles.resultDistance, { color: theme.colors.primary }]}>
+                📍 {formatDistance(item.distance)}
+              </Text>
+            )}
             <Text style={[styles.resultAction, { color: theme.colors.primary }]}>Ajouter à la carte</Text>
           </View>
         </View>
@@ -346,7 +432,7 @@ export default function MapScreen({ navigation }) {
             key={place.id}
             coordinate={place.coordinates}
             title={place.name}
-            description={`${place.address} - ⭐ ${place.rating} (${place.reviewCount} avis)`}
+            description={`${place.address}${place.distance !== undefined ? ` - 📍 ${formatDistance(place.distance)}` : ''} - ⭐ ${place.rating} (${place.reviewCount} avis)`}
             onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place })}
             pinColor="#FF6B6B"
           />
@@ -611,6 +697,11 @@ const styles = StyleSheet.create({
   },
   resultRating: {
     fontSize: 13,
+    // color supprimé - sera défini dynamiquement avec le thème
+  },
+  resultDistance: {
+    fontSize: 13,
+    fontWeight: '500',
     // color supprimé - sera défini dynamiquement avec le thème
   },
   resultAction: {
