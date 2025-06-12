@@ -328,6 +328,22 @@ export default function HomeScreen({ navigation }) {
   );
 
   /**
+   * Fonction pour charger les lieux Google avec les vraies données (avis, téléphone, etc.)
+   */
+  const loadGooglePlacesWithRealData = useCallback(async (location, radius) => {
+    if (!location) {
+      console.log('📍 Recherche depuis le centre de Paris (position non disponible)');
+      // Utiliser le centre de Paris par défaut
+      return await searchNearbyPlaces(48.8566, 2.3522, radius);
+    }
+    
+    console.log(`📍 Recherche depuis votre position: ${location.latitude}, ${location.longitude}`);
+    console.log(`🎯 Rayon de recherche: ${radius}m (configuré dans les réglages)`);
+    
+    return await searchNearbyPlaces(location.latitude, location.longitude, radius);
+  }, []);
+
+  /**
    * Fonction pour charger TOUS les lieux de Paris depuis Google Places API + Firebase
    */
   const loadPlacesFromFirestore = useCallback(async () => {
@@ -339,7 +355,7 @@ export default function HomeScreen({ navigation }) {
       // Charger depuis les différentes sources en parallèle
       const [firestorePlaces, parisPlaces] = await Promise.all([
         PlacesService.getAllPlaces().catch(() => []),
-        SimplePlacesService.getNearbyPlaces(selectedCategory, 20, userLocation, searchRadius).catch((error) => {
+        loadGooglePlacesWithRealData(userLocation, searchRadius).catch((error) => {
           console.warn('⚠️ Google Places erreur:', error.message);
           return [];
         })

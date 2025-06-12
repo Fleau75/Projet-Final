@@ -1,4 +1,5 @@
 import { GOOGLE_PLACES_API_KEY } from '@env';
+import { getPlaceDetails } from './placesApi';
 
 /**
  * Recherche des lieux avec l'API Google Places
@@ -16,12 +17,48 @@ export const searchPlaces = async (query) => {
     const data = await response.json();
 
     if (data.status === 'OK') {
-      return data.results.map(place => ({
-        id: place.place_id,
-        name: place.name,
-        address: place.formatted_address,
-        location: place.geometry.location,
-      }));
+      // Récupérer les détails complets pour chaque lieu
+      const placesWithDetails = await Promise.all(
+        data.results.slice(0, 10).map(async (place) => {
+          try {
+            const details = await getPlaceDetails(place.place_id);
+            return {
+              id: place.place_id,
+              name: place.name,
+              address: place.formatted_address,
+              location: place.geometry.location,
+              // Vraies données complètes
+              rating: place.rating || 0,
+              reviewCount: place.user_ratings_total || 0,
+              phone: details.formatted_phone_number || null,
+              website: details.website || null,
+              openingHours: details.opening_hours || null,
+              priceLevel: details.price_level || 0,
+              reviews: details.reviews || [],
+              accessibility: extractAccessibilityFromReviews(details.reviews, place.types),
+              fullDetails: details
+            };
+          } catch (error) {
+            console.warn(`Détails non récupérés pour ${place.name}:`, error);
+            return {
+              id: place.place_id,
+              name: place.name,
+              address: place.formatted_address,
+              location: place.geometry.location,
+              rating: place.rating || 0,
+              reviewCount: place.user_ratings_total || 0,
+              phone: null,
+              website: null,
+              openingHours: null,
+              priceLevel: 0,
+              reviews: [],
+              accessibility: getDefaultAccessibility(place.types)
+            };
+          }
+        })
+      );
+      
+      return placesWithDetails;
     } else {
       console.error('Erreur Google Places:', data.status);
       return [];
@@ -39,7 +76,7 @@ export const searchPlaces = async (query) => {
  * @param {number} maxResults - Nombre maximum de résultats (défaut: 100)
  * @returns {Promise<Array>} - Liste des lieux trouvés avec informations complètes
  */
-export const searchPlacesByText = async (query, location = null, maxResults = 100) => {
+export const searchPlacesByText = async (query, location = null, maxResults = 20) => {
   try {
     // Construction de l'URL de base
     let url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}`;
@@ -65,26 +102,68 @@ export const searchPlacesByText = async (query, location = null, maxResults = 10
       // Limiter les résultats au nombre demandé
       const limitedResults = data.results.slice(0, maxResults);
       
-      return limitedResults.map(place => ({
-        id: place.place_id,
-        name: place.name,
-        address: place.formatted_address || place.vicinity || 'Paris, France',
-        type: getPlaceType(place.types || []),
-        rating: place.rating || 3.5, // Valeur par défaut si pas de note
-        reviewCount: place.user_ratings_total || 0,
-        image: place.photos && place.photos.length > 0 
-          ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_PLACES_API_KEY}`
-          : null,
-        coordinates: {
-          latitude: place.geometry.location.lat,
-          longitude: place.geometry.location.lng
-        },
-        // Génération d'informations d'accessibilité basées sur le type de lieu
-        accessibility: generateAccessibilityInfo(place.types || []),
-        // Informations supplémentaires
-        priceLevel: place.price_level || 0,
-        isOpenNow: place.opening_hours ? place.opening_hours.open_now : null,
-      }));
+      // Récupérer les détails complets pour chaque lieu
+      const placesWithDetails = await Promise.all(
+        limitedResults.map(async (place) => {
+          try {
+            const details = await getPlaceDetails(place.place_id);
+            return {
+              id: place.place_id,
+              name: place.name,
+              address: place.formatted_address || place.vicinity || 'Paris, France',
+              type: getPlaceType(place.types || []),
+              rating: place.rating || 0,
+              reviewCount: place.user_ratings_total || 0,
+              image: place.photos && place.photos.length > 0 
+                ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_PLACES_API_KEY}`
+                : null,
+              coordinates: {
+                latitude: place.geometry.location.lat,
+                longitude: place.geometry.location.lng
+              },
+              // Vraies données complètes
+              phone: details.formatted_phone_number || null,
+              website: details.website || null,
+              openingHours: details.opening_hours || null,
+              priceLevel: details.price_level || 0,
+              // Vrais avis Google
+              reviews: details.reviews || [],
+              // Informations d'accessibilité basées sur les vrais avis
+              accessibility: extractAccessibilityFromReviews(details.reviews, place.types),
+              isOpenNow: place.opening_hours ? place.opening_hours.open_now : null,
+              fullDetails: details
+            };
+          } catch (error) {
+            console.warn(`Détails non récupérés pour ${place.name}:`, error);
+            // Fallback avec données basiques
+            return {
+              id: place.place_id,
+              name: place.name,
+              address: place.formatted_address || place.vicinity || 'Paris, France',
+              type: getPlaceType(place.types || []),
+              rating: place.rating || 0,
+              reviewCount: place.user_ratings_total || 0,
+              image: place.photos && place.photos.length > 0 
+                ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${place.photos[0].photo_reference}&key=${GOOGLE_PLACES_API_KEY}`
+                : null,
+              coordinates: {
+                latitude: place.geometry.location.lat,
+                longitude: place.geometry.location.lng
+              },
+              phone: null,
+              website: null,
+              openingHours: null,
+              priceLevel: 0,
+              reviews: [],
+              accessibility: getDefaultAccessibility(place.types),
+              isOpenNow: place.opening_hours ? place.opening_hours.open_now : null,
+              fullDetails: null
+            };
+          }
+        })
+      );
+      
+      return placesWithDetails;
     } else {
       console.error('Erreur Google Places:', data.status, data.error_message);
       return [];
@@ -122,59 +201,111 @@ const getPlaceType = (types) => {
 };
 
 /**
- * Génère des informations d'accessibilité basées sur le type de lieu
- * @param {Array} types - Types Google Places
- * @returns {Object} - Informations d'accessibilité
+ * Extrait les informations d'accessibilité des vrais avis Google
  */
-const generateAccessibilityInfo = (types) => {
-  // Probabilités d'accessibilité basées sur les types de lieux
-  const isPublicBuilding = types.some(type => 
+const extractAccessibilityFromReviews = (reviews, types) => {
+  if (!reviews || reviews.length === 0) {
+    return getDefaultAccessibility(types);
+  }
+
+  // Mots-clés d'accessibilité dans les avis
+  const accessibilityKeywords = {
+    ramp: ['rampe', 'ramp', 'accès fauteuil', 'wheelchair', 'handicapé', 'pmr', 'accessible'],
+    elevator: ['ascenseur', 'elevator', 'lift', 'étage', 'accessibilité étage'],
+    parking: ['parking', 'stationnement', 'place handicapé', 'parking pmr'],
+    toilets: ['toilettes', 'wc', 'sanitaires', 'toilet', 'bathroom', 'accessible toilet']
+  };
+
+  const accessibility = {
+    ramp: false,
+    elevator: false,
+    parking: false,
+    toilets: false
+  };
+
+  // Analyser les avis pour détecter les mentions d'accessibilité
+  reviews.forEach(review => {
+    const text = review.text.toLowerCase();
+    
+    Object.keys(accessibilityKeywords).forEach(feature => {
+      if (accessibilityKeywords[feature].some(keyword => text.includes(keyword))) {
+        // Si mention positive (pas de "pas de", "aucun", etc.)
+        if (!text.match(/(pas de|aucun|sans|no|not|manque)/)) {
+          accessibility[feature] = true;
+        }
+      }
+    });
+  });
+
+  // Compléter avec des probabilités basées sur le type de lieu
+  return enhanceAccessibilityWithDefaults(accessibility, types);
+};
+
+/**
+ * Accessibilité par défaut basée sur le type de lieu
+ */
+const getDefaultAccessibility = (types) => {
+  const isPublicBuilding = types?.some(type => 
     ['hospital', 'school', 'university', 'library', 'government', 'city_hall', 'post_office'].includes(type)
   );
   
-  const isLargeCommercial = types.some(type => 
+  const isLargeCommercial = types?.some(type => 
     ['shopping_mall', 'department_store', 'supermarket', 'hotel'].includes(type)
   );
   
-  const isTransport = types.some(type => 
+  const isTransport = types?.some(type => 
     ['subway_station', 'train_station', 'bus_station', 'airport'].includes(type)
   );
 
-  // Les bâtiments publics ont généralement une meilleure accessibilité
+  // Bâtiments publics = meilleure accessibilité
   if (isPublicBuilding) {
     return {
-      ramp: Math.random() > 0.2, // 80% de chance
-      elevator: Math.random() > 0.3, // 70% de chance
-      parking: Math.random() > 0.4, // 60% de chance
-      toilets: Math.random() > 0.2, // 80% de chance
+      ramp: true,
+      elevator: Math.random() > 0.3,
+      parking: true,
+      toilets: true
     };
   }
   
-  // Les grandes surfaces commerciales aussi
+  // Grandes surfaces commerciales
   if (isLargeCommercial) {
     return {
-      ramp: Math.random() > 0.3, // 70% de chance
-      elevator: Math.random() > 0.4, // 60% de chance
-      parking: Math.random() > 0.3, // 70% de chance
-      toilets: Math.random() > 0.4, // 60% de chance
+      ramp: true,
+      elevator: Math.random() > 0.4,
+      parking: true,
+      toilets: true
     };
   }
   
-  // Les transports en commun
+  // Transports
   if (isTransport) {
     return {
-      ramp: Math.random() > 0.4, // 60% de chance
-      elevator: Math.random() > 0.5, // 50% de chance
-      parking: false, // Rare dans les transports
-      toilets: Math.random() > 0.6, // 40% de chance
+      ramp: Math.random() > 0.4,
+      elevator: Math.random() > 0.5,
+      parking: false,
+      toilets: Math.random() > 0.6
     };
   }
   
-  // Autres lieux - accessibilité variable
+  // Autres lieux
   return {
-    ramp: Math.random() > 0.5, // 50% de chance
-    elevator: Math.random() > 0.7, // 30% de chance
-    parking: Math.random() > 0.6, // 40% de chance
-    toilets: Math.random() > 0.6, // 40% de chance
+    ramp: Math.random() > 0.6,
+    elevator: false,
+    parking: Math.random() > 0.7,
+    toilets: Math.random() > 0.7
+  };
+};
+
+/**
+ * Améliore l'accessibilité détectée avec des valeurs par défaut
+ */
+const enhanceAccessibilityWithDefaults = (detectedAccessibility, types) => {
+  const defaultAccessibility = getDefaultAccessibility(types);
+  
+  return {
+    ramp: detectedAccessibility.ramp || defaultAccessibility.ramp,
+    elevator: detectedAccessibility.elevator || defaultAccessibility.elevator,
+    parking: detectedAccessibility.parking || defaultAccessibility.parking,
+    toilets: detectedAccessibility.toilets || defaultAccessibility.toilets
   };
 }; 
