@@ -15,12 +15,15 @@ import {
   IconButton,
   Chip,
   Divider,
-  Surface
+  Surface,
+  ActivityIndicator
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Rating } from 'react-native-ratings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
+import { ReviewsService } from '../services/firebaseService';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Données d'exemple des avis de l'utilisateur
 const sampleReviews = [
@@ -98,18 +101,34 @@ export default function MyReviewsScreen({ navigation }) {
   const theme = useTheme();
   const { textSizes } = useTextSize();
   
-  const [reviews, setReviews] = useState(sampleReviews);
+  const [reviews, setReviews] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState('recent'); // recent, oldest, rating
+
+  // Fonction pour charger les avis depuis Firebase
+  const loadUserReviews = useCallback(async () => {
+    try {
+      console.log('📖 Chargement des avis utilisateur...');
+      const userReviews = await ReviewsService.getReviewsByUserId('anonymous');
+      setReviews(userReviews);
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des avis:', error);
+      Alert.alert('Erreur', 'Impossible de charger vos avis. Veuillez réessayer.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   // Fonction pour rafraîchir les avis
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    // Simuler le chargement des données depuis le serveur
-    setTimeout(() => {
+    try {
+      await loadUserReviews();
+    } finally {
       setIsRefreshing(false);
-    }, 1000);
-  }, []);
+    }
+  }, [loadUserReviews]);
 
   // Fonction pour trier les avis
   const sortedReviews = useCallback(() => {
@@ -127,7 +146,7 @@ export default function MyReviewsScreen({ navigation }) {
   }, [reviews, sortBy]);
 
   // Fonction pour supprimer un avis
-  const handleDeleteReview = useCallback((reviewId) => {
+  const handleDeleteReview = useCallback(async (reviewId) => {
     Alert.alert(
       "Supprimer l'avis",
       "Êtes-vous sûr de vouloir supprimer cet avis ? Cette action est irréversible.",
@@ -136,9 +155,15 @@ export default function MyReviewsScreen({ navigation }) {
         { 
           text: "Supprimer", 
           style: "destructive",
-          onPress: () => {
-            setReviews(prev => prev.filter(review => review.id !== reviewId));
-            Alert.alert("Succès", "Votre avis a été supprimé");
+          onPress: async () => {
+            try {
+              await ReviewsService.deleteReview(reviewId);
+              setReviews(prev => prev.filter(review => review.id !== reviewId));
+              Alert.alert("Succès", "Votre avis a été supprimé");
+            } catch (error) {
+              console.error('❌ Erreur lors de la suppression:', error);
+              Alert.alert("Erreur", "Impossible de supprimer l'avis. Veuillez réessayer.");
+            }
           }
         }
       ]
@@ -151,9 +176,24 @@ export default function MyReviewsScreen({ navigation }) {
     Alert.alert("Fonctionnalité à venir", "L'édition d'avis sera disponible prochainement");
   }, []);
 
+  // Charger les avis au montage et quand on revient sur l'écran
+  useFocusEffect(
+    useCallback(() => {
+      loadUserReviews();
+    }, [loadUserReviews])
+  );
+
   // Formater la date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
+  const formatDate = (dateInput) => {
+    let date;
+    if (dateInput instanceof Date) {
+      date = dateInput;
+    } else if (typeof dateInput === 'string') {
+      date = new Date(dateInput);
+    } else {
+      date = new Date();
+    }
+    
     return date.toLocaleDateString('fr-FR', { 
       year: 'numeric', 
       month: 'long', 
@@ -183,6 +223,18 @@ export default function MyReviewsScreen({ navigation }) {
     </View>
   );
 
+  // Afficher le loader pendant le chargement initial
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { fontSize: textSizes.body }]}>
+          Chargement de vos avis...
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* En-tête avec statistiques */}
@@ -199,7 +251,7 @@ export default function MyReviewsScreen({ navigation }) {
           
           <View style={styles.statContainer}>
             <Text style={[styles.statNumber, { fontSize: textSizes.title }]}>
-              {(reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)}
+              {reviews.length > 0 ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1) : '0.0'}
             </Text>
             <Text style={[styles.statLabel, { fontSize: textSizes.body }]}>
               Note moyenne
@@ -208,7 +260,7 @@ export default function MyReviewsScreen({ navigation }) {
           
           <View style={styles.statContainer}>
             <Text style={[styles.statNumber, { fontSize: textSizes.title }]}>
-              {reviews.reduce((sum, review) => sum + review.helpful, 0)}
+              {reviews.reduce((sum, review) => sum + (review.helpful || 0), 0)}
             </Text>
             <Text style={[styles.statLabel, { fontSize: textSizes.body }]}>
               Votes utiles
@@ -319,12 +371,17 @@ export default function MyReviewsScreen({ navigation }) {
               <View style={styles.reviewStats}>
                 <View style={styles.statItem}>
                   <Text style={[styles.statValue, { fontSize: textSizes.caption }]}>
-                    👍 {review.helpful} utile{review.helpful > 1 ? 's' : ''}
+                    👍 {review.helpful || 0} utile{(review.helpful || 0) > 1 ? 's' : ''}
                   </Text>
                 </View>
                 <View style={styles.statItem}>
                   <Text style={[styles.statValue, { fontSize: textSizes.caption }]}>
-                    💬 {review.replies} réponse{review.replies > 1 ? 's' : ''}
+                    💬 {review.replies || 0} réponse{(review.replies || 0) > 1 ? 's' : ''}
+                  </Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, { fontSize: textSizes.caption }]}>
+                    📅 Publié le {formatDate(review.date)}
                   </Text>
                 </View>
               </View>
@@ -363,6 +420,15 @@ export default function MyReviewsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    textAlign: 'center',
+    opacity: 0.7,
   },
   headerSurface: {
     margin: 16,

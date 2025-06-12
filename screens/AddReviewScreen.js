@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { Text, TextInput, Button, Surface, Checkbox, useTheme, Searchbar, List } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import CustomRating from '../components/CustomRating';
 import { searchPlaces } from '../services/placesSearch';
 import { useAppTheme } from '../theme/ThemeContext';
+import { ReviewsService } from '../services/firebaseService';
 
-export default function AddReviewScreen({ navigation }) {
+export default function AddReviewScreen({ navigation, route }) {
   const theme = useTheme();
   const { isDarkMode } = useAppTheme();
   const [rating, setRating] = useState(0);
@@ -15,7 +16,7 @@ export default function AddReviewScreen({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [selectedPlace, setSelectedPlace] = useState(route.params?.place || null);
   const [isSearching, setIsSearching] = useState(false);
   const [accessibility, setAccessibility] = useState({
     ramp: false,
@@ -24,10 +25,17 @@ export default function AddReviewScreen({ navigation }) {
     toilets: false,
   });
 
+  // Effet pour afficher le lieu pré-sélectionné
+  useEffect(() => {
+    if (route.params?.place) {
+      console.log('🏠 Lieu pré-sélectionné:', route.params.place.name);
+    }
+  }, [route.params?.place]);
+
   // Effet pour la recherche de lieux
   useEffect(() => {
     const searchTimeout = setTimeout(async () => {
-      if (searchQuery.length >= 3) {
+      if (searchQuery.length >= 3 && !selectedPlace) {
         setIsSearching(true);
         try {
           const results = await searchPlaces(searchQuery);
@@ -43,7 +51,7 @@ export default function AddReviewScreen({ navigation }) {
     }, 500);
 
     return () => clearTimeout(searchTimeout);
-  }, [searchQuery]);
+  }, [searchQuery, selectedPlace]);
 
   // Fonction pour prendre une photo
   const takePhoto = async () => {
@@ -98,22 +106,69 @@ export default function AddReviewScreen({ navigation }) {
 
   const handleSubmit = async () => {
     if (!selectedPlace) {
-      alert('Veuillez sélectionner un lieu');
+      Alert.alert('Erreur', 'Veuillez sélectionner un lieu');
       return;
     }
 
     if (rating === 0) {
-      alert('Veuillez donner une note');
+      Alert.alert('Erreur', 'Veuillez donner une note');
+      return;
+    }
+
+    if (!comment.trim()) {
+      Alert.alert('Erreur', 'Veuillez ajouter un commentaire');
       return;
     }
 
     setIsLoading(true);
     
-    // Simuler l'envoi
-    setTimeout(() => {
+    try {
+      console.log('🚀 Début de la soumission de l\'avis...');
+      
+      // 1. Upload des photos si il y en a
+      let imageUrls = [];
+      if (photos.length > 0) {
+        console.log(`📸 Upload de ${photos.length} photos...`);
+        imageUrls = await ReviewsService.uploadMultipleImages(photos, 'reviews');
+        console.log('✅ Photos uploadées:', imageUrls);
+      }
+
+      // 2. Préparer les données de l'avis
+      const reviewData = {
+        placeId: selectedPlace.id,
+        placeName: selectedPlace.name,
+        placeAddress: selectedPlace.address,
+        rating: rating,
+        comment: comment.trim(),
+        photos: imageUrls,
+        accessibility: accessibility,
+        userId: 'anonymous', // TODO: Remplacer par l'ID utilisateur réel quand l'auth sera complète
+        userName: 'Utilisateur AccessPlus', // TODO: Remplacer par le nom utilisateur réel
+      };
+
+      console.log('📝 Données de l\'avis:', reviewData);
+
+      // 3. Sauvegarder l'avis dans Firestore
+      const reviewId = await ReviewsService.addReview(reviewData);
+      console.log('✅ Avis sauvegardé avec l\'ID:', reviewId);
+
+      // 4. Afficher le succès et retourner
+      Alert.alert(
+        'Succès !', 
+        'Votre avis a été publié avec succès. Merci pour votre contribution !',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la soumission:', error);
+      Alert.alert(
+        'Erreur', 
+        'Une erreur est survenue lors de la publication de votre avis. Veuillez réessayer.',
+        [{ text: 'OK' }]
+      );
+    } finally {
       setIsLoading(false);
-      navigation.goBack();
-    }, 1000);
+    }
   };
 
   return (
@@ -280,9 +335,9 @@ export default function AddReviewScreen({ navigation }) {
           onPress={handleSubmit}
           loading={isLoading}
           style={styles.submitButton}
-          disabled={isLoading || !selectedPlace}
+          disabled={isLoading || !selectedPlace || rating === 0 || !comment.trim()}
         >
-          Publier l'avis
+          {isLoading ? 'Publication en cours...' : 'Publier l\'avis'}
         </Button>
       </Surface>
     </ScrollView>

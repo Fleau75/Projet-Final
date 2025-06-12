@@ -21,6 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
 import { useFocusEffect } from '@react-navigation/native';
+import { ReviewsService } from '../services/firebaseService';
 
 export default function ProfileScreen({ navigation, route }) {
   const theme = useTheme();
@@ -32,10 +33,13 @@ export default function ProfileScreen({ navigation, route }) {
     phone: '',
     bio: '',
     location: '',
-    reviewCount: 12,
-    favoritePlaces: 8,
-    joinDate: 'Mars 2024'
+    reviewCount: 0,
+    favoritePlaces: 0,
+    joinDate: 'Mars 2024',
+    averageRating: 0
   });
+
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
 
   // Charger le profil depuis AsyncStorage
   const loadProfile = useCallback(async () => {
@@ -53,11 +57,43 @@ export default function ProfileScreen({ navigation, route }) {
     }
   }, []);
 
+  // Charger les statistiques réelles depuis Firebase
+  const loadUserStats = useCallback(async () => {
+    setIsLoadingStats(true);
+    try {
+      const userId = 'anonymous'; // TODO: Remplacer par l'ID utilisateur réel
+      const reviews = await ReviewsService.getReviewsByUserId(userId);
+      
+      if (reviews && reviews.length > 0) {
+        // Calculer la note moyenne
+        const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+        const averageRating = totalRating / reviews.length;
+        
+        setUserInfo(prev => ({
+          ...prev,
+          reviewCount: reviews.length,
+          averageRating: Math.round(averageRating * 10) / 10 // Arrondi à 1 décimale
+        }));
+      } else {
+        setUserInfo(prev => ({
+          ...prev,
+          reviewCount: 0,
+          averageRating: 0
+        }));
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement des statistiques:', error);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  }, []);
+
   // Charger le profil au montage et quand on revient sur l'écran
   useFocusEffect(
     useCallback(() => {
       loadProfile();
-    }, [loadProfile])
+      loadUserStats();
+    }, [loadProfile, loadUserStats])
   );
 
   // Mettre à jour le profil si on revient avec des nouvelles données
@@ -181,8 +217,16 @@ export default function ProfileScreen({ navigation, route }) {
             <Title>Mes statistiques</Title>
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{userInfo.reviewCount}</Text>
+                <Text style={styles.statNumber}>
+                  {isLoadingStats ? '...' : userInfo.reviewCount}
+                </Text>
                 <Text style={styles.statLabel}>Avis donnés</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statNumber}>
+                  {isLoadingStats ? '...' : userInfo.averageRating}
+                </Text>
+                <Text style={styles.statLabel}>Note moyenne</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>{userInfo.favoritePlaces}</Text>
@@ -304,6 +348,7 @@ const styles = StyleSheet.create({
   },
   statItem: {
     alignItems: 'center',
+    flex: 1,
   },
   statNumber: {
     fontSize: 28,

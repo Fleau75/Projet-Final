@@ -1,6 +1,7 @@
 // Service Firebase pour gérer les opérations de base de données
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Configuration Firebase avec vos vraies clés
 const firebaseConfig = {
@@ -24,8 +25,9 @@ if (getApps().length === 0) {
   app = getApps()[0];
 }
 
-// Initialiser Firestore
+// Initialiser Firestore et Storage
 export const db = getFirestore(app);
+export const storage = getStorage(app);
 
 // Collections references
 const PLACES_COLLECTION = 'places';
@@ -310,6 +312,149 @@ export class PlacesService {
       console.log('Base de données initialisée avec les données d\'exemple');
     } catch (error) {
       console.error('Erreur lors de l\'initialisation:', error);
+      throw error;
+    }
+  }
+}
+
+/**
+ * Service pour gérer les avis dans Firestore
+ */
+export class ReviewsService {
+  
+  /**
+   * Ajouter un nouvel avis
+   */
+  static async addReview(reviewData) {
+    try {
+      const reviewsRef = collection(db, REVIEWS_COLLECTION);
+      const docRef = await addDoc(reviewsRef, {
+        ...reviewData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      console.log('✅ Avis ajouté avec succès:', docRef.id);
+      return docRef.id;
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'ajout de l\'avis:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupérer les avis d'un lieu
+   */
+  static async getReviewsByPlaceId(placeId) {
+    try {
+      const reviewsRef = collection(db, REVIEWS_COLLECTION);
+      const q = query(reviewsRef, where('placeId', '==', placeId), orderBy('createdAt', 'desc'));
+      const snapshot = await getDocs(q);
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des avis:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Récupérer tous les avis d'un utilisateur
+   */
+  static async getReviewsByUserId(userId = 'anonymous') {
+    try {
+      console.log('📖 Récupération des avis pour l\'utilisateur:', userId);
+      
+      const reviewsRef = collection(db, REVIEWS_COLLECTION);
+      // Requête simplifiée sans orderBy pour éviter l'index composite
+      const q = query(reviewsRef, where('userId', '==', userId));
+      const snapshot = await getDocs(q);
+      
+      const reviews = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        // Convertir les timestamps Firebase en dates
+        date: doc.data().createdAt?.toDate?.() || new Date(),
+        createdAt: doc.data().createdAt?.toDate?.() || new Date(),
+        updatedAt: doc.data().updatedAt?.toDate?.() || new Date(),
+      }));
+      
+      // Trier côté client par date de création (plus récent en premier)
+      reviews.sort((a, b) => b.createdAt - a.createdAt);
+      
+      console.log(`✅ ${reviews.length} avis trouvés pour l'utilisateur`);
+      return reviews;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des avis utilisateur:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Supprimer un avis
+   */
+  static async deleteReview(reviewId) {
+    try {
+      console.log('🗑️ Suppression de l\'avis:', reviewId);
+      
+      const reviewRef = doc(db, REVIEWS_COLLECTION, reviewId);
+      await deleteDoc(reviewRef);
+      
+      console.log('✅ Avis supprimé avec succès');
+    } catch (error) {
+      console.error('❌ Erreur lors de la suppression de l\'avis:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Upload d'une image vers Firebase Storage
+   */
+  static async uploadImage(imageUri, path = 'reviews') {
+    try {
+      console.log('📸 Upload de l\'image:', imageUri);
+      
+      // Convertir l'URI en blob
+      const response = await fetch(imageUri);
+      const blob = await response.blob();
+      
+      // Créer une référence unique pour l'image
+      const timestamp = Date.now();
+      const filename = `${path}/${timestamp}_${Math.random().toString(36).substring(7)}.jpg`;
+      const imageRef = ref(storage, filename);
+      
+      // Upload du blob
+      const snapshot = await uploadBytes(imageRef, blob);
+      console.log('✅ Image uploadée:', snapshot.ref.fullPath);
+      
+      // Récupérer l'URL de téléchargement
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      console.log('🔗 URL de l\'image:', downloadURL);
+      
+      return downloadURL;
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'upload de l\'image:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Upload de plusieurs images
+   */
+  static async uploadMultipleImages(imageUris, path = 'reviews') {
+    try {
+      console.log(`📸 Upload de ${imageUris.length} images`);
+      
+      const uploadPromises = imageUris.map(uri => this.uploadImage(uri, path));
+      const imageUrls = await Promise.all(uploadPromises);
+      
+      console.log('✅ Toutes les images uploadées:', imageUrls);
+      return imageUrls;
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'upload des images:', error);
       throw error;
     }
   }
