@@ -117,7 +117,7 @@ const staticPlaces = [
     type: 'restaurant',
     rating: 4.5,
     reviewCount: 42,
-    image: null,
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop',
     coordinates: {
       latitude: 48.8627,
       longitude: 2.3578
@@ -136,7 +136,7 @@ const staticPlaces = [
     type: 'culture',
     rating: 4.8,
     reviewCount: 89,
-    image: null,
+    image: 'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=400&h=300&fit=crop',
     coordinates: {
       latitude: 48.8578,
       longitude: 2.3622
@@ -155,7 +155,7 @@ const staticPlaces = [
     type: 'shopping',
     rating: 4.2,
     reviewCount: 156,
-    image: null,
+    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
     coordinates: {
       latitude: 48.8571,
       longitude: 2.3519
@@ -275,7 +275,7 @@ export default function HomeScreen({ navigation }) {
   const { textSizes } = useTextSize();
 
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortValue, setSortValue] = useState('proximity');
+  const [sortValue, setSortValue] = useState('photo');
   const [accessibilityFilter, setAccessibilityFilter] = useState('all');
   
   // États pour les données depuis Firestore
@@ -520,9 +520,23 @@ export default function HomeScreen({ navigation }) {
       accessibilityLevel: getAccessibilityLevel(place),
       accessibilityLabel: getAccessibilityLabel(getAccessibilityLevel(place))
     }))
+    .filter(place => {
+      // Si le filtre "photo" est activé, ne montrer que les lieux avec des images
+      if (sortValue === 'photo') {
+        return place.image || (place.photos && place.photos.length > 0);
+      }
+      return true; // Sinon, montrer tous les lieux filtrés
+    })
     .sort((a, b) => {
-      if (sortValue === 'proximity' && userLocation) {
-        return a.distance - b.distance;
+      if (sortValue === 'photo') {
+        // Trier par présence d'image (avec image = plus haut)
+        const aHasImage = a.image ? 1 : 0;
+        const bHasImage = b.image ? 1 : 0;
+        if (aHasImage !== bHasImage) {
+          return bHasImage - aHasImage; // Ceux avec image en premier
+        }
+        // Si même statut d'image, trier par note
+        return b.rating - a.rating;
       } else if (sortValue === 'rating') {
         return b.rating - a.rating;
       } else {
@@ -677,7 +691,7 @@ export default function HomeScreen({ navigation }) {
           value={sortValue}
           onValueChange={setSortValue}
           buttons={[
-            { value: 'proximity', label: '📍 Distance', labelStyle: { fontSize: textSizes.body } },
+            { value: 'photo', label: '📸 Photo', labelStyle: { fontSize: textSizes.body } },
             { value: 'rating', label: '⭐ Note', labelStyle: { fontSize: textSizes.body } },
             { value: 'reviews', label: '💬 Avis', labelStyle: { fontSize: textSizes.body } },
           ]}
