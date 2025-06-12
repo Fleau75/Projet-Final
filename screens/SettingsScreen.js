@@ -23,10 +23,10 @@ import { useScreenReader } from '../theme/ScreenReaderContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Constantes pour les valeurs par défaut et les limites
-const SEARCH_RADIUS_DEFAULT = 1500;
-const SEARCH_RADIUS_MIN = 500;
-const SEARCH_RADIUS_MAX = 5000;
-const SEARCH_RADIUS_STEP = 100;
+const SEARCH_RADIUS_DEFAULT = 800;
+const SEARCH_RADIUS_MIN = 200;
+const SEARCH_RADIUS_MAX = 2000;
+const SEARCH_RADIUS_STEP = 50;
 
 export default function SettingsScreen({ navigation, route }) {
   const theme = useTheme();
@@ -47,8 +47,8 @@ export default function SettingsScreen({ navigation, route }) {
 
   // États pour les notifications
   const [notifications, setNotifications] = useState({
-    newPlaces: true,
-    reviews: true,
+    newPlaces: false,
+    reviews: false,
     updates: false,
   });
 
@@ -212,8 +212,8 @@ export default function SettingsScreen({ navigation, route }) {
               };
               
               const defaultNotifications = {
-                newPlaces: true,
-                reviews: true,
+                newPlaces: false,
+                reviews: false,
                 updates: false,
               };
               
@@ -511,6 +511,8 @@ export default function SettingsScreen({ navigation, route }) {
             />
           </Card.Content>
         </Card>
+
+
 
         {/* Actions */}
         <View style={styles.actionsSection}>

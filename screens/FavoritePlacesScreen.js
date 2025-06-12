@@ -19,7 +19,7 @@ import {
   Searchbar
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Rating } from 'react-native-ratings';
+import CustomRating from '../components/CustomRating';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
 
@@ -292,20 +292,17 @@ export default function FavoritePlacesScreen({ navigation }) {
 
           {/* Informations */}
           <View style={styles.infoRow}>
-            <View style={styles.ratingContainer}>
-              <Rating
-                type="star"
-                ratingCount={5}
-                imageSize={16}
-                readonly
-                startingValue={place.rating}
-                style={[styles.rating, { backgroundColor: 'transparent' }]}
-                tintColor="transparent"
-              />
-              <Text style={[styles.ratingText, { fontSize: textSizes.caption }]}>
-                {place.rating} ({place.reviewCount})
-              </Text>
-            </View>
+                          <View style={styles.ratingContainer}>
+                <CustomRating
+                  rating={place.rating}
+                  readonly={true}
+                  size={16}
+                  style={styles.rating}
+                />
+                <Text style={[styles.ratingText, { fontSize: textSizes.caption }]}>
+                  {place.rating} ({place.reviewCount})
+                </Text>
+              </View>
             <Text style={[styles.distance, { fontSize: textSizes.caption }]}>
               📍 {place.distance}
             </Text>

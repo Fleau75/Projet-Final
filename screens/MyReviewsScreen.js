@@ -19,7 +19,7 @@ import {
   ActivityIndicator
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Rating } from 'react-native-ratings';
+import CustomRating from '../components/CustomRating';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
 import { ReviewsService } from '../services/firebaseService';
@@ -111,6 +111,9 @@ export default function MyReviewsScreen({ navigation }) {
     try {
       console.log('📖 Chargement des avis utilisateur...');
       const userReviews = await ReviewsService.getReviewsByUserId('anonymous');
+      
+      // Avis chargés avec succès
+      
       setReviews(userReviews);
     } catch (error) {
       console.error('❌ Erreur lors du chargement des avis:', error);
@@ -337,14 +340,11 @@ export default function MyReviewsScreen({ navigation }) {
 
               {/* Note et date */}
               <View style={styles.ratingContainer}>
-                <Rating
-                  type="star"
-                  ratingCount={5}
-                  imageSize={20}
-                  readonly
-                  startingValue={review.rating}
-                  style={[styles.rating, { backgroundColor: 'transparent' }]}
-                  tintColor="transparent"
+                <CustomRating
+                  rating={review.rating}
+                  readonly={true}
+                  size={20}
+                  style={styles.rating}
                 />
                 <Text style={[styles.ratingText, { 
                   fontSize: textSizes.body,

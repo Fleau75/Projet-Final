@@ -15,11 +15,10 @@ import {
   IconButton,
   Chip,
   Divider,
-  Surface,
-  Searchbar
+  Surface
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Rating } from 'react-native-ratings';
+import CustomRating from '../components/CustomRating';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -43,7 +42,7 @@ export default function LocationHistoryScreen({ navigation }) {
   const { textSizes } = useTextSize();
   
   const [mapPlaces, setMapPlaces] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sortBy, setSortBy] = useState('recent'); // recent, name, rating, distance
@@ -102,15 +101,6 @@ export default function LocationHistoryScreen({ navigation }) {
   const filteredAndSortedPlaces = useCallback(() => {
     let filtered = mapPlaces;
 
-    // Filtrer par recherche
-    if (searchQuery) {
-      filtered = filtered.filter(place =>
-        place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (place.address && place.address.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (place.vicinity && place.vicinity.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
     // Filtrer par catégorie
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(place => 
@@ -135,7 +125,7 @@ export default function LocationHistoryScreen({ navigation }) {
       default:
         return filtered;
     }
-  }, [mapPlaces, searchQuery, selectedCategory, sortBy]);
+  }, [mapPlaces, selectedCategory, sortBy]);
 
   // Supprimer un lieu de l'historique
   const removePlaceFromHistory = async (placeId) => {
@@ -169,7 +159,7 @@ export default function LocationHistoryScreen({ navigation }) {
     const addedDate = place?.addedDate ? String(place.addedDate) : null;
     
     return (
-      <Card style={styles.placeCard}>
+      <Card style={[styles.placeCard, { backgroundColor: theme.colors.surface }]}>
         <Card.Content>
           <View style={styles.cardHeader}>
             <View style={styles.placeInfo}>
@@ -195,15 +185,15 @@ export default function LocationHistoryScreen({ navigation }) {
           
           {placeRating && (
             <View style={styles.ratingContainer}>
-              <Rating
-                readonly
-                startingValue={placeRating}
-                imageSize={16}
+              <CustomRating
+                rating={placeRating}
+                readonly={true}
+                size={16}
                 style={styles.rating}
               />
-                              <Text style={[styles.ratingText, { fontSize: textSizes.caption, color: theme.colors.onSurfaceVariant }]}>
-                  {placeRating.toFixed(1)}
-                </Text>
+              <Text style={[styles.ratingText, { fontSize: textSizes.caption, color: theme.colors.onSurfaceVariant }]}>
+                {placeRating.toFixed(1)}
+              </Text>
             </View>
           )}
         </Card.Content>
@@ -267,62 +257,57 @@ export default function LocationHistoryScreen({ navigation }) {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header avec filtres - seulement si il y a des lieux */}
       {mapPlaces.length > 0 && (
-        <Surface style={styles.header}>
-          <Searchbar
-            placeholder="Rechercher dans l'historique..."
-            onChangeText={setSearchQuery}
-            value={searchQuery}
-            style={styles.searchBar}
-          />
-          
-          {/* Filtres par catégorie */}
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            style={styles.categoriesContainer}
-          >
-            {categories.map(category => (
+        <View style={[styles.headerWrapper, { backgroundColor: theme.colors.surface }]}>
+          <View style={styles.headerContent}>
+            {/* Filtres par catégorie */}
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.categoriesContainer}
+            >
+              {categories.map(category => (
+                <Chip
+                  key={category.id}
+                  selected={selectedCategory === category.id}
+                  onPress={() => setSelectedCategory(category.id)}
+                  style={styles.categoryChip}
+                  textStyle={{ fontSize: textSizes.caption }}
+                >
+                  {category.label}
+                </Chip>
+              ))}
+            </ScrollView>
+            
+            {/* Options de tri */}
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={styles.sortContainer}
+            >
               <Chip
-                key={category.id}
-                selected={selectedCategory === category.id}
-                onPress={() => setSelectedCategory(category.id)}
-                style={styles.categoryChip}
-                textStyle={{ fontSize: textSizes.caption }}
+                selected={sortBy === 'recent'}
+                onPress={() => setSortBy('recent')}
+                style={styles.sortChip}
               >
-                {category.label}
+                Plus récents
               </Chip>
-            ))}
-          </ScrollView>
-          
-          {/* Options de tri */}
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            style={styles.sortContainer}
-          >
-            <Chip
-              selected={sortBy === 'recent'}
-              onPress={() => setSortBy('recent')}
-              style={styles.sortChip}
-            >
-              Plus récents
-            </Chip>
-            <Chip
-              selected={sortBy === 'name'}
-              onPress={() => setSortBy('name')}
-              style={styles.sortChip}
-            >
-              Nom
-            </Chip>
-            <Chip
-              selected={sortBy === 'rating'}
-              onPress={() => setSortBy('rating')}
-              style={styles.sortChip}
-            >
-              Note
-            </Chip>
-          </ScrollView>
-        </Surface>
+              <Chip
+                selected={sortBy === 'name'}
+                onPress={() => setSortBy('name')}
+                style={styles.sortChip}
+              >
+                Nom
+              </Chip>
+              <Chip
+                selected={sortBy === 'rating'}
+                onPress={() => setSortBy('rating')}
+                style={styles.sortChip}
+              >
+                Note
+              </Chip>
+            </ScrollView>
+          </View>
+        </View>
       )}
 
       {/* Liste des lieux */}
@@ -352,22 +337,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
+  headerWrapper: {
     padding: 16,
     elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    flex: 1,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-  },
-  searchBar: {
-    marginBottom: 12,
   },
   categoriesContainer: {
     marginBottom: 8,
@@ -387,6 +370,7 @@ const styles = StyleSheet.create({
   placeCard: {
     marginBottom: 12,
     elevation: 2,
+    borderRadius: 8, // Garder les coins arrondis mais pas d'overflow
   },
   cardHeader: {
     flexDirection: 'row',

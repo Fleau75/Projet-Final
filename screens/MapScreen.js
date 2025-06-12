@@ -56,6 +56,7 @@ export default function MapScreen({ navigation }) {
     requireAccessibleToilets: false,
   });
   const [filteredPlaces, setFilteredPlaces] = useState([]);
+  const [searchRadius, setSearchRadius] = useState(1000); // Distance de recherche en mètres
 
   // Position par défaut sur Paris
   const defaultParisLocation = {
@@ -124,6 +125,33 @@ export default function MapScreen({ navigation }) {
     }, [])
   );
 
+  // Écouter les changements d'AsyncStorage en temps réel
+  useEffect(() => {
+    const checkStorageChanges = setInterval(async () => {
+      try {
+        const savedMarkers = await AsyncStorage.getItem('mapMarkers');
+        const currentMarkers = savedMarkers ? JSON.parse(savedMarkers) : [];
+        
+        // Si le nombre de marqueurs a changé, mettre à jour l'affichage
+        if (currentMarkers.length !== places.length) {
+          console.log(`🔄 Synchronisation: ${places.length} → ${currentMarkers.length} marqueurs`);
+          setPlaces(currentMarkers);
+          
+          // Filtrer selon les préférences d'accessibilité
+          const prefs = await AccessibilityService.loadAccessibilityPreferences();
+          const filtered = currentMarkers.filter(place => 
+            AccessibilityService.meetsAccessibilityPreferences(place, prefs)
+          );
+          setFilteredPlaces(filtered);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la synchronisation:', error);
+      }
+    }, 1000); // Vérifier toutes les secondes pour la synchronisation
+
+    return () => clearInterval(checkStorageChanges);
+  }, [places.length]);
+
   // Centrer automatiquement quand un nouveau lieu est ajouté
   useEffect(() => {
     if (lastAddedPlace && mapRef.current) {
@@ -139,22 +167,7 @@ export default function MapScreen({ navigation }) {
     }
   }, [lastAddedPlace]);
 
-  // Vérifier régulièrement si les marqueurs ont été supprimés
-  useEffect(() => {
-    const checkMarkers = setInterval(async () => {
-      try {
-        const savedMarkers = await AsyncStorage.getItem('mapMarkers');
-        if (!savedMarkers && places.length > 0) {
-          // Les marqueurs ont été supprimés, vider l'état local
-          setPlaces([]);
-        }
-      } catch (error) {
-        console.error('Erreur lors de la vérification des marqueurs:', error);
-      }
-    }, 1000); // Vérifier toutes les secondes
 
-    return () => clearInterval(checkMarkers);
-  }, [places]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -231,6 +244,27 @@ export default function MapScreen({ navigation }) {
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       }, 800);
+    }
+  };
+
+  // Fonction pour supprimer un marqueur individuel
+  const removeMarker = async (placeId) => {
+    try {
+      const updatedPlaces = places.filter(place => place.id !== placeId);
+      setPlaces(updatedPlaces);
+      
+      // Filtrer selon les préférences d'accessibilité
+      const filtered = updatedPlaces.filter(place => 
+        AccessibilityService.meetsAccessibilityPreferences(place, accessibilityPrefs)
+      );
+      setFilteredPlaces(filtered);
+      
+      // Sauvegarder les changements
+      await saveMarkers(updatedPlaces);
+      
+      console.log(`🗑️ Marqueur supprimé: ${placeId}`);
+    } catch (error) {
+      console.error('Erreur lors de la suppression du marqueur:', error);
     }
   };
 
