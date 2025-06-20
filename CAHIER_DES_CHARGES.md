@@ -198,6 +198,443 @@ AccessPlus/
 - **useEffect** : Effets de bord
 - **useCallback** : Optimisation des performances
 
+### 3.5 Diagramme d'Architecture Système
+
+```mermaid
+graph TB
+    %% Application Mobile
+    subgraph "Application Mobile (React Native + Expo)"
+        UI[Interface Utilisateur]
+        NAV[Navigation]
+        COMP[Composants UI]
+        CONTEXT[Contextes React]
+    end
+    
+    %% Services Locaux
+    subgraph "Services Locaux"
+        ASYNC[AsyncStorage]
+        LOC[Localisation]
+        CACHE[Cache Local]
+    end
+    
+    %% Services Externes
+    subgraph "Services Externes"
+        FIREBASE[Firebase]
+        GOOGLE[Google Services]
+    end
+    
+    %% Firebase Services
+    subgraph "Firebase Platform"
+        AUTH[Authentication]
+        FIRESTORE[Firestore DB]
+        STORAGE[Cloud Storage]
+        FUNCTIONS[Cloud Functions]
+    end
+    
+    %% Google Services
+    subgraph "Google Cloud Platform"
+        PLACES[Places API]
+        MAPS[Maps API]
+        GEOLOC[Geolocation API]
+    end
+    
+    %% Base de Données
+    subgraph "Base de Données"
+        USERS[(Collection Users)]
+        PLACES_DB[(Collection Places)]
+        REVIEWS[(Collection Reviews)]
+        FAVORITES[(Collection Favorites)]
+    end
+    
+    %% Connexions
+    UI --> NAV
+    UI --> COMP
+    COMP --> CONTEXT
+    CONTEXT --> ASYNC
+    CONTEXT --> CACHE
+    
+    UI --> FIREBASE
+    UI --> GOOGLE
+    
+    FIREBASE --> AUTH
+    FIREBASE --> FIRESTORE
+    FIREBASE --> STORAGE
+    FIREBASE --> FUNCTIONS
+    
+    GOOGLE --> PLACES
+    GOOGLE --> MAPS
+    GOOGLE --> GEOLOC
+    
+    FIRESTORE --> USERS
+    FIRESTORE --> PLACES_DB
+    FIRESTORE --> REVIEWS
+    FIRESTORE --> FAVORITES
+    
+    LOC --> GEOLOC
+    CACHE --> STORAGE
+    
+    %% Styles
+    classDef mobile fill:#e1f5fe
+    classDef service fill:#f3e5f5
+    classDef firebase fill:#ffebee
+    classDef google fill:#e8f5e8
+    classDef database fill:#fff3e0
+    
+    class UI,NAV,COMP,CONTEXT mobile
+    class ASYNC,LOC,CACHE service
+    class AUTH,FIRESTORE,STORAGE,FUNCTIONS firebase
+    class PLACES,MAPS,GEOLOC google
+    class USERS,PLACES_DB,REVIEWS,FAVORITES database
+```
+
+### 3.6 Documentation API
+
+#### 3.6.1 Firebase Authentication API
+
+##### **Inscription Utilisateur**
+```javascript
+// POST /auth/register
+{
+  "email": "string",
+  "password": "string", 
+  "firstName": "string",
+  "lastName": "string",
+  "phone": "string (optionnel)"
+}
+
+// Réponse
+{
+  "success": true,
+  "user": {
+    "uid": "string",
+    "email": "string",
+    "firstName": "string",
+    "lastName": "string",
+    "phone": "string",
+    "createdAt": "timestamp"
+  }
+}
+```
+
+##### **Connexion Utilisateur**
+```javascript
+// POST /auth/login
+{
+  "email": "string",
+  "password": "string"
+}
+
+// Réponse
+{
+  "success": true,
+  "user": {
+    "uid": "string",
+    "email": "string",
+    "firstName": "string",
+    "lastName": "string",
+    "phone": "string"
+  },
+  "token": "string"
+}
+```
+
+#### 3.6.2 Firestore Database API
+
+##### **Gestion des Lieux**
+
+###### **Récupérer tous les lieux**
+```javascript
+// GET /places
+// Paramètres de requête
+{
+  "category": "string (optionnel)",
+  "latitude": "number (optionnel)",
+  "longitude": "number (optionnel)",
+  "radius": "number (optionnel, défaut: 1000m)",
+  "limit": "number (optionnel, défaut: 20)"
+}
+
+// Réponse
+{
+  "places": [
+    {
+      "id": "string",
+      "name": "string",
+      "address": "string",
+      "type": "string",
+      "coordinates": {
+        "latitude": "number",
+        "longitude": "number"
+      },
+      "accessibility": {
+        "ramp": "boolean",
+        "elevator": "boolean",
+        "parking": "boolean",
+        "toilets": "boolean"
+      },
+      "rating": "number",
+      "reviewCount": "number",
+      "image": "string",
+      "distance": "number"
+    }
+  ],
+  "total": "number"
+}
+```
+
+###### **Récupérer un lieu par ID**
+```javascript
+// GET /places/{placeId}
+
+// Réponse
+{
+  "id": "string",
+  "name": "string",
+  "address": "string",
+  "type": "string",
+  "coordinates": {
+    "latitude": "number",
+    "longitude": "number"
+  },
+  "accessibility": {
+    "ramp": "boolean",
+    "elevator": "boolean",
+    "parking": "boolean",
+    "toilets": "boolean"
+  },
+  "rating": "number",
+  "reviewCount": "number",
+  "image": "string",
+  "reviews": [
+    {
+      "id": "string",
+      "userId": "string",
+      "rating": "number",
+      "comment": "string",
+      "photos": ["string"],
+      "accessibility": {
+        "ramp": "boolean",
+        "elevator": "boolean",
+        "parking": "boolean",
+        "toilets": "boolean"
+      },
+      "createdAt": "timestamp"
+    }
+  ]
+}
+```
+
+###### **Ajouter un nouveau lieu**
+```javascript
+// POST /places
+{
+  "name": "string",
+  "address": "string",
+  "type": "string",
+  "coordinates": {
+    "latitude": "number",
+    "longitude": "number"
+  },
+  "accessibility": {
+    "ramp": "boolean",
+    "elevator": "boolean",
+    "parking": "boolean",
+    "toilets": "boolean"
+  },
+  "image": "string (optionnel)"
+}
+
+// Réponse
+{
+  "success": true,
+  "placeId": "string",
+  "message": "Lieu ajouté avec succès"
+}
+```
+
+##### **Gestion des Avis**
+
+###### **Ajouter un avis**
+```javascript
+// POST /places/{placeId}/reviews
+{
+  "rating": "number (1-5)",
+  "comment": "string",
+  "photos": ["string (optionnel)"],
+  "accessibility": {
+    "ramp": "boolean",
+    "elevator": "boolean",
+    "parking": "boolean",
+    "toilets": "boolean"
+  }
+}
+
+// Réponse
+{
+  "success": true,
+  "reviewId": "string",
+  "message": "Avis ajouté avec succès"
+}
+```
+
+###### **Récupérer les avis d'un lieu**
+```javascript
+// GET /places/{placeId}/reviews
+// Paramètres de requête
+{
+  "limit": "number (optionnel, défaut: 10)",
+  "offset": "number (optionnel, défaut: 0)",
+  "sortBy": "string (optionnel: 'date', 'rating', défaut: 'date')"
+}
+
+// Réponse
+{
+  "reviews": [
+    {
+      "id": "string",
+      "userId": "string",
+      "userName": "string",
+      "rating": "number",
+      "comment": "string",
+      "photos": ["string"],
+      "accessibility": {
+        "ramp": "boolean",
+        "elevator": "boolean",
+        "parking": "boolean",
+        "toilets": "boolean"
+      },
+      "createdAt": "timestamp"
+    }
+  ],
+  "total": "number",
+  "averageRating": "number"
+}
+```
+
+##### **Gestion des Favoris**
+
+###### **Ajouter aux favoris**
+```javascript
+// POST /users/{userId}/favorites
+{
+  "placeId": "string"
+}
+
+// Réponse
+{
+  "success": true,
+  "message": "Lieu ajouté aux favoris"
+}
+```
+
+###### **Récupérer les favoris**
+```javascript
+// GET /users/{userId}/favorites
+
+// Réponse
+{
+  "favorites": [
+    {
+      "placeId": "string",
+      "addedAt": "timestamp",
+      "place": {
+        "id": "string",
+        "name": "string",
+        "address": "string",
+        "type": "string",
+        "rating": "number",
+        "image": "string"
+      }
+    }
+  ]
+}
+```
+
+#### 3.6.3 Google Places API
+
+##### **Recherche de lieux**
+```javascript
+// GET /places/search
+// Paramètres de requête
+{
+  "query": "string",
+  "location": "string (optionnel)",
+  "radius": "number (optionnel, défaut: 5000)",
+  "type": "string (optionnel)",
+  "language": "string (optionnel, défaut: 'fr')"
+}
+
+// Réponse
+{
+  "predictions": [
+    {
+      "place_id": "string",
+      "description": "string",
+      "structured_formatting": {
+        "main_text": "string",
+        "secondary_text": "string"
+      }
+    }
+  ]
+}
+```
+
+##### **Détails d'un lieu**
+```javascript
+// GET /places/details/{placeId}
+// Paramètres de requête
+{
+  "fields": "string (optionnel, défaut: 'name,formatted_address,geometry,photos,types')",
+  "language": "string (optionnel, défaut: 'fr')"
+}
+
+// Réponse
+{
+  "place_id": "string",
+  "name": "string",
+  "formatted_address": "string",
+  "geometry": {
+    "location": {
+      "lat": "number",
+      "lng": "number"
+    }
+  },
+  "photos": [
+    {
+      "photo_reference": "string",
+      "width": "number",
+      "height": "number"
+    }
+  ],
+  "types": ["string"],
+  "rating": "number",
+  "user_ratings_total": "number"
+}
+```
+
+#### 3.6.4 Codes d'Erreur
+
+| Code | Description | Solution |
+|------|-------------|----------|
+| 400 | Requête invalide | Vérifier les paramètres |
+| 401 | Non authentifié | Se connecter |
+| 403 | Accès refusé | Vérifier les permissions |
+| 404 | Ressource non trouvée | Vérifier l'ID |
+| 429 | Trop de requêtes | Attendre et réessayer |
+| 500 | Erreur serveur | Contacter le support |
+
+#### 3.6.5 Limites et Quotas
+
+##### **Firebase**
+- **Firestore** : 1M lectures/jour, 100K écritures/jour
+- **Storage** : 5GB stockage, 1GB transfert/jour
+- **Auth** : 10K utilisateurs actifs
+
+##### **Google Places API**
+- **Recherche** : 1000 requêtes/jour
+- **Détails** : 1000 requêtes/jour
+- **Photos** : 1000 requêtes/jour
+
 ## 4. FONCTIONNALITÉS TECHNIQUES
 
 ### 4.1 Performance
