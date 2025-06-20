@@ -5,12 +5,14 @@ import * as ImagePicker from 'expo-image-picker';
 import CustomRating from '../components/CustomRating';
 import { searchPlaces } from '../services/placesSearch';
 import { useAppTheme } from '../theme/ThemeContext';
+import { useTextSize } from '../theme/TextSizeContext';
 import { ReviewsService } from '../services/firebaseService';
 import { AccessibilityService } from '../services/accessibilityService';
 
 export default function AddReviewScreen({ navigation, route }) {
   const theme = useTheme();
   const { isDarkMode } = useAppTheme();
+  const { textSizes } = useTextSize();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [photos, setPhotos] = useState([]);
@@ -195,13 +197,26 @@ export default function AddReviewScreen({ navigation, route }) {
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Surface style={[styles.surface, { backgroundColor: theme.colors.surface }]}>
-        <Text variant="headlineMedium" style={styles.title}>
+        {/* Bouton Annuler en haut */}
+        <View style={styles.headerContainer}>
+          <Button
+            mode="text"
+            onPress={() => navigation.goBack()}
+            icon="arrow-left"
+            style={styles.cancelButton}
+            labelStyle={{ fontSize: textSizes.body }}
+          >
+            Annuler
+          </Button>
+        </View>
+
+        <Text variant="headlineMedium" style={[styles.title, { fontSize: textSizes.headline }]}>
           Évaluer un lieu
         </Text>
 
         {/* Sélection du lieu */}
         <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
             Sélectionner un lieu
           </Text>
           <Searchbar
@@ -254,7 +269,7 @@ export default function AddReviewScreen({ navigation, route }) {
         </View>
 
         <View style={styles.ratingContainer}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
             Note globale
           </Text>
           <CustomRating
@@ -270,7 +285,7 @@ export default function AddReviewScreen({ navigation, route }) {
         </View>
 
         <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
             Votre avis
           </Text>
           <TextInput
@@ -285,7 +300,7 @@ export default function AddReviewScreen({ navigation, route }) {
         </View>
 
         <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
             Photos
           </Text>
           <View style={styles.photoButtons}>
@@ -324,7 +339,7 @@ export default function AddReviewScreen({ navigation, route }) {
         </View>
 
         <View style={styles.section}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
+          <Text variant="titleMedium" style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
             Équipements accessibles
           </Text>
           <View style={[styles.accessibilityGrid, { backgroundColor: theme.colors.surface }]}>
@@ -357,6 +372,7 @@ export default function AddReviewScreen({ navigation, route }) {
           loading={isLoading}
           style={styles.submitButton}
           disabled={isLoading || !selectedPlace || rating === 0 || !comment.trim()}
+          labelStyle={{ fontSize: textSizes.body }}
         >
           {isLoading ? 'Publication en cours...' : 'Publier l\'avis'}
         </Button>
@@ -472,5 +488,13 @@ const styles = StyleSheet.create({
   customRating: {
     alignSelf: 'center',
     marginVertical: 10,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginBottom: 16,
+  },
+  cancelButton: {
+    alignSelf: 'flex-start',
   },
 }); 

@@ -229,25 +229,25 @@ export default function ProfileScreen({ navigation, route }) {
         {/* Statistiques utilisateur */}
         <Card style={styles.statsCard}>
           <Card.Content>
-            <Title>Mes statistiques</Title>
+            <Title style={{ fontSize: textSizes.title }}>Mes statistiques</Title>
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>
+                <Text style={[styles.statNumber, { fontSize: textSizes.title }]}>
                   {isLoadingStats ? '...' : userInfo.favoritePlaces}
                 </Text>
-                <Text style={styles.statLabel}>Lieux ajoutés</Text>
+                <Text style={[styles.statLabel, { fontSize: textSizes.caption }]}>Lieux ajoutés</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>
+                <Text style={[styles.statNumber, { fontSize: textSizes.title }]}>
                   {isLoadingStats ? '...' : userInfo.reviewCount}
                 </Text>
-                <Text style={styles.statLabel}>Avis donnés</Text>
+                <Text style={[styles.statLabel, { fontSize: textSizes.caption }]}>Avis donnés</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={styles.statNumber}>
+                <Text style={[styles.statNumber, { fontSize: textSizes.title }]}>
                   {isLoadingStats ? '...' : (userInfo.averageRating || '0.0')}
                 </Text>
-                <Text style={styles.statLabel}>Note moyenne</Text>
+                <Text style={[styles.statLabel, { fontSize: textSizes.caption }]}>Note moyenne</Text>
               </View>
             </View>
           </Card.Content>
@@ -262,6 +262,8 @@ export default function ProfileScreen({ navigation, route }) {
               left={props => <List.Icon {...props} icon="map-marker-remove" />}
               right={props => <List.Icon {...props} icon="chevron-right" />}
               onPress={() => handleClearMapMarkers()}
+              titleStyle={{ fontSize: textSizes.body }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
             />
             <Divider />
             <List.Item
@@ -270,6 +272,8 @@ export default function ProfileScreen({ navigation, route }) {
               left={props => <List.Icon {...props} icon="comment-text" />}
               right={props => <List.Icon {...props} icon="chevron-right" />}
               onPress={handleViewReviews}
+              titleStyle={{ fontSize: textSizes.body }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
             />
             <Divider />
             <List.Item
@@ -278,6 +282,8 @@ export default function ProfileScreen({ navigation, route }) {
               left={props => <List.Icon {...props} icon="map-marker" />}
               right={props => <List.Icon {...props} icon="chevron-right" />}
               onPress={handleViewLocationHistory}
+              titleStyle={{ fontSize: textSizes.body }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
             />
             <Divider />
             <List.Item
@@ -286,6 +292,8 @@ export default function ProfileScreen({ navigation, route }) {
               left={props => <List.Icon {...props} icon="bell" />}
               right={props => <List.Icon {...props} icon="chevron-right" />}
               onPress={() => navigation.navigate('Settings', { scrollToNotifications: true })}
+              titleStyle={{ fontSize: textSizes.body }}
+              descriptionStyle={{ fontSize: textSizes.caption }}
             />
           </Card.Content>
         </Card>
