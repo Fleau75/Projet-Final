@@ -21,6 +21,8 @@ import { useAppTheme } from '../theme/ThemeContext';
 import { useTextSize } from '../theme/TextSizeContext';
 import { useScreenReader } from '../theme/ScreenReaderContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BiometricService } from '../services/biometricService';
+import { useAuth } from '../theme/AuthContext';
 
 // Constantes pour les valeurs par défaut et les limites
 const SEARCH_RADIUS_DEFAULT = 800;
@@ -33,6 +35,7 @@ export default function SettingsScreen({ navigation, route }) {
   const { isDarkMode, toggleTheme, resetToDefault: resetTheme } = useAppTheme();
   const { isLargeText, toggleTextSize, resetToDefault: resetTextSize, textSizes } = useTextSize();
   const { isScreenReaderEnabled } = useScreenReader();
+  const { user } = useAuth();
   
   // Référence pour le ScrollView
   const scrollViewRef = useRef(null);
@@ -55,6 +58,11 @@ export default function SettingsScreen({ navigation, route }) {
   // États pour les préférences générales
   const [searchRadius, setSearchRadius] = useState(SEARCH_RADIUS_DEFAULT);
   const [mapStyle, setMapStyle] = useState('standard');
+
+  // États pour la biométrie
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [biometricTypes, setBiometricTypes] = useState([]);
 
   // Charger tous les paramètres au démarrage
   useEffect(() => {
@@ -82,6 +90,18 @@ export default function SettingsScreen({ navigation, route }) {
         const savedMapStyle = await AsyncStorage.getItem('mapStyle');
         if (savedMapStyle !== null) {
           setMapStyle(savedMapStyle);
+        }
+
+        // Vérifier la disponibilité de la biométrie
+        const isAvailable = await BiometricService.isBiometricAvailable();
+        setBiometricAvailable(isAvailable);
+        
+        if (isAvailable) {
+          const supportedTypes = await BiometricService.getSupportedTypes();
+          setBiometricTypes(supportedTypes.names);
+          
+          const prefs = await BiometricService.loadBiometricPreferences();
+          setBiometricEnabled(prefs.enabled);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des paramètres:', error);
@@ -256,6 +276,67 @@ export default function SettingsScreen({ navigation, route }) {
     );
   }, [resetTheme, resetTextSize]);
 
+  // Fonctions pour la biométrie
+  const handleBiometricToggle = async () => {
+    if (!user) {
+      Alert.alert(
+        "Connexion requise",
+        "Vous devez être connecté pour configurer l'authentification biométrique",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
+    if (biometricEnabled) {
+      // Désactiver la biométrie
+      Alert.alert(
+        "Désactiver la biométrie",
+        "Êtes-vous sûr de vouloir désactiver l'authentification biométrique ?",
+        [
+          { text: "Annuler", style: "cancel" },
+          {
+            text: "Désactiver",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await BiometricService.disableBiometrics();
+                setBiometricEnabled(false);
+                Alert.alert("✅ Biométrie désactivée", "L'authentification biométrique a été désactivée");
+              } catch (error) {
+                console.error('Erreur lors de la désactivation:', error);
+                Alert.alert("❌ Erreur", "Impossible de désactiver la biométrie");
+              }
+            }
+          }
+        ]
+      );
+    } else {
+      // Activer la biométrie
+      try {
+        const result = await BiometricService.authenticateWithBiometrics(
+          'Configurez l\'authentification biométrique'
+        );
+        
+        if (result.success) {
+          await BiometricService.saveBiometricPreferences(true, user.email);
+          setBiometricEnabled(true);
+          Alert.alert(
+            "✅ Biométrie activée",
+            "Vous pouvez maintenant vous connecter avec votre empreinte digitale ou reconnaissance faciale !"
+          );
+        } else {
+          Alert.alert(
+            "❌ Échec de la configuration",
+            BiometricService.getErrorMessage(result.error)
+          );
+        }
+      } catch (error) {
+        console.error('Erreur lors de la configuration biométrie:', error);
+        Alert.alert("Erreur", "Impossible de configurer l'authentification biométrique");
+      }
+    }
+  };
+
   const openAccessibilitySettings = async () => {
     try {
       if (Platform.OS === 'ios') {
@@ -415,6 +496,50 @@ export default function SettingsScreen({ navigation, route }) {
             </Button>
           </Card.Content>
         </Card>
+
+        {/* Authentification biométrique */}
+        {biometricAvailable && (
+          <Card style={styles.card}>
+            <Card.Content>
+              <Title style={[styles.sectionTitle, { fontSize: textSizes.title }]}>🔐 Authentification biométrique</Title>
+              <Text style={[styles.sectionDescription, { fontSize: textSizes.body }]}>
+                Utilisez votre empreinte digitale ou reconnaissance faciale pour vous connecter rapidement
+              </Text>
+              
+              {biometricTypes.length > 0 && (
+                <Text style={[styles.hint, { fontSize: textSizes.caption, color: theme.colors.primary }]}>
+                  Types supportés : {biometricTypes.join(', ')}
+                </Text>
+              )}
+              
+              <List.Item
+                title="Authentification biométrique"
+                description={biometricEnabled ? "Connectez-vous avec votre empreinte ou visage" : "Activez la connexion biométrique"}
+                titleStyle={{ fontSize: textSizes.subtitle }}
+                descriptionStyle={{ fontSize: textSizes.caption }}
+                left={props => <List.Icon {...props} icon="fingerprint" />}
+                right={() => (
+                  <Switch
+                    value={biometricEnabled}
+                    onValueChange={handleBiometricToggle}
+                  />
+                )}
+              />
+              
+              {!user && (
+                <Text style={[styles.hint, { fontSize: textSizes.caption, color: theme.colors.error }]}>
+                  Vous devez être connecté pour configurer l'authentification biométrique
+                </Text>
+              )}
+              
+              {biometricEnabled && user && (
+                <Text style={[styles.hint, { fontSize: textSizes.caption, color: theme.colors.primary }]}>
+                  Configurée pour : {user.email}
+                </Text>
+              )}
+            </Card.Content>
+          </Card>
+        )}
 
         {/* Préférences de recherche */}
         <Card style={styles.card}>

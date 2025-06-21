@@ -41,7 +41,8 @@
     "react-native-svg-transformer": "^1.5.1",
     "react-native-vector-icons": "^9.2.0",
     "react-native-web": "^0.20.0",
-    "sharp": "^0.34.2"
+    "sharp": "^0.34.2",
+    "expo-local-authentication": "~16.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.23.6",

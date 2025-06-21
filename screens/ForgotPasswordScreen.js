@@ -4,9 +4,11 @@ import { Text, Button, TextInput, Surface, useTheme, HelperText } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTextSize } from '../theme/TextSizeContext';
 import { AuthService } from '../services/authService';
+import { useAppTheme } from '../theme/ThemeContext';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const theme = useTheme();
+  const { isDarkMode } = useAppTheme();
   const { textSizes } = useTextSize();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -73,21 +75,31 @@ export default function ForgotPasswordScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#F1F5F9' }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
         <View style={styles.headerContainer}>
-          <Text style={[styles.title, { color: theme.colors.primary, fontSize: textSizes.headline }]}>
+          <Text style={[styles.title, { 
+            color: isDarkMode ? '#FFFFFF' : theme.colors.primary, 
+            fontSize: textSizes.headline 
+          }]}>
             Mot de passe oublié
           </Text>
-          <Text style={[styles.subtitle, { fontSize: textSizes.body, color: theme.colors.onSurfaceVariant }]}>
+          <Text style={[styles.subtitle, { 
+            fontSize: textSizes.body, 
+            color: isDarkMode ? '#B0B0B0' : theme.colors.onSurfaceVariant 
+          }]}>
             Entrez votre adresse email pour recevoir un lien de réinitialisation
           </Text>
         </View>
 
-        <Surface style={[styles.surface, { backgroundColor: theme.colors.surface }]}>
+        <Surface style={[styles.surface, { 
+          backgroundColor: isDarkMode ? '#1E1E1E' : theme.colors.surface,
+          borderColor: isDarkMode ? '#333333' : 'transparent',
+          borderWidth: isDarkMode ? 1 : 0
+        }]}>
           <TextInput
             label="Adresse email"
             value={email}
@@ -101,7 +113,16 @@ export default function ForgotPasswordScreen({ navigation }) {
             style={styles.input}
             left={<TextInput.Icon icon="email" />}
             error={!!error}
-            theme={{ fonts: { bodyLarge: { fontSize: textSizes.body } } }}
+            theme={{ 
+              fonts: { bodyLarge: { fontSize: textSizes.body } },
+              colors: {
+                primary: theme.colors.primary,
+                background: isDarkMode ? '#2D2D2D' : theme.colors.surface,
+                surface: isDarkMode ? '#2D2D2D' : theme.colors.surface,
+                text: isDarkMode ? '#FFFFFF' : theme.colors.onSurface,
+                placeholder: isDarkMode ? '#888888' : theme.colors.onSurfaceVariant,
+              }
+            }}
           />
 
           {error ? (
@@ -111,7 +132,10 @@ export default function ForgotPasswordScreen({ navigation }) {
           ) : null}
 
           {success ? (
-            <HelperText type="info" style={{ fontSize: textSizes.caption, color: theme.colors.primary }}>
+            <HelperText type="info" style={{ 
+              fontSize: textSizes.caption, 
+              color: theme.colors.primary 
+            }}>
               Email envoyé avec succès !
             </HelperText>
           ) : null}
@@ -121,9 +145,12 @@ export default function ForgotPasswordScreen({ navigation }) {
             onPress={handleResetPassword}
             loading={isLoading}
             disabled={isLoading}
-            style={styles.button}
+            style={[styles.button, {
+              backgroundColor: theme.colors.primary
+            }]}
             labelStyle={{ fontSize: textSizes.body }}
             icon="email-send"
+            buttonColor={theme.colors.primary}
           >
             Envoyer le lien de réinitialisation
           </Button>
@@ -131,9 +158,15 @@ export default function ForgotPasswordScreen({ navigation }) {
           <Button
             mode="outlined"
             onPress={() => navigation.navigate('Login')}
-            style={styles.button}
-            labelStyle={{ fontSize: textSizes.body }}
+            style={[styles.button, {
+              borderColor: theme.colors.primary
+            }]}
+            labelStyle={{ 
+              fontSize: textSizes.body,
+              color: theme.colors.primary
+            }}
             icon="arrow-left"
+            textColor={theme.colors.primary}
           >
             Retour à la connexion
           </Button>
