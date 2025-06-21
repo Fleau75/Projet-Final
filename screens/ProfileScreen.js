@@ -203,29 +203,56 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   const handleLogout = async () => {
-    Alert.alert(
-      "Déconnexion",
-      "Êtes-vous sûr de vouloir vous déconnecter ?",
-      [
-        {
-          text: "Annuler",
-          style: "cancel"
-        },
-        {
-          text: "Se déconnecter",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await logout();
-              // La navigation se fait automatiquement via le contexte
-            } catch (error) {
-              console.error('Erreur lors de la déconnexion:', error);
-              Alert.alert("Erreur", "Impossible de se déconnecter");
+    // Vérifier si l'utilisateur est un visiteur
+    if (userInfo.isVisitor) {
+      Alert.alert(
+        "Retour au menu",
+        "Voulez-vous retourner à l'écran de connexion ?",
+        [
+          {
+            text: "Annuler",
+            style: "cancel"
+          },
+          {
+            text: "Retour au menu",
+            style: "default",
+            onPress: async () => {
+              try {
+                await logout();
+                // La navigation se fait automatiquement via le contexte
+              } catch (error) {
+                console.error('Erreur lors du retour au menu:', error);
+                Alert.alert("Erreur", "Impossible de retourner au menu");
+              }
             }
           }
-        }
-      ]
-    );
+        ]
+      );
+    } else {
+      Alert.alert(
+        "Déconnexion",
+        "Êtes-vous sûr de vouloir vous déconnecter ?",
+        [
+          {
+            text: "Annuler",
+            style: "cancel"
+          },
+          {
+            text: "Se déconnecter",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await logout();
+                // La navigation se fait automatiquement via le contexte
+              } catch (error) {
+                console.error('Erreur lors de la déconnexion:', error);
+                Alert.alert("Erreur", "Impossible de se déconnecter");
+              }
+            }
+          }
+        ]
+      );
+    }
   };
 
   return (
@@ -381,11 +408,11 @@ export default function ProfileScreen({ navigation, route }) {
               onPress={handleLogout}
               style={styles.logoutButton}
               labelStyle={[styles.logoutLabel, { fontSize: textSizes.body }]}
-              icon="logout"
-              buttonColor="#ff4444"
+              icon={userInfo.isVisitor ? "home" : "logout"}
+              buttonColor={userInfo.isVisitor ? theme.colors.primary : "#ff4444"}
               textColor="white"
             >
-              Se déconnecter
+              {userInfo.isVisitor ? 'Retour au menu' : 'Se déconnecter'}
             </Button>
           </Card.Content>
         </Card>
