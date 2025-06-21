@@ -3,7 +3,7 @@
  * Permet à l'utilisateur de modifier ses informations personnelles
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { 
   Card, 
@@ -18,6 +18,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
+import { AuthService } from '../services/authService';
 
 export default function EditProfileScreen({ navigation, route }) {
   const theme = useTheme();
@@ -34,6 +35,53 @@ export default function EditProfileScreen({ navigation, route }) {
 
   const [profile, setProfile] = useState(currentProfile);
   const [isLoading, setIsLoading] = useState(false);
+  const [isVisitor, setIsVisitor] = useState(false);
+
+  // Vérifier si l'utilisateur est un visiteur au montage
+  useEffect(() => {
+    const checkVisitorStatus = async () => {
+      const visitorStatus = await AuthService.isCurrentUserVisitor();
+      setIsVisitor(visitorStatus);
+      
+      if (visitorStatus) {
+        Alert.alert(
+          "Mode visiteur",
+          "Les visiteurs ne peuvent pas modifier leur profil. Veuillez créer un compte pour accéder à cette fonctionnalité.",
+          [
+            {
+              text: "OK",
+              onPress: () => navigation.goBack()
+            }
+          ]
+        );
+      }
+    };
+    
+    checkVisitorStatus();
+  }, [navigation]);
+
+  // Si c'est un visiteur, ne pas afficher le formulaire
+  if (isVisitor) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.centerContainer}>
+          <Text style={[styles.errorText, { fontSize: textSizes.title }]}>
+            Accès non autorisé
+          </Text>
+          <Text style={[styles.errorSubtext, { fontSize: textSizes.body }]}>
+            Les visiteurs ne peuvent pas modifier leur profil
+          </Text>
+          <Button 
+            mode="contained" 
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            Retour
+          </Button>
+        </View>
+      </View>
+    );
+  }
 
   // Fonction pour mettre à jour un champ du profil
   const updateField = useCallback((field, value) => {
@@ -281,5 +329,21 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 1,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  errorSubtext: {
+    color: '#666',
+    marginBottom: 24,
+  },
+  backButton: {
+    marginTop: 24,
   },
 }); 

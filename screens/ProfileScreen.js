@@ -130,6 +130,25 @@ export default function ProfileScreen({ navigation, route }) {
   }, [route?.params?.updatedProfile, navigation]);
 
   const handleEditProfile = () => {
+    // Vérifier si l'utilisateur est un visiteur
+    if (userInfo.isVisitor) {
+      Alert.alert(
+        "Mode visiteur",
+        "Les visiteurs ne peuvent pas modifier leur profil. Veuillez créer un compte pour accéder à cette fonctionnalité.",
+        [
+          {
+            text: "Créer un compte",
+            onPress: () => navigation.navigate('Login')
+          },
+          {
+            text: "Annuler",
+            style: "cancel"
+          }
+        ]
+      );
+      return;
+    }
+
     // Navigation vers l'écran d'édition du profil avec les données actuelles
     navigation.navigate('EditProfile', { 
       profile: {
@@ -253,8 +272,9 @@ export default function ProfileScreen({ navigation, route }) {
               onPress={handleEditProfile}
               labelStyle={{ fontSize: textSizes.body }}
               icon="pencil"
+              disabled={userInfo.isVisitor}
             >
-              Éditer le profil
+              {userInfo.isVisitor ? 'Mode visiteur' : 'Éditer le profil'}
             </Button>
           </Card.Actions>
         </Card>

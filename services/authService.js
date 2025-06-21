@@ -249,7 +249,20 @@ export class AuthService {
   static async isAuthenticated() {
     try {
       const isAuth = await AsyncStorage.getItem('isAuthenticated');
-      return isAuth === 'true';
+      const userProfile = await AsyncStorage.getItem('userProfile');
+      
+      // Vérifier que l'utilisateur est authentifié ET qu'un profil existe
+      if (isAuth === 'true' && userProfile) {
+        const profile = JSON.parse(userProfile);
+        // Vérifier que ce n'est pas un profil vide ou invalide
+        if (profile && profile.email && profile.name) {
+          console.log('🔧 Utilisateur authentifié:', profile.email);
+          return true;
+        }
+      }
+      
+      console.log('🔧 Aucun utilisateur authentifié trouvé');
+      return false;
     } catch (error) {
       console.error('Erreur lors de la vérification d\'authentification:', error);
       return false;
@@ -264,12 +277,35 @@ export class AuthService {
       const isAuth = await AsyncStorage.getItem('isAuthenticated');
       if (isAuth === 'true') {
         const userProfile = await AsyncStorage.getItem('userProfile');
-        return userProfile ? JSON.parse(userProfile) : null;
+        if (userProfile) {
+          const profile = JSON.parse(userProfile);
+          // Vérifier que le profil est valide
+          if (profile && profile.email && profile.name) {
+            return profile;
+          }
+        }
       }
       return null;
     } catch (error) {
       console.error('Erreur lors de la récupération de l\'utilisateur:', error);
       return null;
+    }
+  }
+
+  /**
+   * Vérifier si l'utilisateur actuel est un visiteur
+   */
+  static async isCurrentUserVisitor() {
+    try {
+      const userProfile = await AsyncStorage.getItem('userProfile');
+      if (userProfile) {
+        const profile = JSON.parse(userProfile);
+        return profile && profile.isVisitor === true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Erreur lors de la vérification du statut visiteur:', error);
+      return false;
     }
   }
 

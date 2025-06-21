@@ -512,8 +512,6 @@ export default function SettingsScreen({ navigation, route }) {
           </Card.Content>
         </Card>
 
-
-
         {/* Actions */}
         <View style={styles.actionsSection}>
           <Button 
