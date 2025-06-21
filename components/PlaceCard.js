@@ -195,11 +195,13 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.15,
     shadowRadius: 8,
-    overflow: 'hidden', // Important pour que l'image respecte le borderRadius
   },
   imageContainer: {
     width: '100%',
     height: 180, // Hauteur plus importante pour l'image
+    overflow: 'hidden', // Déplacé ici pour éviter le warning Surface
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
   image: {
     width: '100%',

@@ -6,6 +6,7 @@ import CustomRating from '../components/CustomRating';
 import { searchPlaces } from '../services/placesSearch';
 import { useAppTheme } from '../theme/ThemeContext';
 import { useTextSize } from '../theme/TextSizeContext';
+import { useAuth } from '../theme/AuthContext';
 import { ReviewsService } from '../services/firebaseService';
 import { AccessibilityService } from '../services/accessibilityService';
 
@@ -13,6 +14,7 @@ export default function AddReviewScreen({ navigation, route }) {
   const theme = useTheme();
   const { isDarkMode } = useAppTheme();
   const { textSizes } = useTextSize();
+  const { user } = useAuth();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [photos, setPhotos] = useState([]);
@@ -165,14 +167,14 @@ export default function AddReviewScreen({ navigation, route }) {
         comment: comment.trim(),
         photos: imageUrls,
         accessibility: accessibility,
-        userId: 'anonymous', // TODO: Remplacer par l'ID utilisateur réel quand l'auth sera complète
-        userName: 'Utilisateur AccessPlus', // TODO: Remplacer par le nom utilisateur réel
+        userId: user?.uid || 'anonymous',
+        userName: user?.name || 'Utilisateur AccessPlus',
       };
 
       console.log('📝 Données de l\'avis:', reviewData);
 
       // 3. Sauvegarder l'avis dans Firestore
-      const reviewId = await ReviewsService.addReview(reviewData);
+      const reviewId = await ReviewsService.addReview(reviewData, user?.uid);
       console.log('✅ Avis sauvegardé avec l\'ID:', reviewId);
 
       // 4. Afficher le succès et retourner

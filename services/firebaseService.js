@@ -2,6 +2,7 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { AuthService } from './authService';
 
 // Configuration Firebase avec vos vraies clés
 const firebaseConfig = {
@@ -117,16 +118,23 @@ export class PlacesService {
   }
 
   /**
-   * Ajouter un nouveau lieu
+   * Ajouter un nouveau lieu et incrémenter le compteur utilisateur
    */
-  static async addPlace(placeData) {
+  static async addPlace(placeData, userId = null) {
     try {
       const placesRef = collection(db, PLACES_COLLECTION);
       const docRef = await addDoc(placesRef, {
         ...placeData,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        addedBy: userId || 'anonymous'
       });
+      
+      // Incrémenter le compteur de lieux ajoutés par l'utilisateur
+      if (userId && userId !== 'anonymous') {
+        await AuthService.incrementPlacesAdded(userId);
+        console.log(`✅ Compteur de lieux incrémenté pour ${userId}`);
+      }
       
       return docRef.id;
     } catch (error) {
@@ -323,21 +331,35 @@ export class PlacesService {
 export class ReviewsService {
   
   /**
-   * Ajouter un nouvel avis
+   * Ajouter un nouvel avis et incrémenter le compteur utilisateur
    */
-  static async addReview(reviewData) {
+  static async addReview(reviewData, userId = null) {
     try {
+      // Récupérer l'email de l'utilisateur connecté
+      let userEmail = null;
+      if (userId && userId !== 'anonymous') {
+        const currentUser = await AuthService.getCurrentUser();
+        userEmail = currentUser ? currentUser.email : null;
+      }
+      
       const reviewsRef = collection(db, REVIEWS_COLLECTION);
       const docRef = await addDoc(reviewsRef, {
         ...reviewData,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        addedBy: userId || 'anonymous',
+        userEmail: userEmail || null // Ajouter l'email pour la persistance
       });
       
-      console.log('✅ Avis ajouté avec succès:', docRef.id);
+      // Incrémenter le compteur d'avis ajoutés par l'utilisateur
+      if (userId && userId !== 'anonymous') {
+        await AuthService.incrementReviewsAdded(userId);
+        console.log(`✅ Compteur d'avis incrémenté pour ${userId}`);
+      }
+      
       return docRef.id;
     } catch (error) {
-      console.error('❌ Erreur lors de l\'ajout de l\'avis:', error);
+      console.error('Erreur lors de l\'ajout de l\'avis:', error);
       throw error;
     }
   }
@@ -368,9 +390,25 @@ export class ReviewsService {
     try {
       console.log('📖 Récupération des avis pour l\'utilisateur:', userId);
       
+      // Si c'est un utilisateur connecté, récupérer son email
+      let userEmail = null;
+      if (userId !== 'anonymous') {
+        const currentUser = await AuthService.getCurrentUser();
+        userEmail = currentUser ? currentUser.email : null;
+      }
+      
       const reviewsRef = collection(db, REVIEWS_COLLECTION);
-      // Requête simplifiée sans orderBy pour éviter l'index composite
-      const q = query(reviewsRef, where('userId', '==', userId));
+      
+      // Si on a un email, chercher par email, sinon par userId
+      let q;
+      if (userEmail) {
+        q = query(reviewsRef, where('userEmail', '==', userEmail));
+        console.log(`📖 Recherche par email: ${userEmail}`);
+      } else {
+        q = query(reviewsRef, where('userId', '==', userId));
+        console.log(`📖 Recherche par userId: ${userId}`);
+      }
+      
       const snapshot = await getDocs(q);
       
       const reviews = snapshot.docs.map(doc => ({

@@ -23,6 +23,8 @@ import { useTextSize } from '../theme/TextSizeContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { ReviewsService } from '../services/firebaseService';
 import { useAuth } from '../theme/AuthContext';
+import { AuthService } from '../services/authService';
+import { UserNameWithBadge, VerificationStats } from '../components/VerifiedBadge';
 
 export default function ProfileScreen({ navigation, route }) {
   const theme = useTheme();
@@ -42,6 +44,15 @@ export default function ProfileScreen({ navigation, route }) {
   });
 
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [verificationData, setVerificationData] = useState({
+    isVerified: false,
+    criteria: {
+      hasAccount: false,
+      hasEnoughPlaces: false,
+      placesAdded: 0,
+      requiredPlaces: 3
+    }
+  });
 
   // Charger le profil depuis le contexte d'authentification
   const loadProfile = useCallback(async () => {
@@ -67,11 +78,24 @@ export default function ProfileScreen({ navigation, route }) {
     }
   }, [user]);
 
+  // Charger le statut de vérification de l'utilisateur
+  const loadVerificationStatus = useCallback(async () => {
+    try {
+      const userId = user?.uid || 'anonymous';
+      const verificationStatus = await AuthService.getUserVerificationStatus(userId);
+      setVerificationData(verificationStatus);
+      
+      console.log('🔍 Statut de vérification:', verificationStatus);
+    } catch (error) {
+      console.error('❌ Erreur lors du chargement du statut de vérification:', error);
+    }
+  }, [user]);
+
   // Charger les statistiques réelles depuis Firebase ET AsyncStorage
   const loadUserStats = useCallback(async () => {
     setIsLoadingStats(true);
     try {
-      const userId = 'anonymous'; // TODO: Remplacer par l'ID utilisateur réel
+      const userId = user?.uid || 'anonymous';
       
       // 🔥 Charger les avis Firebase
       const reviews = await ReviewsService.getReviewsByUserId(userId);
@@ -81,6 +105,20 @@ export default function ProfileScreen({ navigation, route }) {
       const mapPlaces = savedMarkers ? JSON.parse(savedMarkers) : [];
       
       console.log(`📊 Stats: ${reviews?.length || 0} avis, ${mapPlaces.length} lieux ajoutés`);
+      
+      // Mettre à jour les statistiques AsyncStorage avec les vraies données
+      if (userId !== 'anonymous') {
+        const currentStats = await AuthService.getUserStats(userId);
+        const updatedStats = {
+          ...currentStats,
+          reviewsAdded: reviews?.length || 0,
+          lastActivity: new Date().toISOString()
+        };
+        
+        const statsKey = `userStats_${userId}`;
+        await AsyncStorage.setItem(statsKey, JSON.stringify(updatedStats));
+        console.log(`✅ Statistiques mises à jour: ${updatedStats.reviewsAdded} avis`);
+      }
       
       if (reviews && reviews.length > 0) {
         // Calculer la note moyenne des avis
@@ -101,12 +139,15 @@ export default function ProfileScreen({ navigation, route }) {
           favoritePlaces: mapPlaces.length // 🎯 Vrais lieux ajoutés même sans avis
         }));
       }
+
+      // Mettre à jour le statut de vérification après avoir chargé les stats
+      await loadVerificationStatus();
     } catch (error) {
       console.error('❌ Erreur lors du chargement des statistiques:', error);
     } finally {
       setIsLoadingStats(false);
     }
-  }, []);
+  }, [user, loadVerificationStatus]);
 
   // Charger le profil au montage et quand on revient sur l'écran  
   useFocusEffect(
@@ -267,9 +308,18 @@ export default function ProfileScreen({ navigation, route }) {
               style={[styles.avatar, { backgroundColor: theme.colors.primary }]} 
             />
             <View style={styles.userInfo}>
-              <Title style={[styles.userName, { fontSize: textSizes.title }]}>
-                {userInfo.name}
-              </Title>
+              {userInfo.isVisitor ? (
+                <Title style={[styles.userName, { fontSize: textSizes.title }]}>
+                  {userInfo.name}
+                </Title>
+              ) : (
+                <UserNameWithBadge 
+                  userName={userInfo.name}
+                  isVerified={verificationData.isVerified}
+                  variant="titleLarge"
+                  style={{ marginBottom: 4 }}
+                />
+              )}
               <Paragraph style={[styles.userEmail, { fontSize: textSizes.body }]}>
                 {userInfo.email}
               </Paragraph>
@@ -314,6 +364,26 @@ export default function ProfileScreen({ navigation, route }) {
         <Card style={styles.statsCard}>
           <Card.Content>
             <Title style={{ fontSize: textSizes.title }}>Mes statistiques</Title>
+            
+            {/* Statut de vérification */}
+            {!userInfo.isVisitor && (
+              <View style={styles.verificationSection}>
+                <VerificationStats 
+                  verificationData={verificationData} 
+                  showDetails={true}
+                />
+                {!verificationData.isVerified && (
+                  <Text style={[styles.verificationHint, { 
+                    fontSize: textSizes.caption,
+                    color: theme.colors.onSurfaceVariant,
+                    marginTop: 8
+                  }]}>
+                    💡 Ajoutez au moins 3 avis pour obtenir le badge vérifié !
+                  </Text>
+                )}
+              </View>
+            )}
+            
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
                 <Text style={[styles.statNumber, { 
@@ -468,6 +538,12 @@ const styles = StyleSheet.create({
   },
   statsCard: {
     marginBottom: 16,
+  },
+  verificationSection: {
+    marginBottom: 16,
+  },
+  verificationHint: {
+    fontSize: 14,
   },
   statsRow: {
     flexDirection: 'row',

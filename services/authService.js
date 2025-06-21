@@ -6,19 +6,25 @@ const TEST_USERS = {
     email: 'test@example.com',
     password: '123456',
     name: 'Utilisateur Test',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    reviewsAdded: 5, // Déjà 5 avis ajoutés pour tester le badge
+    isVerified: true
   },
   'demo@accessplus.com': {
     email: 'demo@accessplus.com',
     password: 'demo123',
     name: 'Démo AccessPlus',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    reviewsAdded: 8,
+    isVerified: true
   },
   'admin@accessplus.com': {
     email: 'admin@accessplus.com',
     password: 'admin123',
     name: 'Administrateur',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    reviewsAdded: 12,
+    isVerified: true
   }
 };
 
@@ -191,7 +197,7 @@ export class AuthService {
 
       // Simuler la connexion
       const user = {
-        uid: profile.uid || `user_${Date.now()}`,
+        uid: profile.uid || (isTestUser ? `user_${email.replace(/[^a-zA-Z0-9]/g, '_')}` : `user_${Date.now()}`),
         email: profile.email,
         displayName: profile.name || profile.displayName
       };
@@ -532,6 +538,260 @@ export class AuthService {
     } catch (error) {
       console.error('❌ Erreur lors du changement de mot de passe:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Vérifier si un utilisateur mérite le badge vérifié
+   * Critères : Compte créé + minimum 3 avis/commentaires ajoutés
+   */
+  static async checkVerificationStatus(userId) {
+    try {
+      // Récupérer l'utilisateur actuel pour obtenir l'email
+      const currentUser = await this.getCurrentUser();
+      const userEmail = currentUser ? currentUser.email : null;
+      
+      if (!userEmail) {
+        console.log('❌ Aucun utilisateur connecté pour vérification');
+        return { isVerified: false, criteria: {} };
+      }
+      
+      // Récupérer les statistiques de l'utilisateur par email
+      const userStats = await this.getUserStatsByEmail(userEmail);
+      
+      // Critères pour le badge vérifié
+      const hasAccount = !userStats.isVisitor;
+      const hasEnoughReviews = userStats.reviewsAdded >= 3;
+      
+      const isVerified = hasAccount && hasEnoughReviews;
+      
+      console.log(`🔍 Statut de vérification: ${JSON.stringify({
+        criteria: {
+          hasAccount,
+          hasEnoughReviews,
+          reviewsAdded: userStats.reviewsAdded,
+          requiredReviews: 3
+        },
+        isVerified,
+        verifiedAt: isVerified ? new Date().toISOString() : null
+      })}`);
+      
+      // Sauvegarder le statut de vérification par email
+      await this.updateUserVerificationStatusByEmail(userEmail, isVerified);
+      
+      return {
+        isVerified,
+        criteria: {
+          hasAccount,
+          hasEnoughReviews,
+          reviewsAdded: userStats.reviewsAdded,
+          requiredReviews: 3
+        },
+        verifiedAt: isVerified ? new Date().toISOString() : null
+      };
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification du statut:', error);
+      return { isVerified: false, criteria: {} };
+    }
+  }
+
+  /**
+   * Récupérer les statistiques d'un utilisateur par email
+   */
+  static async getUserStatsByEmail(userEmail) {
+    try {
+      const statsKey = `userStats_email_${userEmail}`;
+      const savedStats = await AsyncStorage.getItem(statsKey);
+      
+      if (savedStats) {
+        return JSON.parse(savedStats);
+      }
+      
+      // Statistiques par défaut
+      const defaultStats = {
+        placesAdded: 0,
+        reviewsAdded: 0,
+        isVisitor: false,
+        joinDate: new Date().toISOString(),
+        lastActivity: new Date().toISOString()
+      };
+      
+      await AsyncStorage.setItem(statsKey, JSON.stringify(defaultStats));
+      return defaultStats;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des stats:', error);
+      return {
+        placesAdded: 0,
+        reviewsAdded: 0,
+        isVisitor: false,
+        joinDate: new Date().toISOString(),
+        lastActivity: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Récupérer les statistiques d'un utilisateur (compatibilité)
+   */
+  static async getUserStats(userId) {
+    try {
+      // Essayer d'abord par email si c'est un email
+      if (userId.includes('@')) {
+        return await this.getUserStatsByEmail(userId);
+      }
+      
+      // Sinon, essayer par UID
+      const statsKey = `userStats_${userId}`;
+      const savedStats = await AsyncStorage.getItem(statsKey);
+      
+      if (savedStats) {
+        return JSON.parse(savedStats);
+      }
+      
+      // Statistiques par défaut
+      const defaultStats = {
+        placesAdded: 0,
+        reviewsAdded: 0,
+        isVisitor: false,
+        joinDate: new Date().toISOString(),
+        lastActivity: new Date().toISOString()
+      };
+      
+      await AsyncStorage.setItem(statsKey, JSON.stringify(defaultStats));
+      return defaultStats;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des stats:', error);
+      return {
+        placesAdded: 0,
+        reviewsAdded: 0,
+        isVisitor: false,
+        joinDate: new Date().toISOString(),
+        lastActivity: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+   * Mettre à jour le statut de vérification d'un utilisateur par email
+   */
+  static async updateUserVerificationStatusByEmail(userEmail, isVerified) {
+    try {
+      const verificationKey = `userVerification_email_${userEmail}`;
+      
+      // Récupérer les vraies statistiques pour les critères
+      const userStats = await this.getUserStatsByEmail(userEmail);
+      const hasAccount = !userStats.isVisitor;
+      const hasEnoughReviews = userStats.reviewsAdded >= 3;
+      
+      await AsyncStorage.setItem(verificationKey, JSON.stringify({
+        isVerified,
+        verifiedAt: isVerified ? new Date().toISOString() : null,
+        criteria: {
+          hasAccount,
+          hasEnoughReviews,
+          reviewsAdded: userStats.reviewsAdded,
+          requiredReviews: 3
+        }
+      }));
+      
+      console.log(`✅ Statut de vérification mis à jour pour ${userEmail}: ${isVerified} (${userStats.reviewsAdded}/3 avis)`);
+    } catch (error) {
+      console.error('❌ Erreur lors de la mise à jour du statut:', error);
+    }
+  }
+
+  /**
+   * Mettre à jour le statut de vérification d'un utilisateur (compatibilité)
+   */
+  static async updateUserVerificationStatus(userId, isVerified) {
+    try {
+      // Essayer d'abord par email si c'est un email
+      if (userId.includes('@')) {
+        return await this.updateUserVerificationStatusByEmail(userId, isVerified);
+      }
+      
+      const verificationKey = `userVerification_${userId}`;
+      
+      // Récupérer les vraies statistiques pour les critères
+      const userStats = await this.getUserStats(userId);
+      const hasAccount = !userStats.isVisitor;
+      const hasEnoughReviews = userStats.reviewsAdded >= 3;
+      
+      await AsyncStorage.setItem(verificationKey, JSON.stringify({
+        isVerified,
+        verifiedAt: isVerified ? new Date().toISOString() : null,
+        criteria: {
+          hasAccount,
+          hasEnoughReviews,
+          reviewsAdded: userStats.reviewsAdded,
+          requiredReviews: 3
+        }
+      }));
+      
+      console.log(`✅ Statut de vérification mis à jour pour ${userId}: ${isVerified} (${userStats.reviewsAdded}/3 avis)`);
+    } catch (error) {
+      console.error('❌ Erreur lors de la mise à jour du statut:', error);
+    }
+  }
+
+  /**
+   * Incrémenter le compteur d'avis ajoutés par un utilisateur
+   */
+  static async incrementReviewsAdded(userId) {
+    try {
+      // Récupérer l'utilisateur actuel pour obtenir l'email
+      const currentUser = await this.getCurrentUser();
+      const userEmail = currentUser ? currentUser.email : null;
+      
+      if (!userEmail) {
+        console.log('❌ Aucun utilisateur connecté pour incrémenter les avis');
+        return 0;
+      }
+      
+      const stats = await this.getUserStatsByEmail(userEmail);
+      stats.reviewsAdded += 1;
+      stats.lastActivity = new Date().toISOString();
+      
+      const statsKey = `userStats_email_${userEmail}`;
+      await AsyncStorage.setItem(statsKey, JSON.stringify(stats));
+      
+      // Vérifier si l'utilisateur mérite maintenant le badge
+      await this.checkVerificationStatus(userId);
+      
+      console.log(`✅ Avis ajouté pour ${userEmail}, total: ${stats.reviewsAdded}`);
+      return stats.reviewsAdded;
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'incrémentation des avis:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Récupérer le statut de vérification d'un utilisateur
+   */
+  static async getUserVerificationStatus(userId) {
+    try {
+      // Récupérer l'utilisateur actuel pour obtenir l'email
+      const currentUser = await this.getCurrentUser();
+      const userEmail = currentUser ? currentUser.email : null;
+      
+      if (!userEmail) {
+        console.log('❌ Aucun utilisateur connecté pour récupérer le statut');
+        return { isVerified: false };
+      }
+      
+      const verificationKey = `userVerification_email_${userEmail}`;
+      const savedVerification = await AsyncStorage.getItem(verificationKey);
+      
+      if (savedVerification) {
+        return JSON.parse(savedVerification);
+      }
+      
+      // Si pas de statut sauvegardé, le calculer
+      return await this.checkVerificationStatus(userId);
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération du statut:', error);
+      return { isVerified: false };
     }
   }
 } 

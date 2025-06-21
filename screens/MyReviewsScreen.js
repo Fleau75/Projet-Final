@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
 import { ReviewsService } from '../services/firebaseService';
 import { useFocusEffect } from '@react-navigation/native';
+import { AuthService } from '../services/authService';
 
 // Données d'exemple des avis de l'utilisateur
 const sampleReviews = [
@@ -110,9 +111,22 @@ export default function MyReviewsScreen({ navigation }) {
   const loadUserReviews = useCallback(async () => {
     try {
       console.log('📖 Chargement des avis utilisateur...');
-      const userReviews = await ReviewsService.getReviewsByUserId('anonymous');
+      
+      // Récupérer l'utilisateur actuel
+      const currentUser = await AuthService.getCurrentUser();
+      
+      if (!currentUser) {
+        console.log('❌ Aucun utilisateur connecté');
+        setReviews([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      console.log(`📖 Récupération des avis pour l'utilisateur: ${currentUser.email}`);
+      const userReviews = await ReviewsService.getReviewsByUserId(currentUser.uid);
       
       // Avis chargés avec succès
+      console.log(`✅ ${userReviews.length} avis trouvés pour l'utilisateur`);
       
       setReviews(userReviews);
     } catch (error) {
