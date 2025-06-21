@@ -22,10 +22,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { ReviewsService } from '../services/firebaseService';
+import { useAuth } from '../theme/AuthContext';
 
 export default function ProfileScreen({ navigation, route }) {
   const theme = useTheme();
   const { textSizes } = useTextSize();
+  const { user, logout } = useAuth();
   
   const [userInfo, setUserInfo] = useState({
     name: 'Utilisateur AccessPlus',
@@ -41,21 +43,29 @@ export default function ProfileScreen({ navigation, route }) {
 
   const [isLoadingStats, setIsLoadingStats] = useState(false);
 
-  // Charger le profil depuis AsyncStorage
+  // Charger le profil depuis le contexte d'authentification
   const loadProfile = useCallback(async () => {
     try {
-      const savedProfile = await AsyncStorage.getItem('userProfile');
-      if (savedProfile) {
-        const profileData = JSON.parse(savedProfile);
+      if (user) {
         setUserInfo(prev => ({
           ...prev,
-          ...profileData
+          ...user
         }));
+      } else {
+        // Fallback vers AsyncStorage si pas d'utilisateur dans le contexte
+        const savedProfile = await AsyncStorage.getItem('userProfile');
+        if (savedProfile) {
+          const profileData = JSON.parse(savedProfile);
+          setUserInfo(prev => ({
+            ...prev,
+            ...profileData
+          }));
+        }
       }
     } catch (error) {
       console.error('Erreur lors du chargement du profil:', error);
     }
-  }, []);
+  }, [user]);
 
   // Charger les statistiques réelles depuis Firebase ET AsyncStorage
   const loadUserStats = useCallback(async () => {
@@ -173,12 +183,30 @@ export default function ProfileScreen({ navigation, route }) {
     );
   };
 
-  const handleLogout = () => {
-    // Déconnexion et retour à l'écran de login
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
+  const handleLogout = async () => {
+    Alert.alert(
+      "Déconnexion",
+      "Êtes-vous sûr de vouloir vous déconnecter ?",
+      [
+        {
+          text: "Annuler",
+          style: "cancel"
+        },
+        {
+          text: "Se déconnecter",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await logout();
+              // La navigation se fait automatiquement via le contexte
+            } catch (error) {
+              console.error('Erreur lors de la déconnexion:', error);
+              Alert.alert("Erreur", "Impossible de se déconnecter");
+            }
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -199,6 +227,11 @@ export default function ProfileScreen({ navigation, route }) {
               <Paragraph style={[styles.userEmail, { fontSize: textSizes.body }]}>
                 {userInfo.email}
               </Paragraph>
+              {userInfo.isVisitor && (
+                <Text style={[styles.visitorBadge, { fontSize: textSizes.caption, color: theme.colors.primary }]}>
+                  👤 Mode visiteur
+                </Text>
+              )}
               {userInfo.location && (
                 <Text style={[styles.userLocation, { fontSize: textSizes.caption }]}>
                   📍 {userInfo.location}
@@ -362,6 +395,13 @@ const styles = StyleSheet.create({
   userBio: {
     fontSize: 14,
     color: '#666',
+  },
+  visitorBadge: {
+    fontSize: 14,
+    color: '#666',
+    backgroundColor: '#e0e0e0',
+    padding: 4,
+    borderRadius: 4,
   },
   statsCard: {
     marginBottom: 16,

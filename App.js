@@ -14,6 +14,7 @@ import { Platform } from 'react-native';
 import { ThemeProvider, useAppTheme } from './theme/ThemeContext';
 import { TextSizeProvider } from './theme/TextSizeContext';
 import { ScreenReaderProvider } from './theme/ScreenReaderContext';
+import { AuthProvider, useAuth } from './theme/AuthContext';
 import LoadingOverlay from './components/LoadingOverlay';
 
 // Import des différents écrans de l'application
@@ -162,23 +163,26 @@ function MainTabNavigator() {
 }
 
 /**
- * Contenu principal de l'application avec thème
+ * Contenu principal de l'application avec thème et authentification
  */
 function AppContent() {
   const { theme, isLoading: themeLoading } = useAppTheme();
+  const { user, isLoading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simuler un temps de chargement initial
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+    // Attendre que le thème et l'authentification soient chargés
+    if (!themeLoading && !authLoading) {
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [themeLoading, authLoading]);
 
   // Attendre que le thème soit chargé
-  if (themeLoading) {
+  if (themeLoading || authLoading) {
     return <LoadingOverlay />;
   }
 
@@ -189,103 +193,112 @@ function AppContent() {
           <LoadingOverlay />
         ) : (
           <Stack.Navigator
-            initialRouteName="Login"
+            initialRouteName={user ? "MainTabs" : "Login"}
             screenOptions={{
               headerShown: false
             }}
           >
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen 
-              name="Register" 
-              component={RegisterScreen}
-              options={{ 
-                title: 'Inscription',
-                presentation: 'card',
-                headerShown: true,
-                headerBackTitle: '',
-                headerBackTitleVisible: false,
-                headerStyle: getHeaderStyle(theme),
-                headerTintColor: '#fff',
-                headerTitleStyle: getHeaderTitleStyle(),
-                headerTitleAlign: 'center',
-              }}
-            />
-            <Stack.Screen name="MainTabs" component={MainTabNavigator} />
-            <Stack.Screen 
-              name="PlaceDetail" 
-              component={PlaceDetailScreen}
-              options={({ route }) => ({ 
-                title: route.params?.place?.name || 'Détails du lieu',
-                presentation: 'card',
-                headerShown: true,
-                headerBackTitle: '',
-                headerBackTitleVisible: false,
-                headerStyle: getHeaderStyle(theme),
-                headerTintColor: '#fff',
-                headerTitleStyle: getHeaderTitleStyle(),
-                headerTitleAlign: 'center',
-              })}
-            />
-            <Stack.Screen 
-              name="EditProfile" 
-              component={EditProfileScreen}
-              options={{ 
-                title: 'Éditer le profil',
-                presentation: 'card',
-                headerShown: true,
-                headerBackTitle: '',
-                headerBackTitleVisible: false,
-                headerStyle: getHeaderStyle(theme),
-                headerTintColor: '#fff',
-                headerTitleStyle: getHeaderTitleStyle(),
-                headerTitleAlign: 'center',
-              }}
-            />
-            <Stack.Screen 
-              name="MyReviews" 
-              component={MyReviewsScreen}
-              options={{ 
-                title: 'Mes avis',
-                presentation: 'card',
-                headerShown: true,
-                headerBackTitle: '',
-                headerBackTitleVisible: false,
-                headerStyle: getHeaderStyle(theme),
-                headerTintColor: '#fff',
-                headerTitleStyle: getHeaderTitleStyle(),
-                headerTitleAlign: 'center',
-              }}
-            />
-            <Stack.Screen 
-              name="LocationHistory" 
-              component={LocationHistoryScreen}
-              options={{ 
-                title: 'Historique de lieu',
-                presentation: 'card',
-                headerShown: true,
-                headerBackTitle: '',
-                headerBackTitleVisible: false,
-                headerStyle: getHeaderStyle(theme),
-                headerTintColor: '#fff',
-                headerTitleStyle: getHeaderTitleStyle(),
-                headerTitleAlign: 'center',
-              }}
-            />
-            <Stack.Screen 
-              name="AddReview" 
-              component={AddReviewScreen}
-              options={{ 
-                title: 'Ajouter un avis',
-                presentation: 'modal',
-                headerShown: true,
-                headerBackTitle: '',
-                headerBackTitleVisible: false,
-                headerStyle: getHeaderStyle(theme),
-                headerTintColor: '#fff',
-                headerTitleStyle: getHeaderTitleStyle(),
-                headerTitleAlign: 'center',
-              }}
-            />
+            {user ? (
+              // Utilisateur connecté - afficher l'app principale
+              <>
+                <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+                <Stack.Screen 
+                  name="PlaceDetail" 
+                  component={PlaceDetailScreen}
+                  options={({ route }) => ({ 
+                    title: route.params?.place?.name || 'Détails du lieu',
+                    presentation: 'card',
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  })}
+                />
+                <Stack.Screen 
+                  name="EditProfile" 
+                  component={EditProfileScreen}
+                  options={{ 
+                    title: 'Éditer le profil',
+                    presentation: 'card',
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  }}
+                />
+                <Stack.Screen 
+                  name="MyReviews" 
+                  component={MyReviewsScreen}
+                  options={{ 
+                    title: 'Mes avis',
+                    presentation: 'card',
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  }}
+                />
+                <Stack.Screen 
+                  name="LocationHistory" 
+                  component={LocationHistoryScreen}
+                  options={{ 
+                    title: 'Historique de lieu',
+                    presentation: 'card',
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  }}
+                />
+                <Stack.Screen 
+                  name="AddReview" 
+                  component={AddReviewScreen}
+                  options={{ 
+                    title: 'Ajouter un avis',
+                    presentation: 'modal',
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  }}
+                />
+              </>
+            ) : (
+              // Utilisateur non connecté - afficher l'authentification
+              <>
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen 
+                  name="Register" 
+                  component={RegisterScreen}
+                  options={{ 
+                    title: 'Inscription',
+                    presentation: 'card',
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  }}
+                />
+              </>
+            )}
           </Stack.Navigator>
         )}
       </NavigationContainer>
@@ -303,7 +316,9 @@ export default function App() {
       <ThemeProvider>
         <TextSizeProvider>
           <ScreenReaderProvider>
-            <AppContent />
+            <AuthProvider>
+              <AppContent />
+            </AuthProvider>
           </ScreenReaderProvider>
         </TextSizeProvider>
       </ThemeProvider>

@@ -4,10 +4,12 @@ import { Text, Button, TextInput, Surface, useTheme, Checkbox, HelperText } from
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
+import { useAuth } from '../theme/AuthContext';
 
 export default function RegisterScreen({ navigation }) {
   const theme = useTheme();
   const { textSizes } = useTextSize();
+  const { register } = useAuth();
   
   // États pour les champs du formulaire
   const [formData, setFormData] = useState({
@@ -103,49 +105,41 @@ export default function RegisterScreen({ navigation }) {
     setIsLoading(true);
 
     try {
-      // Simulation de l'inscription
-      setTimeout(async () => {
-        try {
-          // Sauvegarder les données utilisateur
-          const userProfile = {
-            name: `${formData.firstName} ${formData.lastName}`,
-            email: formData.email,
-            phone: formData.phone,
-            joinDate: new Date().toLocaleDateString('fr-FR', { 
-              year: 'numeric', 
-              month: 'long' 
-            }),
-          };
+      console.log('🔍 Tentative d\'inscription avec:', { 
+        email: formData.email, 
+        firstName: formData.firstName,
+        lastName: formData.lastName 
+      });
+      
+      // Inscription avec le contexte d'authentification
+      await register(formData.email, formData.password, {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone
+      });
 
-          await AsyncStorage.setItem('userProfile', JSON.stringify(userProfile));
-
-          setIsLoading(false);
-          
-          Alert.alert(
-            "Inscription réussie ! 🎉",
-            "Bienvenue dans AccessPlus ! Votre compte a été créé avec succès.",
-            [
-              {
-                text: "Continuer",
-                onPress: () => navigation.replace('MainTabs')
-              }
-            ]
-          );
-        } catch (error) {
-          console.error('Erreur lors de la sauvegarde:', error);
-          setIsLoading(false);
-          Alert.alert(
-            "Erreur",
-            "Une erreur est survenue lors de la création de votre compte. Veuillez réessayer.",
-            [{ text: "OK" }]
-          );
-        }
-      }, 1500);
+      console.log('✅ Inscription réussie !');
+      setIsLoading(false);
+      
+      Alert.alert(
+        "Inscription réussie ! 🎉",
+        "Bienvenue dans AccessPlus ! Votre compte a été créé avec succès.",
+        [
+          {
+            text: "Continuer",
+            onPress: () => {
+              // La navigation se fait automatiquement via le contexte
+            }
+          }
+        ]
+      );
     } catch (err) {
+      console.error('❌ Erreur lors de l\'inscription:', err);
       setIsLoading(false);
       Alert.alert(
         "Erreur d'inscription",
-        "Une erreur est survenue. Veuillez réessayer.",
+        err.message || "Une erreur est survenue. Veuillez réessayer.",
         [{ text: "OK" }]
       );
     }

@@ -3,10 +3,12 @@ import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
 import { Text, Button, TextInput, Surface, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTextSize } from '../theme/TextSizeContext';
+import { useAuth } from '../theme/AuthContext';
 
 export default function LoginScreen({ navigation }) {
   const theme = useTheme();
   const { textSizes } = useTextSize();
+  const { login, register } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -22,13 +24,32 @@ export default function LoginScreen({ navigation }) {
     setError('');
     
     try {
-      // Simulation de connexion
-      setTimeout(() => {
-        setIsLoading(false);
-        navigation.replace('MainTabs');
-      }, 1000);
+      console.log('🔍 Tentative de connexion avec:', { email, password });
+      
+      // Connexion avec le contexte d'authentification
+      await login(email, password);
+      console.log('✅ Connexion réussie !');
+      // La navigation se fait automatiquement via le contexte
     } catch (err) {
-      setError('Erreur de connexion. Veuillez réessayer.');
+      console.error('❌ Erreur lors de la connexion:', err);
+      setError(err.message || 'Erreur de connexion. Veuillez réessayer.');
+      setIsLoading(false);
+    }
+  };
+
+  const handleContinueWithoutAccount = async () => {
+    setIsLoading(true);
+    try {
+      // Créer un utilisateur temporaire pour le mode "sans compte"
+      await register('visiteur@accessplus.com', '123456', {
+        firstName: 'Visiteur',
+        lastName: 'AccessPlus',
+        email: 'visiteur@accessplus.com',
+        phone: ''
+      });
+      // La navigation se fait automatiquement via le contexte
+    } catch (err) {
+      console.error('Erreur lors de la création du compte visiteur:', err);
       setIsLoading(false);
     }
   };
@@ -90,7 +111,8 @@ export default function LoginScreen({ navigation }) {
 
           <Button
             mode="outlined"
-            onPress={() => navigation.replace('MainTabs')}
+            onPress={handleContinueWithoutAccount}
+            loading={isLoading}
             style={styles.button}
             labelStyle={{ fontSize: textSizes.body }}
           >
