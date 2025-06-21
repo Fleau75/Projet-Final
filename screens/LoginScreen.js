@@ -328,13 +328,13 @@ export default function LoginScreen({ navigation }) {
             onPress={handleContinueWithoutAccount}
             loading={isLoading}
             style={[styles.button, {
-              borderColor: isDarkMode ? '#03DAC6' : theme.colors.secondary
+              borderColor: theme.colors.primary
             }]}
             labelStyle={{ 
               fontSize: textSizes.body,
-              color: isDarkMode ? '#03DAC6' : theme.colors.secondary
+              color: theme.colors.primary
             }}
-            textColor={isDarkMode ? '#03DAC6' : theme.colors.secondary}
+            textColor={theme.colors.primary}
           >
             Continuer sans compte
           </Button>

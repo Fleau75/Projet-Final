@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, Alert, Dimensions, FlatList } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, Alert, Dimensions, FlatList, TouchableOpacity } from 'react-native';
 import { 
   Card, 
   Title, 
@@ -29,12 +29,12 @@ const { width } = Dimensions.get('window');
 
 // Catégories avec icônes
 const categories = [
-  { id: 'all', label: 'Tous' },
-  { id: 'restaurant', label: 'Restaurants' },
-  { id: 'culture', label: 'Culture' },
-  { id: 'shopping', label: 'Shopping' },
-  { id: 'health', label: 'Santé' },
-  { id: 'sport', label: 'Sport' },
+  { id: 'all', label: 'Tous', icon: 'view-list' },
+  { id: 'restaurant', label: '🍽️ Restaurants', icon: 'food' },
+  { id: 'culture', label: '🎭 Culture', icon: 'palette' },
+  { id: 'shopping', label: '🛍️ Shopping', icon: 'shopping' },
+  { id: 'health', label: '🏥 Santé', icon: 'hospital-building' },
+  { id: 'sport', label: '🏃 Sport', icon: 'bike' },
 ];
 
 export default function LocationHistoryScreen({ navigation }) {
@@ -291,61 +291,6 @@ export default function LocationHistoryScreen({ navigation }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* Header avec filtres - seulement si il y a des lieux */}
-      {mapPlaces.length > 0 && (
-        <View style={[styles.headerWrapper, { backgroundColor: theme.colors.surface }]}>
-          <View style={styles.headerContent}>
-            {/* Filtres par catégorie */}
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoriesContainer}
-            >
-              {categories.map(category => (
-                <Chip
-                  key={category.id}
-                  selected={selectedCategory === category.id}
-                  onPress={() => setSelectedCategory(category.id)}
-                  style={styles.categoryChip}
-                  textStyle={{ fontSize: textSizes.caption }}
-                >
-                  {category.label}
-                </Chip>
-              ))}
-            </ScrollView>
-            
-            {/* Options de tri */}
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.sortContainer}
-            >
-              <Chip
-                selected={sortBy === 'recent'}
-                onPress={() => setSortBy('recent')}
-                style={styles.sortChip}
-              >
-                Plus récents
-              </Chip>
-              <Chip
-                selected={sortBy === 'name'}
-                onPress={() => setSortBy('name')}
-                style={styles.sortChip}
-              >
-                Nom
-              </Chip>
-              <Chip
-                selected={sortBy === 'rating'}
-                onPress={() => setSortBy('rating')}
-                style={styles.sortChip}
-              >
-                Note
-              </Chip>
-            </ScrollView>
-          </View>
-        </View>
-      )}
-
       {/* Liste des lieux */}
       {mapPlaces.length === 0 ? (
         renderEmptyState()
@@ -359,6 +304,148 @@ export default function LocationHistoryScreen({ navigation }) {
           }
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View style={[styles.headerWrapper, { backgroundColor: theme.colors.surface }]}>
+              <View style={styles.headerContent}>
+                {/* Filtres par catégorie */}
+                <View style={styles.categoriesSection}>
+                  <Text style={[styles.sectionTitle, { fontSize: textSizes.body, color: theme.colors.onSurface }]}>
+                    📂 Catégories
+                  </Text>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.categoriesContainer}
+                    contentContainerStyle={styles.categoriesContent}
+                  >
+                    {categories.map(category => (
+                      <TouchableOpacity
+                        key={category.id}
+                        onPress={() => setSelectedCategory(category.id)}
+                        style={[
+                          styles.categoryButton,
+                          { borderColor: theme.colors.outline },
+                          selectedCategory === category.id && {
+                            backgroundColor: theme.colors.primary,
+                            borderColor: theme.colors.primary,
+                          }
+                        ]}
+                      >
+                        <MaterialCommunityIcons
+                          name={category.icon}
+                          size={16}
+                          color={selectedCategory === category.id ? theme.colors.onPrimary : theme.colors.onSurface}
+                        />
+                        <Text style={[
+                          styles.categoryText,
+                          { fontSize: textSizes.caption },
+                          selectedCategory === category.id ? 
+                            { color: theme.colors.onPrimary } : 
+                            { color: theme.colors.onSurface }
+                        ]}>
+                          {category.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+                
+                {/* Options de tri */}
+                <View style={styles.sortSection}>
+                  <Text style={[styles.sectionTitle, { fontSize: textSizes.body, color: theme.colors.onSurface }]}>
+                    🔄 Trier par
+                  </Text>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.sortContainer}
+                    contentContainerStyle={styles.sortContent}
+                  >
+                    <TouchableOpacity
+                      onPress={() => setSortBy('recent')}
+                      style={[
+                        styles.sortButton,
+                        { borderColor: theme.colors.outline },
+                        sortBy === 'recent' && {
+                          backgroundColor: theme.colors.primary,
+                          borderColor: theme.colors.primary,
+                        }
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name="clock-outline"
+                        size={14}
+                        color={sortBy === 'recent' ? theme.colors.onPrimary : theme.colors.onSurface}
+                      />
+                      <Text style={[
+                        styles.sortText,
+                        { fontSize: textSizes.caption },
+                        sortBy === 'recent' ? 
+                          { color: theme.colors.onPrimary } : 
+                          { color: theme.colors.onSurface }
+                      ]}>
+                        Plus récents
+                      </Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      onPress={() => setSortBy('name')}
+                      style={[
+                        styles.sortButton,
+                        { borderColor: theme.colors.outline },
+                        sortBy === 'name' && {
+                          backgroundColor: theme.colors.primary,
+                          borderColor: theme.colors.primary,
+                        }
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name="sort-alphabetical-ascending"
+                        size={14}
+                        color={sortBy === 'name' ? theme.colors.onPrimary : theme.colors.onSurface}
+                      />
+                      <Text style={[
+                        styles.sortText,
+                        { fontSize: textSizes.caption },
+                        sortBy === 'name' ? 
+                          { color: theme.colors.onPrimary } : 
+                          { color: theme.colors.onSurface }
+                      ]}>
+                        Nom
+                      </Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      onPress={() => setSortBy('rating')}
+                      style={[
+                        styles.sortButton,
+                        { borderColor: theme.colors.outline },
+                        sortBy === 'rating' && {
+                          backgroundColor: theme.colors.primary,
+                          borderColor: theme.colors.primary,
+                        }
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name="star-outline"
+                        size={14}
+                        color={sortBy === 'rating' ? theme.colors.onPrimary : theme.colors.onSurface}
+                      />
+                      <Text style={[
+                        styles.sortText,
+                        { fontSize: textSizes.caption },
+                        sortBy === 'rating' ? 
+                          { color: theme.colors.onPrimary } : 
+                          { color: theme.colors.onSurface }
+                      ]}>
+                        Note
+                      </Text>
+                    </TouchableOpacity>
+                  </ScrollView>
+                </View>
+              </View>
+            </View>
+          }
         />
       )}
     </SafeAreaView>
@@ -375,11 +462,7 @@ const styles = StyleSheet.create({
   },
   headerWrapper: {
     padding: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    marginBottom: 8,
   },
   headerContent: {
     flex: 1,
@@ -454,5 +537,52 @@ const styles = StyleSheet.create({
   },
   exploreButton: {
     paddingHorizontal: 24,
+  },
+  categoriesSection: {
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  categoriesContent: {
+    padding: 4,
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderRadius: 16,
+    marginRight: 6,
+    backgroundColor: 'transparent',
+  },
+  categoryText: {
+    marginLeft: 4,
+    fontWeight: '500',
+    fontSize: 12,
+  },
+  sortSection: {
+    marginBottom: 12,
+  },
+  sortContent: {
+    padding: 4,
+  },
+  sortButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderRadius: 16,
+    marginRight: 6,
+    backgroundColor: 'transparent',
+  },
+  sortText: {
+    marginLeft: 4,
+    fontWeight: '500',
+    fontSize: 12,
   },
 }); 

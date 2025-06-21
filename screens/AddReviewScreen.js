@@ -196,63 +196,56 @@ export default function AddReviewScreen({ navigation, route }) {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Surface style={[styles.surface, { backgroundColor: theme.colors.surface }]}>
-        {/* Bouton Annuler en haut */}
-        <View style={styles.headerContainer}>
-          <Button
-            mode="text"
-            onPress={() => navigation.goBack()}
-            icon="arrow-left"
-            style={styles.cancelButton}
-            labelStyle={{ fontSize: textSizes.body }}
-          >
-            Annuler
-          </Button>
-        </View>
-
-        <Text variant="headlineMedium" style={[styles.title, { fontSize: textSizes.headline }]}>
-          Évaluer un lieu
-        </Text>
-
-        {/* Sélection du lieu */}
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
-            Sélectionner un lieu
-          </Text>
-          <Searchbar
-            placeholder="Rechercher un lieu..."
-            onChangeText={setSearchQuery}
-            value={searchQuery}
-            style={styles.searchBar}
-            loading={isSearching}
-          />
+      <View style={styles.content}>
+        {/* Section Lieu */}
+        <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+          <View style={styles.cardHeader}>
+            <Text variant="titleMedium" style={[styles.cardTitle, { fontSize: textSizes.title, color: theme.colors.onSurface }]}>
+              📍 Lieu à évaluer
+            </Text>
+          </View>
           
-          {/* Résultats de recherche */}
-          {searchResults.length > 0 && !selectedPlace && (
-            <Surface style={[styles.searchResults, { backgroundColor: theme.colors.surface }]}>
-              {searchResults.map((place) => (
-                <List.Item
-                  key={place.id}
-                  title={place.name}
-                  description={place.address}
-                  onPress={() => {
-                    setSelectedPlace(place);
-                    setSearchQuery('');
-                    setSearchResults([]);
-                  }}
-                  style={[styles.searchResultItem, { borderBottomColor: isDarkMode ? '#334155' : '#E5E7EB' }]}
-                />
-              ))}
-            </Surface>
-          )}
-
-          {/* Lieu sélectionné */}
-          {selectedPlace && (
-            <Surface style={[styles.selectedPlace, { backgroundColor: isDarkMode ? '#334155' : '#F1F5F9' }]}>
-              <View style={styles.selectedPlaceHeader}>
+          {!selectedPlace ? (
+            <View>
+              <Searchbar
+                placeholder="Rechercher un lieu..."
+                onChangeText={setSearchQuery}
+                value={searchQuery}
+                style={[styles.searchBar, { backgroundColor: theme.colors.surfaceVariant }]}
+                loading={isSearching}
+                iconColor={theme.colors.primary}
+              />
+              
+              {searchResults.length > 0 && (
+                <Surface style={[styles.searchResults, { backgroundColor: theme.colors.surfaceVariant }]}>
+                  {searchResults.map((place) => (
+                    <List.Item
+                      key={place.id}
+                      title={place.name}
+                      description={place.address}
+                      onPress={() => {
+                        setSelectedPlace(place);
+                        setSearchQuery('');
+                        setSearchResults([]);
+                      }}
+                      style={styles.searchResultItem}
+                      titleStyle={{ fontSize: textSizes.body, color: theme.colors.onSurface }}
+                      descriptionStyle={{ fontSize: textSizes.caption, color: theme.colors.onSurfaceVariant }}
+                    />
+                  ))}
+                </Surface>
+              )}
+            </View>
+          ) : (
+            <View style={[styles.selectedPlaceCard, { backgroundColor: theme.colors.primaryContainer }]}>
+              <View style={styles.selectedPlaceContent}>
                 <View style={styles.selectedPlaceInfo}>
-                  <Text variant="titleMedium">{selectedPlace.name}</Text>
-                  <Text variant="bodySmall">{selectedPlace.address}</Text>
+                  <Text variant="titleMedium" style={[styles.selectedPlaceName, { fontSize: textSizes.title, color: theme.colors.onPrimaryContainer }]}>
+                    {selectedPlace.name}
+                  </Text>
+                  <Text variant="bodySmall" style={[styles.selectedPlaceAddress, { fontSize: textSizes.caption, color: theme.colors.onPrimaryContainer }]}>
+                    {selectedPlace.address}
+                  </Text>
                 </View>
                 <Button
                   mode="text"
@@ -260,123 +253,166 @@ export default function AddReviewScreen({ navigation, route }) {
                     setSelectedPlace(null);
                     setSearchQuery('');
                   }}
+                  textColor={theme.colors.primary}
+                  compact
                 >
                   Changer
                 </Button>
               </View>
-            </Surface>
+            </View>
           )}
-        </View>
+        </Surface>
 
-        <View style={styles.ratingContainer}>
-          <Text variant="titleMedium" style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
-            Note globale
-          </Text>
-          <CustomRating
-            rating={rating}
-            readonly={false}
-            onRatingChange={setRating}
-            size={30}
-            style={styles.customRating}
-          />
-          <Text style={{ marginTop: 10, textAlign: 'center' }}>
-            Note sélectionnée: {rating}/5
-          </Text>
-        </View>
+        {/* Section Note */}
+        <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+          <View style={styles.cardHeader}>
+            <Text variant="titleMedium" style={[styles.cardTitle, { fontSize: textSizes.title, color: theme.colors.onSurface }]}>
+              ⭐ Note globale
+            </Text>
+          </View>
+          
+          <View style={styles.ratingSection}>
+            <CustomRating
+              rating={rating}
+              readonly={false}
+              onRatingChange={setRating}
+              size={40}
+              style={styles.customRating}
+            />
+            <Text style={[styles.ratingText, { fontSize: textSizes.body, color: theme.colors.onSurfaceVariant }]}>
+              {rating > 0 ? `${rating}/5 étoiles` : 'Sélectionnez une note'}
+            </Text>
+          </View>
+        </Surface>
 
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
-            Votre avis
-          </Text>
+        {/* Section Commentaire */}
+        <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+          <View style={styles.cardHeader}>
+            <Text variant="titleMedium" style={[styles.cardTitle, { fontSize: textSizes.title, color: theme.colors.onSurface }]}>
+              💬 Votre avis
+            </Text>
+          </View>
+          
           <TextInput
-            label="Commentaire"
+            label="Partagez votre expérience..."
             value={comment}
             onChangeText={setComment}
             mode="outlined"
             multiline
             numberOfLines={4}
-            style={[styles.input, { backgroundColor: theme.colors.surface }]}
+            style={[styles.commentInput, { backgroundColor: theme.colors.surfaceVariant }]}
+            theme={{
+              colors: {
+                primary: theme.colors.primary,
+                background: theme.colors.surfaceVariant,
+                surface: theme.colors.surfaceVariant,
+                text: theme.colors.onSurface,
+                placeholder: theme.colors.onSurfaceVariant,
+              }
+            }}
           />
-        </View>
+        </Surface>
 
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
-            Photos
-          </Text>
+        {/* Section Photos */}
+        <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+          <View style={styles.cardHeader}>
+            <Text variant="titleMedium" style={[styles.cardTitle, { fontSize: textSizes.title, color: theme.colors.onSurface }]}>
+              📸 Photos (optionnel)
+            </Text>
+          </View>
+          
           <View style={styles.photoButtons}>
             <Button
-              mode="contained-tonal"
+              mode="outlined"
               onPress={takePhoto}
               icon="camera"
-              style={[styles.photoButton, { flex: 1 }]}
+              style={[styles.photoButton, { borderColor: theme.colors.primary }]}
+              textColor={theme.colors.primary}
             >
-              Prendre une photo
+              Appareil photo
             </Button>
             <Button
-              mode="contained-tonal"
+              mode="outlined"
               onPress={pickImage}
               icon="image"
-              style={[styles.photoButton, { flex: 1 }]}
+              style={[styles.photoButton, { borderColor: theme.colors.primary }]}
+              textColor={theme.colors.primary}
             >
               Galerie
             </Button>
           </View>
           
-          <View style={styles.photoGrid}>
-            {photos.map((photo, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.photoContainer}
-                onPress={() => removePhoto(index)}
-              >
-                <Image source={{ uri: photo }} style={styles.photo} />
-                <View style={styles.removePhoto}>
-                  <Text style={styles.removePhotoText}>×</Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+          {photos.length > 0 && (
+            <View style={styles.photoGrid}>
+              {photos.map((photo, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.photoContainer}
+                  onPress={() => removePhoto(index)}
+                >
+                  <Image source={{ uri: photo }} style={styles.photo} />
+                  <View style={[styles.removePhoto, { backgroundColor: theme.colors.error }]}>
+                    <Text style={[styles.removePhotoText, { color: theme.colors.onError }]}>×</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </Surface>
 
-        <View style={styles.section}>
-          <Text variant="titleMedium" style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
-            Équipements accessibles
-          </Text>
-          <View style={[styles.accessibilityGrid, { backgroundColor: theme.colors.surface }]}>
+        {/* Section Accessibilité */}
+        <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+          <View style={styles.cardHeader}>
+            <Text variant="titleMedium" style={[styles.cardTitle, { fontSize: textSizes.title, color: theme.colors.onSurface }]}>
+              ♿ Équipements accessibles
+            </Text>
+          </View>
+          
+          <View style={styles.accessibilityGrid}>
             <Checkbox.Item
               label="Rampe d'accès"
               status={accessibility.ramp ? 'checked' : 'unchecked'}
               onPress={() => setAccessibility({ ...accessibility, ramp: !accessibility.ramp })}
+              color={theme.colors.primary}
+              labelStyle={{ fontSize: textSizes.body, color: theme.colors.onSurface }}
             />
             <Checkbox.Item
               label="Ascenseur"
               status={accessibility.elevator ? 'checked' : 'unchecked'}
               onPress={() => setAccessibility({ ...accessibility, elevator: !accessibility.elevator })}
+              color={theme.colors.primary}
+              labelStyle={{ fontSize: textSizes.body, color: theme.colors.onSurface }}
             />
             <Checkbox.Item
               label="Parking handicapé"
               status={accessibility.parking ? 'checked' : 'unchecked'}
               onPress={() => setAccessibility({ ...accessibility, parking: !accessibility.parking })}
+              color={theme.colors.primary}
+              labelStyle={{ fontSize: textSizes.body, color: theme.colors.onSurface }}
             />
             <Checkbox.Item
               label="Toilettes adaptées"
               status={accessibility.toilets ? 'checked' : 'unchecked'}
               onPress={() => setAccessibility({ ...accessibility, toilets: !accessibility.toilets })}
+              color={theme.colors.primary}
+              labelStyle={{ fontSize: textSizes.body, color: theme.colors.onSurface }}
             />
           </View>
-        </View>
+        </Surface>
 
+        {/* Bouton de soumission */}
         <Button
           mode="contained"
           onPress={handleSubmit}
           loading={isLoading}
-          style={styles.submitButton}
+          style={[styles.submitButton, { backgroundColor: theme.colors.primary }]}
           disabled={isLoading || !selectedPlace || rating === 0 || !comment.trim()}
-          labelStyle={{ fontSize: textSizes.body }}
+          labelStyle={[styles.submitButtonLabel, { fontSize: textSizes.body }]}
+          buttonColor={theme.colors.primary}
         >
-          {isLoading ? 'Publication en cours...' : 'Publier l\'avis'}
+          {isLoading ? 'Publication en cours...' : 'Publier mon avis'}
         </Button>
-      </Surface>
+      </View>
     </ScrollView>
   );
 }
@@ -385,42 +421,48 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  surface: {
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 16,
+  content: {
     padding: 16,
-    borderRadius: 12,
-    elevation: 4,
   },
-  title: {
-    marginBottom: 24,
-    textAlign: 'center',
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
+  card: {
     marginBottom: 16,
+    padding: 20,
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  cardHeader: {
+    marginBottom: 16,
+  },
+  cardTitle: {
+    fontWeight: '600',
   },
   searchBar: {
     marginBottom: 8,
     elevation: 0,
+    borderRadius: 8,
   },
   searchResults: {
     marginTop: 8,
     borderRadius: 8,
-    elevation: 4,
+    elevation: 2,
     maxHeight: 200,
   },
   searchResultItem: {
     borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
-  selectedPlace: {
-    padding: 12,
+  selectedPlaceCard: {
+    padding: 16,
     borderRadius: 8,
   },
-  selectedPlaceHeader: {
+  selectedPlaceContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -429,23 +471,35 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 16,
   },
-  ratingContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
+  selectedPlaceName: {
+    fontWeight: '600',
+    marginBottom: 4,
   },
-  rating: {
+  selectedPlaceAddress: {
+    opacity: 0.8,
+  },
+  ratingSection: {
+    alignItems: 'center',
     paddingVertical: 8,
   },
-  input: {
-    // backgroundColor géré dynamiquement
+  customRating: {
+    marginVertical: 16,
+  },
+  ratingText: {
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  commentInput: {
+    marginTop: 8,
   },
   photoButtons: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 12,
     marginBottom: 16,
   },
   photoButton: {
-    marginBottom: 0,
+    flex: 1,
+    borderRadius: 8,
   },
   photoGrid: {
     flexDirection: 'row',
@@ -458,6 +512,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
     position: 'relative',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   photo: {
     width: '100%',
@@ -467,15 +529,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 8,
     top: 8,
-    backgroundColor: 'rgba(255, 0, 0, 0.8)',
     width: 24,
     height: 24,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 3,
   },
   removePhotoText: {
-    color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -483,18 +544,20 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   submitButton: {
-    marginTop: 8,
+    marginTop: 24,
+    marginBottom: 32,
+    paddingVertical: 12,
+    borderRadius: 12,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
-  customRating: {
-    alignSelf: 'center',
-    marginVertical: 10,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginBottom: 16,
-  },
-  cancelButton: {
-    alignSelf: 'flex-start',
+  submitButtonLabel: {
+    fontWeight: '600',
   },
 }); 

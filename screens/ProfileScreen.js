@@ -247,7 +247,11 @@ export default function ProfileScreen({ navigation, route }) {
                 {userInfo.email}
               </Paragraph>
               {userInfo.isVisitor && (
-                <Text style={[styles.visitorBadge, { fontSize: textSizes.caption, color: theme.colors.primary }]}>
+                <Text style={[styles.visitorBadge, { 
+                  fontSize: textSizes.caption, 
+                  color: theme.colors.primary,
+                  backgroundColor: theme.colors.primaryContainer
+                }]}>
                   👤 Mode visiteur
                 </Text>
               )}
@@ -285,22 +289,40 @@ export default function ProfileScreen({ navigation, route }) {
             <Title style={{ fontSize: textSizes.title }}>Mes statistiques</Title>
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { fontSize: textSizes.title }]}>
+                <Text style={[styles.statNumber, { 
+                  fontSize: textSizes.title,
+                  color: theme.colors.primary
+                }]}>
                   {isLoadingStats ? '...' : userInfo.favoritePlaces}
                 </Text>
-                <Text style={[styles.statLabel, { fontSize: textSizes.caption }]}>Lieux ajoutés</Text>
+                <Text style={[styles.statLabel, { 
+                  fontSize: textSizes.caption,
+                  color: theme.colors.onSurfaceVariant
+                }]}>Lieux ajoutés</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { fontSize: textSizes.title }]}>
+                <Text style={[styles.statNumber, { 
+                  fontSize: textSizes.title,
+                  color: theme.colors.primary
+                }]}>
                   {isLoadingStats ? '...' : userInfo.reviewCount}
                 </Text>
-                <Text style={[styles.statLabel, { fontSize: textSizes.caption }]}>Avis donnés</Text>
+                <Text style={[styles.statLabel, { 
+                  fontSize: textSizes.caption,
+                  color: theme.colors.onSurfaceVariant
+                }]}>Avis donnés</Text>
               </View>
               <View style={styles.statItem}>
-                <Text style={[styles.statNumber, { fontSize: textSizes.title }]}>
+                <Text style={[styles.statNumber, { 
+                  fontSize: textSizes.title,
+                  color: theme.colors.primary
+                }]}>
                   {isLoadingStats ? '...' : (userInfo.averageRating || '0.0')}
                 </Text>
-                <Text style={[styles.statLabel, { fontSize: textSizes.caption }]}>Note moyenne</Text>
+                <Text style={[styles.statLabel, { 
+                  fontSize: textSizes.caption,
+                  color: theme.colors.onSurfaceVariant
+                }]}>Note moyenne</Text>
               </View>
             </View>
           </Card.Content>
@@ -401,25 +423,19 @@ const styles = StyleSheet.create({
   },
   userEmail: {
     fontSize: 16,
-    color: '#666',
     marginBottom: 4,
   },
   userLocation: {
     fontSize: 14,
-    color: '#888',
   },
   joinDate: {
     fontSize: 14,
-    color: '#888',
   },
   userBio: {
     fontSize: 14,
-    color: '#666',
   },
   visitorBadge: {
     fontSize: 14,
-    color: '#666',
-    backgroundColor: '#e0e0e0',
     padding: 4,
     borderRadius: 4,
   },
@@ -438,11 +454,9 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#4CAF50',
   },
   statLabel: {
     fontSize: 14,
-    color: '#666',
     marginTop: 4,
   },
   optionsCard: {
