@@ -345,4 +345,193 @@ export class AuthService {
         return 'Une erreur est survenue. Veuillez réessayer';
     }
   }
+
+  /**
+   * Vérifier si un utilisateur existe avec cet email
+   */
+  static async checkUserExists(email) {
+    try {
+      console.log('🔍 Vérification de l\'existence de l\'utilisateur:', email);
+      
+      // Vérifier dans les utilisateurs de test
+      const testUserKey = `user_${email}`;
+      const testUser = await AsyncStorage.getItem(testUserKey);
+      
+      if (testUser) {
+        console.log('✅ Utilisateur de test trouvé');
+        return true;
+      }
+      
+      // Vérifier dans le profil normal
+      const userProfile = await AsyncStorage.getItem('userProfile');
+      if (userProfile) {
+        const profile = JSON.parse(userProfile);
+        if (profile.email === email) {
+          console.log('✅ Utilisateur normal trouvé');
+          return true;
+        }
+      }
+      
+      console.log('❌ Aucun utilisateur trouvé avec cet email');
+      return false;
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification de l\'utilisateur:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Envoyer un email de réinitialisation de mot de passe
+   */
+  static async sendPasswordResetEmail(email) {
+    try {
+      console.log('📧 Envoi d\'email de réinitialisation pour:', email);
+      
+      // Simuler l'envoi d'email (en production, ceci utiliserait un vrai service d'email)
+      const resetToken = `reset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const expiresAt = Date.now() + (60 * 60 * 1000); // 1 heure
+      
+      // Sauvegarder le token de réinitialisation
+      const resetData = {
+        email,
+        token: resetToken,
+        expiresAt,
+        createdAt: new Date().toISOString()
+      };
+      
+      await AsyncStorage.setItem(`resetToken_${email}`, JSON.stringify(resetData));
+      
+      console.log('✅ Token de réinitialisation créé:', resetToken);
+      console.log('📧 Email de réinitialisation "envoyé" (simulé)');
+      
+      // En production, vous enverriez un vrai email ici
+      // avec un lien contenant le token
+      
+      return { success: true, resetToken };
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'envoi de l\'email de réinitialisation:', error);
+      throw new Error('Impossible d\'envoyer l\'email de réinitialisation');
+    }
+  }
+
+  /**
+   * Vérifier si un token de réinitialisation est valide
+   */
+  static async verifyResetToken(email) {
+    try {
+      console.log('🔍 Vérification du token de réinitialisation pour:', email);
+      
+      const resetDataKey = `resetToken_${email}`;
+      const resetData = await AsyncStorage.getItem(resetDataKey);
+      
+      if (!resetData) {
+        console.log('❌ Aucun token de réinitialisation trouvé');
+        return false;
+      }
+      
+      const { token, expiresAt } = JSON.parse(resetData);
+      
+      // Vérifier si le token a expiré
+      if (Date.now() > expiresAt) {
+        console.log('❌ Token de réinitialisation expiré');
+        await AsyncStorage.removeItem(resetDataKey);
+        return false;
+      }
+      
+      console.log('✅ Token de réinitialisation valide');
+      return true;
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification du token:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Mettre à jour le mot de passe d'un utilisateur
+   */
+  static async updatePassword(email, newPassword) {
+    try {
+      console.log('🔧 Mise à jour du mot de passe pour:', email);
+      
+      // Vérifier que le token est toujours valide
+      const isValidToken = await this.verifyResetToken(email);
+      if (!isValidToken) {
+        throw new Error('Token de réinitialisation invalide ou expiré');
+      }
+      
+      // Mettre à jour le mot de passe selon le type d'utilisateur
+      const testUserKey = `user_${email}`;
+      const testUser = await AsyncStorage.getItem(testUserKey);
+      
+      if (testUser) {
+        // Utilisateur de test
+        const userData = JSON.parse(testUser);
+        userData.password = newPassword;
+        await AsyncStorage.setItem(testUserKey, JSON.stringify(userData));
+        console.log('✅ Mot de passe mis à jour pour l\'utilisateur de test');
+      } else {
+        // Utilisateur normal
+        const userProfile = await AsyncStorage.getItem('userProfile');
+        if (userProfile) {
+          const profile = JSON.parse(userProfile);
+          if (profile.email === email) {
+            await AsyncStorage.setItem('userPassword', newPassword);
+            console.log('✅ Mot de passe mis à jour pour l\'utilisateur normal');
+          } else {
+            throw new Error('Utilisateur non trouvé');
+          }
+        } else {
+          throw new Error('Utilisateur non trouvé');
+        }
+      }
+      
+      // Supprimer le token de réinitialisation
+      await AsyncStorage.removeItem(`resetToken_${email}`);
+      
+      console.log('✅ Mot de passe mis à jour avec succès');
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Erreur lors de la mise à jour du mot de passe:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Changer le mot de passe d'un utilisateur connecté
+   */
+  static async changePassword(currentPassword, newPassword) {
+    try {
+      console.log('🔧 Changement de mot de passe pour l\'utilisateur connecté');
+      
+      // Récupérer l'utilisateur actuel
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser) {
+        throw new Error('Aucun utilisateur connecté');
+      }
+      
+      // Vérifier l'ancien mot de passe
+      const storedPassword = await AsyncStorage.getItem('userPassword');
+      if (storedPassword !== currentPassword) {
+        throw new Error('Mot de passe actuel incorrect');
+      }
+      
+      // Mettre à jour le mot de passe
+      await AsyncStorage.setItem('userPassword', newPassword);
+      
+      // Mettre à jour aussi dans les utilisateurs de test si applicable
+      const testUserKey = `user_${currentUser.email}`;
+      const testUser = await AsyncStorage.getItem(testUserKey);
+      if (testUser) {
+        const userData = JSON.parse(testUser);
+        userData.password = newPassword;
+        await AsyncStorage.setItem(testUserKey, JSON.stringify(userData));
+      }
+      
+      console.log('✅ Mot de passe changé avec succès');
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Erreur lors du changement de mot de passe:', error);
+      throw error;
+    }
+  }
 } 

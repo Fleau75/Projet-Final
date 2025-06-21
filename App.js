@@ -20,6 +20,8 @@ import LoadingOverlay from './components/LoadingOverlay';
 // Import des différents écrans de l'application
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
+import ResetPasswordScreen from './screens/ResetPasswordScreen';
 import HomeScreen from './screens/HomeScreen';
 import MapScreen from './screens/MapScreen';
 import AddReviewScreen from './screens/AddReviewScreen';
@@ -287,6 +289,36 @@ function AppContent() {
                   component={RegisterScreen}
                   options={{ 
                     title: 'Inscription',
+                    presentation: 'card',
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  }}
+                />
+                <Stack.Screen 
+                  name="ForgotPassword" 
+                  component={ForgotPasswordScreen}
+                  options={{ 
+                    title: 'Mot de passe oublié',
+                    presentation: 'card',
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  }}
+                />
+                <Stack.Screen 
+                  name="ResetPassword" 
+                  component={ResetPasswordScreen}
+                  options={{ 
+                    title: 'Réinitialiser le mot de passe',
                     presentation: 'card',
                     headerShown: true,
                     headerBackTitle: '',

@@ -93,6 +93,17 @@ export default function LoginScreen({ navigation }) {
             theme={{ fonts: { bodyLarge: { fontSize: textSizes.body } } }}
           />
 
+          {/* Bouton mot de passe oublié */}
+          <Button
+            mode="text"
+            onPress={() => navigation.navigate('ForgotPassword')}
+            style={styles.forgotPasswordButton}
+            labelStyle={{ fontSize: textSizes.caption }}
+            compact
+          >
+            Mot de passe oublié ?
+          </Button>
+
           {error ? (
             <Text style={[styles.error, { color: theme.colors.error, fontSize: textSizes.body }]}>
               {error}
@@ -191,5 +202,8 @@ const styles = StyleSheet.create({
   error: {
     textAlign: 'center',
     marginBottom: 16,
+  },
+  forgotPasswordButton: {
+    marginBottom: 8,
   },
 });
