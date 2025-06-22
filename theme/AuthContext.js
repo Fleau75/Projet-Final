@@ -46,11 +46,14 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const result = await AuthService.login(email, password);
-      const userProfile = await AuthService.getCurrentUser();
-      setUser(userProfile);
+      if (result.success) {
+        const userProfile = await AuthService.getCurrentUser();
+        setUser(userProfile);
+      }
       return result;
     } catch (error) {
-      throw error;
+      // Ne pas propager l'erreur, mais la retourner pour que l'UI puisse la gérer
+      return { success: false, error: error.message };
     }
   };
 

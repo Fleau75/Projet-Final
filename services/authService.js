@@ -228,7 +228,7 @@ export class AuthService {
       console.log('🔧 Connexion réussie, utilisateur:', user);
       return { success: true, user };
     } catch (error) {
-      console.error('❌ Erreur lors de la connexion:', error);
+      // console.error('❌ Erreur lors de la connexion:', error); // Commenté pour empêcher le toast d'erreur
       throw error;
     }
   }

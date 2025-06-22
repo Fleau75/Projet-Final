@@ -121,7 +121,14 @@ export default function LoginScreen({ navigation }) {
       console.log('🔍 Tentative de connexion avec:', { email, password });
       
       // Connexion avec le contexte d'authentification
-      await login(email, password);
+      const result = await login(email, password);
+
+      if (!result.success) {
+        setError(result.error || 'Erreur de connexion. Veuillez réessayer.');
+        setIsLoading(false);
+        return;
+      }
+      
       console.log('✅ Connexion réussie !');
       
       // Proposer d'activer la biométrie après une connexion réussie
@@ -133,8 +140,9 @@ export default function LoginScreen({ navigation }) {
       
       // La navigation se fait automatiquement via le contexte
     } catch (err) {
-      console.error('❌ Erreur lors de la connexion:', err);
-      setError(err.message || 'Erreur de connexion. Veuillez réessayer.');
+      // Ce bloc ne devrait plus être atteint pour les erreurs de login,
+      // mais on le garde pour les erreurs inattendues.
+      setError('Une erreur inattendue est survenue.');
       setIsLoading(false);
     }
   };
