@@ -95,10 +95,15 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      console.log('🔓 Début de la déconnexion...');
       await AuthService.logout();
       setUser(null);
+      console.log('✅ Déconnexion réussie');
     } catch (error) {
-      throw error;
+      console.error('❌ Erreur lors de la déconnexion:', error);
+      // Même en cas d'erreur, on force la déconnexion dans l'état local
+      setUser(null);
+      // Ne pas propager l'erreur pour éviter les crashs
     }
   };
 

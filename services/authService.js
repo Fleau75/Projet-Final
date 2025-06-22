@@ -234,18 +234,35 @@ export class AuthService {
   }
 
   /**
-   * Déconnexion
+   * Déconnexion de l'utilisateur
    */
   static async logout() {
     try {
-      await AsyncStorage.removeItem('userProfile');
-      await AsyncStorage.removeItem('isAuthenticated');
-      await AsyncStorage.removeItem('currentUser');
-      await AsyncStorage.removeItem('userPassword');
+      console.log('🔓 Début de la déconnexion...');
+      
+      // Supprimer les clés de session de manière sécurisée
+      const keysToRemove = [
+        'userProfile',
+        'isAuthenticated', 
+        'currentUser',
+        'userPassword'
+      ];
+      
+      for (const key of keysToRemove) {
+        try {
+          await AsyncStorage.removeItem(key);
+          console.log(`✅ Clé supprimée: ${key}`);
+        } catch (error) {
+          console.warn(`⚠️ Erreur lors de la suppression de ${key}:`, error);
+        }
+      }
+      
+      console.log('✅ Déconnexion réussie');
       return { success: true };
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
-      throw error;
+      console.error('❌ Erreur lors de la déconnexion:', error);
+      // Retourner un succès même en cas d'erreur pour éviter les crashs
+      return { success: true };
     }
   }
 

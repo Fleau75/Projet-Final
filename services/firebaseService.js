@@ -449,6 +449,31 @@ export class ReviewsService {
   }
 
   /**
+   * Supprimer tous les avis d'un utilisateur par email
+   */
+  static async deleteAllReviewsByEmail(userEmail) {
+    try {
+      console.log('🗑️ Suppression de tous les avis pour l\'email:', userEmail);
+      
+      const reviewsRef = collection(db, REVIEWS_COLLECTION);
+      const q = query(reviewsRef, where('userEmail', '==', userEmail));
+      const snapshot = await getDocs(q);
+      
+      console.log(`🗑️ ${snapshot.docs.length} avis trouvés à supprimer`);
+      
+      // Supprimer tous les avis en batch
+      const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+      
+      console.log('✅ Tous les avis supprimés avec succès');
+      return snapshot.docs.length;
+    } catch (error) {
+      console.error('❌ Erreur lors de la suppression des avis:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Upload d'une image vers Firebase Storage
    */
   static async uploadImage(imageUri, path = 'reviews') {

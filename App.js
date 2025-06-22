@@ -225,7 +225,7 @@ function AppContent() {
                   options={{ 
                     title: 'Éditer le profil',
                     presentation: 'card',
-                    headerShown: true,
+                    headerShown: false,
                     headerBackTitle: '',
                     headerBackTitleVisible: false,
                     headerStyle: getHeaderStyle(theme),
