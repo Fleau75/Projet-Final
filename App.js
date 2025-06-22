@@ -22,6 +22,7 @@ import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen';
 import ResetPasswordScreen from './screens/ResetPasswordScreen';
+import ChangePasswordScreen from './screens/ChangePasswordScreen';
 import HomeScreen from './screens/HomeScreen';
 import MapScreen from './screens/MapScreen';
 import AddReviewScreen from './screens/AddReviewScreen';
@@ -226,6 +227,21 @@ function AppContent() {
                     title: 'Éditer le profil',
                     presentation: 'card',
                     headerShown: false,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  }}
+                />
+                <Stack.Screen 
+                  name="ChangePassword" 
+                  component={ChangePasswordScreen}
+                  options={{ 
+                    title: 'Changer le mot de passe',
+                    presentation: 'card',
+                    headerShown: true,
                     headerBackTitle: '',
                     headerBackTitleVisible: false,
                     headerStyle: getHeaderStyle(theme),

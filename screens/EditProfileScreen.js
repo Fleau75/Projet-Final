@@ -447,7 +447,7 @@ export default function EditProfileScreen({ navigation, route }) {
               description="Modifier votre mot de passe de connexion"
               left={(props) => <List.Icon {...props} icon="lock" color={theme.colors.primary} />}
               right={(props) => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => Alert.alert("Fonctionnalité", "Changement de mot de passe à venir")}
+              onPress={() => navigation.navigate('ChangePassword')}
               style={styles.listItem}
             />
 

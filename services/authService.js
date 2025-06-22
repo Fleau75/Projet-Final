@@ -532,22 +532,41 @@ export class AuthService {
         throw new Error('Aucun utilisateur connecté');
       }
       
-      // Vérifier l'ancien mot de passe
-      const storedPassword = await AsyncStorage.getItem('userPassword');
-      if (storedPassword !== currentPassword) {
+      console.log('🔍 Utilisateur connecté:', currentUser.email);
+      
+      // Vérifier l'ancien mot de passe en essayant de se connecter avec
+      // C'est plus fiable que de comparer avec les mots de passe stockés
+      console.log('🔍 Vérification du mot de passe par connexion...');
+      let isPasswordCorrect = false;
+      
+      try {
+        // Essayer de se connecter avec le mot de passe fourni
+        await this.login(currentUser.email, currentPassword);
+        console.log('✅ Mot de passe vérifié par connexion réussie');
+        isPasswordCorrect = true;
+      } catch (loginError) {
+        console.log('❌ Échec de vérification par connexion:', loginError.message);
+        isPasswordCorrect = false;
+      }
+      
+      if (!isPasswordCorrect) {
         throw new Error('Mot de passe actuel incorrect');
       }
       
-      // Mettre à jour le mot de passe
-      await AsyncStorage.setItem('userPassword', newPassword);
-      
-      // Mettre à jour aussi dans les utilisateurs de test si applicable
+      // Maintenant mettre à jour le mot de passe selon le type d'utilisateur
       const testUserKey = `user_${currentUser.email}`;
       const testUser = await AsyncStorage.getItem(testUserKey);
+      
       if (testUser) {
+        // Utilisateur de test
         const userData = JSON.parse(testUser);
         userData.password = newPassword;
         await AsyncStorage.setItem(testUserKey, JSON.stringify(userData));
+        console.log('✅ Mot de passe mis à jour pour l\'utilisateur de test');
+      } else {
+        // Utilisateur normal
+        await AsyncStorage.setItem('userPassword', newPassword);
+        console.log('✅ Mot de passe mis à jour pour l\'utilisateur normal');
       }
       
       console.log('✅ Mot de passe changé avec succès');
