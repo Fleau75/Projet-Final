@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthService } from '../services/authService';
+import { BiometricService } from '../services/biometricService';
 
 // Création du contexte
 const AuthContext = createContext();
@@ -27,13 +28,37 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('🔍 Vérification de l\'état d\'authentification au démarrage...');
       
-      // MODIFICATION : Suppression de la persistance
-      // L'application redémarre toujours sur l'écran de connexion
-      console.log('🔄 Mode sans persistance activé - redémarrage sur écran de connexion');
+      // Vérifier si l'utilisateur est déjà connecté
+      const isAuthenticated = await AuthService.isAuthenticated();
       
-      // Nettoyer toute session existante
-      await AuthService.logout();
-      setUser(null);
+      if (isAuthenticated) {
+        const userProfile = await AuthService.getCurrentUser();
+        
+        if (userProfile) {
+          console.log('✅ Utilisateur déjà connecté:', userProfile.email);
+          
+          // Vérifier si la biométrie est activée pour cet utilisateur
+          const biometricPrefs = await BiometricService.loadBiometricPreferences();
+          const isBiometricEnabled = biometricPrefs.enabled && biometricPrefs.email === userProfile.email;
+          
+          if (isBiometricEnabled) {
+            console.log('🔐 Biométrie activée pour cet utilisateur');
+            // L'utilisateur peut utiliser la biométrie pour se reconnecter
+            // mais on le connecte directement pour l'instant
+            setUser(userProfile);
+          } else {
+            console.log('🔐 Biométrie non activée, connexion directe');
+            setUser(userProfile);
+          }
+        } else {
+          console.log('❌ Profil utilisateur invalide, nettoyage nécessaire');
+          await AuthService.logout();
+          setUser(null);
+        }
+      } else {
+        console.log('❌ Aucun utilisateur connecté');
+        setUser(null);
+      }
       
     } catch (error) {
       console.error('❌ Erreur lors de la vérification de l\'état d\'authentification:', error);

@@ -57,17 +57,17 @@ export default function LoginScreen({ navigation }) {
     setError('');
 
     try {
-      const result = await BiometricService.autoAuthenticateWithBiometrics(lastEmail);
+      // Utiliser la nouvelle méthode qui récupère automatiquement les informations
+      const result = await BiometricService.authenticateAndGetCredentials(lastEmail);
       
-      if (result.success) {
-        // Récupérer les informations de connexion sauvegardées
-        const storedPassword = await getStoredPassword(lastEmail);
+      if (result.success && result.credentials) {
+        // Connexion automatique avec les informations récupérées
+        const loginResult = await login(result.credentials.email, result.credentials.password);
         
-        if (storedPassword) {
-          await login(lastEmail, storedPassword);
+        if (loginResult.success) {
           console.log('✅ Connexion biométrique réussie');
         } else {
-          setError('Impossible de récupérer les informations de connexion');
+          setError('Erreur lors de la connexion automatique');
         }
       } else {
         console.log('❌ Authentification biométrique échouée:', result.reason);

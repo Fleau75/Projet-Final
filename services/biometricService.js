@@ -191,6 +191,92 @@ export class BiometricService {
   }
 
   /**
+   * Récupérer les informations de connexion pour un utilisateur avec biométrie activée
+   */
+  static async getStoredCredentials(email) {
+    try {
+      console.log('🔍 Récupération des informations de connexion pour:', email);
+      
+      // Vérifier si la biométrie est activée pour cet utilisateur
+      const isEnabled = await this.isBiometricEnabledForUser(email);
+      if (!isEnabled) {
+        console.log('❌ Biométrie non activée pour cet utilisateur');
+        return null;
+      }
+      
+      // Récupérer les informations de connexion depuis AsyncStorage
+      const testUserKey = `user_${email}`;
+      const testUser = await AsyncStorage.getItem(testUserKey);
+      
+      if (testUser) {
+        const userData = JSON.parse(testUser);
+        console.log('✅ Informations de connexion récupérées (utilisateur test)');
+        return {
+          email: userData.email,
+          password: userData.password,
+          name: userData.name
+        };
+      }
+      
+      // Vérifier dans le profil normal
+      const userProfile = await AsyncStorage.getItem('userProfile');
+      if (userProfile) {
+        const profile = JSON.parse(userProfile);
+        if (profile.email === email) {
+          const password = await AsyncStorage.getItem('userPassword');
+          if (password) {
+            console.log('✅ Informations de connexion récupérées (utilisateur normal)');
+            return {
+              email: profile.email,
+              password: password,
+              name: profile.name
+            };
+          }
+        }
+      }
+      
+      console.log('❌ Aucune information de connexion trouvée');
+      return null;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des informations:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Authentifier avec biométrie et récupérer automatiquement les informations de connexion
+   */
+  static async authenticateAndGetCredentials(email) {
+    try {
+      console.log('🔐 Authentification biométrique avec récupération des informations...');
+      
+      // Tenter l'authentification biométrique
+      const authResult = await this.autoAuthenticateWithBiometrics(email);
+      
+      if (!authResult.success) {
+        return { success: false, reason: authResult.reason };
+      }
+      
+      // Récupérer les informations de connexion
+      const credentials = await this.getStoredCredentials(email);
+      
+      if (!credentials) {
+        return { success: false, reason: 'no_credentials_found' };
+      }
+      
+      console.log('✅ Authentification biométrique et récupération réussies');
+      return {
+        success: true,
+        credentials: credentials,
+        method: 'biometric'
+      };
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'authentification avec récupération:', error);
+      return { success: false, reason: error.message };
+    }
+  }
+
+  /**
    * Obtenir un message d'erreur en français
    */
   static getErrorMessage(error) {
