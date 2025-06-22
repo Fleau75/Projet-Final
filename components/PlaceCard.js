@@ -57,10 +57,14 @@ export default function PlaceCard({ place, onPress }) {
   // Prépare la description d'accessibilité
   const getAccessibilityDescription = () => {
     const features = [];
-    if (place.accessibility.ramp) features.push('rampe d\'accès');
-    if (place.accessibility.elevator) features.push('ascenseur');
-    if (place.accessibility.parking) features.push('parking accessible');
-    if (place.accessibility.toilets) features.push('toilettes adaptées');
+    
+    // Vérifier si place.accessibility existe
+    if (place.accessibility) {
+      if (place.accessibility.ramp) features.push('rampe d\'accès');
+      if (place.accessibility.elevator) features.push('ascenseur');
+      if (place.accessibility.parking) features.push('parking accessible');
+      if (place.accessibility.toilets) features.push('toilettes adaptées');
+    }
     
     const distanceText = place.distance !== undefined ? ` Distance: ${formatDistance(place.distance)}.` : '';
     
@@ -154,22 +158,22 @@ export default function PlaceCard({ place, onPress }) {
           {/* Icônes d'accessibilité */}
           <View style={styles.accessibilityContainer}>
             <AccessibilityIcon
-              available={place.accessibility.ramp}
+              available={place.accessibility?.ramp || false}
               icon="♿️"
               label="Rampe d'accès"
             />
             <AccessibilityIcon
-              available={place.accessibility.elevator}
+              available={place.accessibility?.elevator || false}
               icon="🛗"
               label="Ascenseur"
             />
             <AccessibilityIcon
-              available={place.accessibility.parking}
+              available={place.accessibility?.parking || false}
               icon="🅿️"
               label="Parking accessible"
             />
             <AccessibilityIcon
-              available={place.accessibility.toilets}
+              available={place.accessibility?.toilets || false}
               icon="🚻"
               label="Toilettes adaptées"
             />

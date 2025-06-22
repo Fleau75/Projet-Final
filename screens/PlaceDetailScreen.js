@@ -247,10 +247,10 @@ export default function PlaceDetailScreen({ navigation, route }) {
           Accessibilité
         </Text>
         <View style={styles.featuresGrid}>
-          <AccessibilityFeature label="♿️ Rampe d'accès" available={accessibility.ramp} />
-          <AccessibilityFeature label="🛗 Ascenseur" available={accessibility.elevator} />
-          <AccessibilityFeature label="🅿️ Parking" available={accessibility.parking} />
-          <AccessibilityFeature label="🚻 Toilettes adaptées" available={accessibility.toilets} />
+          <AccessibilityFeature label="♿️ Rampe d'accès" available={accessibility?.ramp || false} />
+          <AccessibilityFeature label="🛗 Ascenseur" available={accessibility?.elevator || false} />
+          <AccessibilityFeature label="🅿️ Parking" available={accessibility?.parking || false} />
+          <AccessibilityFeature label="🚻 Toilettes adaptées" available={accessibility?.toilets || false} />
         </View>
         <Text style={[styles.accessibilityNote, { fontSize: textSizes.caption, color: theme.colors.onSurface }]}>
           * Informations basées sur les avis et le type d'établissement

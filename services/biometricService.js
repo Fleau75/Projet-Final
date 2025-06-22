@@ -1,5 +1,6 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CryptoService from './cryptoService';
 
 /**
  * Service pour gérer l'authentification biométrique
@@ -210,10 +211,17 @@ export class BiometricService {
       
       if (testUser) {
         const userData = JSON.parse(testUser);
+        
+        // Déchiffrer le mot de passe si nécessaire
+        let password = userData.password;
+        if (CryptoService.isEncrypted(password)) {
+          password = CryptoService.decrypt(password);
+        }
+        
         console.log('✅ Informations de connexion récupérées (utilisateur test)');
         return {
           email: userData.email,
-          password: userData.password,
+          password: password,
           name: userData.name
         };
       }
@@ -223,7 +231,7 @@ export class BiometricService {
       if (userProfile) {
         const profile = JSON.parse(userProfile);
         if (profile.email === email) {
-          const password = await AsyncStorage.getItem('userPassword');
+          const password = await CryptoService.getEncryptedItem('userPassword');
           if (password) {
             console.log('✅ Informations de connexion récupérées (utilisateur normal)');
             return {

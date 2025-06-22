@@ -170,16 +170,18 @@ export class AuthService {
         
         // Déchiffrer le mot de passe si nécessaire
         let storedPassword = userData.password;
+        console.log('🔍 Mot de passe stocké (brut):', storedPassword ? '***' : 'null');
+        console.log('🔍 Mot de passe stocké est chiffré:', CryptoService.isEncrypted(storedPassword));
+        
         if (CryptoService.isEncrypted(storedPassword)) {
           storedPassword = CryptoService.decrypt(storedPassword);
+          console.log('🔓 Mot de passe déchiffré:', storedPassword ? '***' : 'null');
         }
         
-        console.log('🔧 Profil utilisateur de test:', { 
-          createdAt: userData.createdAt, 
-          email: userData.email, 
-          name: userData.name,
-          password: '***' 
-        });
+        console.log('🔍 Comparaison des mots de passe:');
+        console.log('  - Mot de passe fourni:', password ? '***' : 'null');
+        console.log('  - Mot de passe stocké:', storedPassword ? '***' : 'null');
+        console.log('  - Correspondance:', storedPassword === password);
         
         if (userData.email === email && storedPassword === password) {
           console.log('✅ Email et mot de passe corrects');
@@ -191,6 +193,23 @@ export class AuthService {
             email: userData.email,
             displayName: userData.name
           }));
+          
+          // Créer un profil utilisateur pour la compatibilité
+          const userProfile = {
+            uid: testUserKey,
+            name: userData.name,
+            email: userData.email,
+            phone: '',
+            joinDate: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('fr-FR', { 
+              year: 'numeric', 
+              month: 'long' 
+            }) : new Date().toLocaleDateString('fr-FR', { 
+              year: 'numeric', 
+              month: 'long' 
+            }),
+            isVisitor: false
+          };
+          await AsyncStorage.setItem('userProfile', JSON.stringify(userProfile));
           
           // Stocker le mot de passe de manière sécurisée
           await CryptoService.setEncryptedItem('userPassword', password);
@@ -218,7 +237,8 @@ export class AuthService {
       throw new Error('Email ou mot de passe incorrect');
       
     } catch (error) {
-      console.error('❌ Erreur lors de la connexion:', error);
+      // Ne pas afficher l'erreur dans la console pour éviter le bandeau
+      // console.error('❌ Erreur lors de la connexion:', error);
       throw error;
     }
   }

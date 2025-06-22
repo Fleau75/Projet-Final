@@ -17,6 +17,7 @@ import { ScreenReaderProvider } from './theme/ScreenReaderContext';
 import { AuthProvider, useAuth } from './theme/AuthContext';
 import LoadingOverlay from './components/LoadingOverlay';
 import { AuthService } from './services/authService';
+import ConfigService from './services/configService';
 
 // Import des différents écrans de l'application
 import LoginScreen from './screens/LoginScreen';
@@ -186,11 +187,15 @@ function AppContent() {
     }
   }, [themeLoading, authLoading]);
 
-  // Initialiser le service de chiffrement au démarrage
+  // Initialiser les services au démarrage
   React.useEffect(() => {
     const initializeApp = async () => {
       try {
         console.log('🚀 Initialisation de l\'application AccessPlus...');
+        
+        // Initialiser la configuration en premier
+        console.log('🔧 Initialisation de la configuration...');
+        ConfigService.initialize();
         
         // Initialiser le service d'authentification sécurisé
         console.log('🔧 Initialisation du service d\'authentification...');

@@ -1,14 +1,16 @@
 import CryptoJS from 'react-native-crypto-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ConfigService from './configService';
 
 /**
  * Service de chiffrement pour sécuriser les données sensibles
  * Utilise AES-256 pour le chiffrement des mots de passe
  */
 class CryptoService {
-  // Clé de chiffrement unique pour l'application
-  // En production, cette clé devrait être générée de manière sécurisée
-  static ENCRYPTION_KEY = 'AccessPlus_Secure_Key_2024_v1';
+  // Obtenir la clé de chiffrement depuis la configuration
+  static get ENCRYPTION_KEY() {
+    return ConfigService.getEncryptionKey() || 'AccessPlus_Secure_Key_2024_v1';
+  }
   
   /**
    * Chiffrer une chaîne de caractères

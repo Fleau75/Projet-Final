@@ -10,7 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import PlaceCard from '../components/PlaceCard';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { searchNearbyPlaces } from '../services/placesApi';
+import PlacesApiService from '../services/placesApi';
 import { useTextSize } from '../theme/TextSizeContext';
 import PlacesService from '../services/firebaseService';
 import SimplePlacesService from '../services/simplePlacesService';
@@ -233,6 +233,11 @@ const staticPlaces = [
  * @returns {string} - Le niveau d'accessibilité ('full', 'partial', 'none')
  */
 const getAccessibilityLevel = (place) => {
+  // Vérifier si place.accessibility existe
+  if (!place.accessibility) {
+    return 'none';
+  }
+  
   const features = [
     place.accessibility.ramp,
     place.accessibility.elevator,
@@ -351,19 +356,24 @@ export default function HomeScreen({ navigation }) {
   );
 
   /**
-   * Fonction pour charger les lieux Google avec les vraies données (avis, téléphone, etc.)
+   * Fonction pour charger les lieux Google Places avec données réelles
    */
   const loadGooglePlacesWithRealData = useCallback(async (location, radius) => {
-    if (!location) {
-      console.log('📍 Recherche depuis le centre de Paris (position non disponible)');
-      // Utiliser le centre de Paris par défaut
-      return await searchNearbyPlaces(48.8566, 2.3522, radius);
+    try {
+      if (!location) {
+        console.log('📍 Recherche depuis le centre de Paris (position non disponible)');
+        // Utiliser le centre de Paris par défaut
+        return await PlacesApiService.searchNearbyPlaces({ lat: 48.8566, lng: 2.3522 }, radius);
+      }
+      
+      console.log(`📍 Recherche depuis votre position: ${location.latitude}, ${location.longitude}`);
+      console.log(`🎯 Rayon de recherche: ${radius}m (configuré dans les réglages)`);
+      
+      return await PlacesApiService.searchNearbyPlaces({ lat: location.latitude, lng: location.longitude }, radius);
+    } catch (error) {
+      console.warn('⚠️ Google Places erreur:', error.message);
+      return [];
     }
-    
-    console.log(`📍 Recherche depuis votre position: ${location.latitude}, ${location.longitude}`);
-    console.log(`🎯 Rayon de recherche: ${radius}m (configuré dans les réglages)`);
-    
-    return await searchNearbyPlaces(location.latitude, location.longitude, radius);
   }, []);
 
   /**
@@ -624,9 +634,9 @@ export default function HomeScreen({ navigation }) {
                     accuracy: Location.Accuracy.Balanced,
                   });
                   setUserLocation(location.coords);
-                  const nearbyPlaces = await searchNearbyPlaces(
-                    location.coords.latitude,
-                    location.coords.longitude
+                  const nearbyPlaces = await PlacesApiService.searchNearbyPlaces(
+                    { lat: location.coords.latitude, lng: location.coords.longitude },
+                    1500
                   );
                   setPlaces(nearbyPlaces);
                   setLocationError(null);

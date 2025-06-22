@@ -232,10 +232,10 @@ export default function MyReviewsScreen({ navigation }) {
         Équipements accessibles :
       </Text>
       <View style={styles.featuresRow}>
-        {accessibility.ramp && <Chip style={styles.featureChip} textStyle={styles.featureText}>♿ Rampe</Chip>}
-        {accessibility.elevator && <Chip style={styles.featureChip} textStyle={styles.featureText}>🛗 Ascenseur</Chip>}
-        {accessibility.parking && <Chip style={styles.featureChip} textStyle={styles.featureText}>🅿️ Parking</Chip>}
-        {accessibility.toilets && <Chip style={styles.featureChip} textStyle={styles.featureText}>🚻 Toilettes</Chip>}
+        {accessibility?.ramp && <Chip style={styles.featureChip} textStyle={styles.featureText}>♿ Rampe</Chip>}
+        {accessibility?.elevator && <Chip style={styles.featureChip} textStyle={styles.featureText}>🛗 Ascenseur</Chip>}
+        {accessibility?.parking && <Chip style={styles.featureChip} textStyle={styles.featureText}>🅿️ Parking</Chip>}
+        {accessibility?.toilets && <Chip style={styles.featureChip} textStyle={styles.featureText}>🚻 Toilettes</Chip>}
       </View>
     </View>
   );

@@ -242,6 +242,11 @@ export default function FavoritePlacesScreen({ navigation }) {
 
   // Obtenir le niveau d'accessibilité
   const getAccessibilityLevel = (accessibility) => {
+    // Vérifier si accessibility existe
+    if (!accessibility) {
+      return { level: 'Accessibilité limitée', color: '#F44336', icon: '⚠️' };
+    }
+    
     const features = [accessibility.ramp, accessibility.elevator, accessibility.parking, accessibility.toilets];
     const trueCount = features.filter(Boolean).length;
     

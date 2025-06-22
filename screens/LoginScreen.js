@@ -67,7 +67,8 @@ export default function LoginScreen({ navigation }) {
         if (loginResult.success) {
           console.log('✅ Connexion biométrique réussie');
         } else {
-          setError('Erreur lors de la connexion automatique');
+          // Ne pas afficher d'erreur, l'utilisateur peut utiliser le mot de passe
+          console.log('❌ Connexion biométrique échouée');
         }
       } else {
         console.log('❌ Authentification biométrique échouée:', result.reason);
@@ -75,7 +76,7 @@ export default function LoginScreen({ navigation }) {
       }
     } catch (error) {
       console.error('Erreur lors de la connexion biométrique:', error);
-      setError('Erreur lors de l\'authentification biométrique');
+      // Ne pas afficher d'erreur, l'utilisateur peut utiliser le mot de passe
     } finally {
       setIsLoading(false);
     }
@@ -124,7 +125,8 @@ export default function LoginScreen({ navigation }) {
       const result = await login(email, password);
 
       if (!result.success) {
-        setError(result.error || 'Erreur de connexion. Veuillez réessayer.');
+        // Ne pas afficher d'erreur, juste vider le mot de passe
+        setPassword('');
         setIsLoading(false);
         return;
       }
