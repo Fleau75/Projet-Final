@@ -3,23 +3,47 @@
  * et les clés API de manière sécurisée
  */
 
+// Import des variables d'environnement
+import {
+  GOOGLE_PLACES_API_KEY,
+  FIREBASE_API_KEY,
+  FIREBASE_AUTH_DOMAIN,
+  FIREBASE_PROJECT_ID,
+  FIREBASE_STORAGE_BUCKET,
+  FIREBASE_MESSAGING_SENDER_ID,
+  FIREBASE_APP_ID,
+  FIREBASE_MEASUREMENT_ID,
+  ENCRYPTION_KEY,
+  MAX_LOGIN_ATTEMPTS,
+  LOGIN_TIMEOUT_MINUTES,
+  SESSION_TIMEOUT_HOURS,
+  NODE_ENV
+} from '@env';
+
 // Configuration par défaut (fallback si les variables d'environnement ne sont pas définies)
 const DEFAULT_CONFIG = {
-  // Google Places API - Clé de test temporaire
-  GOOGLE_PLACES_API_KEY: 'AIzaSyDf5RU9u0v6zBLabWGsxex-BIIdfe0jdHA', // Clé de test temporaire
+  // Google Places API
+  GOOGLE_PLACES_API_KEY: GOOGLE_PLACES_API_KEY || 'API_KEY_NOT_SET',
   
   // Clé de chiffrement
-  ENCRYPTION_KEY: 'AccessPlus_Secure_Key_2024_v1',
+  ENCRYPTION_KEY: ENCRYPTION_KEY || 'AccessPlus_Secure_Key_2024_v1',
+  
+  // Configuration Firebase
+  FIREBASE_API_KEY: FIREBASE_API_KEY || null,
+  FIREBASE_AUTH_DOMAIN: FIREBASE_AUTH_DOMAIN || null,
+  FIREBASE_PROJECT_ID: FIREBASE_PROJECT_ID || null,
+  FIREBASE_STORAGE_BUCKET: FIREBASE_STORAGE_BUCKET || null,
+  FIREBASE_MESSAGING_SENDER_ID: FIREBASE_MESSAGING_SENDER_ID || null,
+  FIREBASE_APP_ID: FIREBASE_APP_ID || null,
+  FIREBASE_MEASUREMENT_ID: FIREBASE_MEASUREMENT_ID || null,
   
   // Configuration de sécurité
-  MAX_LOGIN_ATTEMPTS: 5,
-  LOGIN_TIMEOUT_MINUTES: 15,
-  SESSION_TIMEOUT_HOURS: 24,
+  MAX_LOGIN_ATTEMPTS: parseInt(MAX_LOGIN_ATTEMPTS) || 5,
+  LOGIN_TIMEOUT_MINUTES: parseInt(LOGIN_TIMEOUT_MINUTES) || 15,
+  SESSION_TIMEOUT_HOURS: parseInt(SESSION_TIMEOUT_HOURS) || 24,
   
-  // Configuration Firebase (si nécessaire)
-  FIREBASE_API_KEY: null,
-  FIREBASE_AUTH_DOMAIN: null,
-  FIREBASE_PROJECT_ID: null,
+  // Environnement
+  NODE_ENV: NODE_ENV || 'development',
 };
 
 class ConfigService {

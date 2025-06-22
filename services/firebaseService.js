@@ -3,16 +3,17 @@ import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { AuthService } from './authService';
+import ConfigService from './configService';
 
-// Configuration Firebase avec vos vraies clés
+// Configuration Firebase depuis les variables d'environnement
 const firebaseConfig = {
-  apiKey: "AIzaSyDJ0G-V453M8-_6yGIPcqyKHkRdOeTLaJ4",
-  authDomain: "accessplus-d5fcc.firebaseapp.com",
-  projectId: "accessplus-d5fcc",
-  storageBucket: "accessplus-d5fcc.firebasestorage.app",
-  messagingSenderId: "493132104626",
-  appId: "1:493132104626:web:c878a0c1d5a2dd01cb1aab",
-  measurementId: "G-86Q01V7TBT"
+  apiKey: ConfigService.get('FIREBASE_API_KEY'),
+  authDomain: ConfigService.get('FIREBASE_AUTH_DOMAIN'),
+  projectId: ConfigService.get('FIREBASE_PROJECT_ID'),
+  storageBucket: ConfigService.get('FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: ConfigService.get('FIREBASE_MESSAGING_SENDER_ID'),
+  appId: ConfigService.get('FIREBASE_APP_ID'),
+  measurementId: ConfigService.get('FIREBASE_MEASUREMENT_ID')
 };
 
 // Alternative: importez depuis un fichier de configuration séparé
