@@ -135,7 +135,6 @@ export default function RegisterScreen({ navigation }) {
         ]
       );
     } catch (err) {
-      console.error('❌ Erreur lors de l\'inscription:', err);
       setIsLoading(false);
       Alert.alert(
         "Erreur d'inscription",

@@ -133,7 +133,7 @@ export class AuthService {
       console.log('🔧 Données sauvegardées avec succès');
       return { success: true, user };
     } catch (error) {
-      console.error('❌ Erreur lors de l\'inscription:', error);
+      // console.error('❌ Erreur lors de l\'inscription:', error); // Commenté pour empêcher le toast d'erreur
       throw error;
     }
   }
