@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CryptoService from './cryptoService';
 
 // Utilisateurs de test pré-créés
 const TEST_USERS = {
@@ -54,6 +55,20 @@ initializeTestUsers();
  */
 export class AuthService {
   
+  /**
+   * Initialiser le service d'authentification
+   * Migre automatiquement les données existantes vers le chiffrement
+   */
+  static async initialize() {
+    try {
+      console.log('🔐 Initialisation du service d\'authentification sécurisé...');
+      await CryptoService.migrateToEncryption();
+      console.log('✅ Service d\'authentification initialisé');
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'initialisation:', error);
+    }
+  }
+
   /**
    * Inscription d'un nouvel utilisateur
    */
@@ -143,92 +158,67 @@ export class AuthService {
    */
   static async login(email, password) {
     try {
-      console.log('🔧 AuthService.login - Début avec:', { email, password });
+      console.log('🔧 AuthService.login - Début avec:', { email, password: '***' });
       
-      // D'abord, vérifier dans les utilisateurs de test
+      // Vérifier d'abord les utilisateurs de test
       const testUserKey = `user_${email}`;
       const testUser = await AsyncStorage.getItem(testUserKey);
-      console.log('🔧 Utilisateur de test trouvé:', testUser ? 'Oui' : 'Non');
-      
-      let profile = null;
-      let isTestUser = false;
       
       if (testUser) {
-        // Utilisateur de test trouvé
-        profile = JSON.parse(testUser);
-        isTestUser = true;
-        console.log('🔧 Profil utilisateur de test:', profile);
+        console.log('🔧 Utilisateur de test trouvé: Oui');
+        const userData = JSON.parse(testUser);
         
-        // Vérifier le mot de passe
-        if (profile.password !== password) {
-          console.log('❌ Mot de passe incorrect pour utilisateur de test');
-          throw new Error('Email ou mot de passe incorrect');
+        // Déchiffrer le mot de passe si nécessaire
+        let storedPassword = userData.password;
+        if (CryptoService.isEncrypted(storedPassword)) {
+          storedPassword = CryptoService.decrypt(storedPassword);
         }
-      } else {
-        // Vérifier dans le profil utilisateur normal
-        const userProfile = await AsyncStorage.getItem('userProfile');
-        console.log('🔧 Profil normal trouvé dans AsyncStorage:', userProfile ? 'Oui' : 'Non');
         
-        if (!userProfile) {
-          console.log('❌ Aucun profil trouvé');
-          throw new Error('Aucun compte trouvé avec cette adresse email');
-        }
-
-        profile = JSON.parse(userProfile);
-        console.log('🔧 Profil parsé:', profile);
+        console.log('🔧 Profil utilisateur de test:', { 
+          createdAt: userData.createdAt, 
+          email: userData.email, 
+          name: userData.name,
+          password: '***' 
+        });
         
-        // Vérifier l'email
-        if (profile.email !== email) {
-          console.log('❌ Email ne correspond pas:', { attendu: profile.email, reçu: email });
-          throw new Error('Email ou mot de passe incorrect');
-        }
-
-        // Vérifier le mot de passe
-        const storedPassword = await AsyncStorage.getItem('userPassword');
-        console.log('🔧 Mot de passe stocké:', storedPassword ? 'Oui' : 'Non');
-        
-        if (!storedPassword || storedPassword !== password) {
-          console.log('❌ Mot de passe incorrect:', { stocké: storedPassword, reçu: password });
-          throw new Error('Email ou mot de passe incorrect');
+        if (userData.email === email && storedPassword === password) {
+          console.log('✅ Email et mot de passe corrects');
+          
+          // Sauvegarder les informations de connexion
+          await AsyncStorage.setItem('isAuthenticated', 'true');
+          await AsyncStorage.setItem('currentUser', JSON.stringify({
+            uid: testUserKey,
+            email: userData.email,
+            displayName: userData.name
+          }));
+          
+          // Stocker le mot de passe de manière sécurisée
+          await CryptoService.setEncryptedItem('userPassword', password);
+          
+          console.log('🔧 Connexion réussie, utilisateur:', {
+            displayName: userData.name,
+            email: userData.email,
+            uid: testUserKey
+          });
+          
+          return { success: true, user: userData };
         }
       }
-
-      console.log('✅ Email et mot de passe corrects');
-
-      // Simuler la connexion
-      const user = {
-        uid: profile.uid || (isTestUser ? `user_${email.replace(/[^a-zA-Z0-9]/g, '_')}` : `user_${Date.now()}`),
-        email: profile.email,
-        displayName: profile.name || profile.displayName
-      };
-
-      // Pour les utilisateurs de test, créer un profil temporaire
-      if (isTestUser) {
-        const userProfile = {
-          uid: user.uid,
-          name: profile.name,
-          email: profile.email,
-          phone: '',
-          joinDate: profile.createdAt ? new Date(profile.createdAt).toLocaleDateString('fr-FR', { 
-            year: 'numeric', 
-            month: 'long' 
-          }) : new Date().toLocaleDateString('fr-FR', { 
-            year: 'numeric', 
-            month: 'long' 
-          }),
-          isVisitor: false
-        };
-        await AsyncStorage.setItem('userProfile', JSON.stringify(userProfile));
-        await AsyncStorage.setItem('userPassword', password);
+      
+      // Si pas d'utilisateur de test, vérifier les utilisateurs normaux
+      const storedPassword = await CryptoService.getEncryptedItem('userPassword');
+      const isAuthenticated = await AsyncStorage.getItem('isAuthenticated');
+      
+      if (isAuthenticated === 'true' && storedPassword === password) {
+        console.log('✅ Connexion réussie avec utilisateur normal');
+        return { success: true };
       }
-
-      await AsyncStorage.setItem('isAuthenticated', 'true');
-      await AsyncStorage.setItem('currentUser', JSON.stringify(user));
-
-      console.log('🔧 Connexion réussie, utilisateur:', user);
-      return { success: true, user };
+      
+      console.log('❌ Email ou mot de passe incorrect');
+      throw new Error('Email ou mot de passe incorrect');
+      
     } catch (error) {
-      // console.error('❌ Erreur lors de la connexion:', error); // Commenté pour empêcher le toast d'erreur
+      console.error('❌ Erreur lors de la connexion:', error);
       throw error;
     }
   }
@@ -535,7 +525,6 @@ export class AuthService {
       console.log('🔍 Utilisateur connecté:', currentUser.email);
       
       // Vérifier l'ancien mot de passe en essayant de se connecter avec
-      // C'est plus fiable que de comparer avec les mots de passe stockés
       console.log('🔍 Vérification du mot de passe par connexion...');
       let isPasswordCorrect = false;
       
@@ -560,12 +549,12 @@ export class AuthService {
       if (testUser) {
         // Utilisateur de test
         const userData = JSON.parse(testUser);
-        userData.password = newPassword;
+        userData.password = CryptoService.encrypt(newPassword); // Chiffrer le nouveau mot de passe
         await AsyncStorage.setItem(testUserKey, JSON.stringify(userData));
         console.log('✅ Mot de passe mis à jour pour l\'utilisateur de test');
       } else {
         // Utilisateur normal
-        await AsyncStorage.setItem('userPassword', newPassword);
+        await CryptoService.setEncryptedItem('userPassword', newPassword);
         console.log('✅ Mot de passe mis à jour pour l\'utilisateur normal');
       }
       

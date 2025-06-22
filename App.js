@@ -16,6 +16,7 @@ import { TextSizeProvider } from './theme/TextSizeContext';
 import { ScreenReaderProvider } from './theme/ScreenReaderContext';
 import { AuthProvider, useAuth } from './theme/AuthContext';
 import LoadingOverlay from './components/LoadingOverlay';
+import { AuthService } from './services/authService';
 
 // Import des différents écrans de l'application
 import LoginScreen from './screens/LoginScreen';
@@ -32,6 +33,7 @@ import MyReviewsScreen from './screens/MyReviewsScreen';
 import LocationHistoryScreen from './screens/LocationHistoryScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import PlaceDetailScreen from './screens/PlaceDetailScreen';
+import FavoritePlacesScreen from './screens/FavoritePlacesScreen';
 
 // Création des navigateurs
 const Stack = createStackNavigator();
@@ -184,6 +186,24 @@ function AppContent() {
     }
   }, [themeLoading, authLoading]);
 
+  // Initialiser le service de chiffrement au démarrage
+  React.useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        console.log('🚀 Initialisation de l\'application AccessPlus...');
+        
+        // Initialiser le service d'authentification sécurisé
+        console.log('🔧 Initialisation du service d\'authentification...');
+        await AuthService.initialize();
+        console.log('✅ Application initialisée avec succès');
+      } catch (error) {
+        console.error('❌ Erreur lors de l\'initialisation:', error);
+      }
+    };
+    
+    initializeApp();
+  }, []);
+
   // Attendre que le thème soit chargé
   if (themeLoading || authLoading) {
     return <LoadingOverlay />;
@@ -286,6 +306,21 @@ function AppContent() {
                   options={{ 
                     title: 'Ajouter un avis',
                     presentation: 'modal',
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  }}
+                />
+                <Stack.Screen 
+                  name="FavoritePlaces" 
+                  component={FavoritePlacesScreen}
+                  options={{ 
+                    title: 'Lieux favoris',
+                    presentation: 'card',
                     headerShown: true,
                     headerBackTitle: '',
                     headerBackTitleVisible: false,
