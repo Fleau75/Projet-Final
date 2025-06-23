@@ -341,6 +341,21 @@ function AppContent() {
                     headerTitleAlign: 'center',
                   }}
                 />
+                <Stack.Screen 
+                  name="Register" 
+                  component={RegisterScreen}
+                  options={{ 
+                    title: 'Inscription',
+                    presentation: 'card',
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  }}
+                />
               </>
             ) : (
               // Utilisateur non connecté - afficher l'authentification

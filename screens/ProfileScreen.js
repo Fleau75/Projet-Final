@@ -302,16 +302,40 @@ export default function ProfileScreen({ navigation, route }) {
         {/* Section profil utilisateur */}
         <Card style={styles.profileCard}>
           <Card.Content style={styles.profileContent}>
-            <Avatar.Text 
-              size={80} 
-              label={userInfo.name.charAt(0).toUpperCase()} 
-              style={[styles.avatar, { backgroundColor: theme.colors.primary }]} 
-            />
+            <View style={userInfo.isVisitor ? styles.visitorAvatarContainer : null}>
+              <Avatar.Text 
+                size={80} 
+                label={userInfo.name.charAt(0).toUpperCase()} 
+                style={[
+                  styles.avatar, 
+                  { 
+                    backgroundColor: theme.colors.primary
+                  }
+                ]} 
+              />
+            </View>
             <View style={styles.userInfo}>
               {userInfo.isVisitor ? (
-                <Title style={[styles.userName, { fontSize: textSizes.title }]}>
-                  {userInfo.name}
-                </Title>
+                <View style={styles.visitorInfoContainer}>
+                  <View style={[styles.visitorBadgeContainer, { 
+                    backgroundColor: theme.colors.primaryContainer,
+                    borderColor: theme.colors.primary
+                  }]}>
+                    <Text style={[styles.visitorBadgeIcon, { 
+                      fontSize: textSizes.body,
+                      color: theme.colors.primary
+                    }]}>
+                      👤
+                    </Text>
+                    <Text style={[styles.visitorBadgeText, { 
+                      fontSize: textSizes.body,
+                      color: theme.colors.primary,
+                      fontWeight: '600'
+                    }]}>
+                      Mode visiteur
+                    </Text>
+                  </View>
+                </View>
               ) : (
                 <UserNameWithBadge 
                   userName={userInfo.name}
@@ -320,26 +344,19 @@ export default function ProfileScreen({ navigation, route }) {
                   style={{ marginBottom: 4 }}
                 />
               )}
-              <Paragraph style={[styles.userEmail, { fontSize: textSizes.body }]}>
-                {userInfo.email}
-              </Paragraph>
-              {userInfo.isVisitor && (
-                <Text style={[styles.visitorBadge, { 
-                  fontSize: textSizes.caption, 
-                  color: theme.colors.primary,
-                  backgroundColor: theme.colors.primaryContainer
-                }]}>
-                  👤 Mode visiteur
-                </Text>
+              
+              {/* Afficher l'email seulement pour les utilisateurs non-visiteurs */}
+              {!userInfo.isVisitor && (
+                <Paragraph style={[styles.userEmail, { fontSize: textSizes.body }]}>
+                  {userInfo.email}
+                </Paragraph>
               )}
+              
               {userInfo.location && (
                 <Text style={[styles.userLocation, { fontSize: textSizes.caption }]}>
                   📍 {userInfo.location}
                 </Text>
               )}
-              <Text style={[styles.joinDate, { fontSize: textSizes.caption }]}>
-                Membre depuis {userInfo.joinDate}
-              </Text>
               {userInfo.bio && (
                 <Text style={[styles.userBio, { fontSize: textSizes.body }]}>
                   {userInfo.bio}
@@ -347,17 +364,19 @@ export default function ProfileScreen({ navigation, route }) {
               )}
             </View>
           </Card.Content>
-          <Card.Actions>
-            <Button 
-              mode="outlined" 
-              onPress={handleEditProfile}
-              labelStyle={{ fontSize: textSizes.body }}
-              icon="pencil"
-              disabled={userInfo.isVisitor}
-            >
-              {userInfo.isVisitor ? 'Mode visiteur' : 'Éditer le profil'}
-            </Button>
-          </Card.Actions>
+          {/* Afficher le bouton "Éditer le profil" seulement pour les utilisateurs non-visiteurs */}
+          {!userInfo.isVisitor && (
+            <Card.Actions>
+              <Button 
+                mode="outlined" 
+                onPress={handleEditProfile}
+                labelStyle={{ fontSize: textSizes.body }}
+                icon="pencil"
+              >
+                Éditer le profil
+              </Button>
+            </Card.Actions>
+          )}
         </Card>
 
         {/* Statistiques utilisateur */}
@@ -428,6 +447,22 @@ export default function ProfileScreen({ navigation, route }) {
         {/* Options du profil */}
         <Card style={styles.optionsCard}>
           <Card.Content>
+            {/* Option "Créer un compte" pour les visiteurs */}
+            {userInfo.isVisitor && (
+              <>
+                <List.Item
+                  title="Créer un compte"
+                  description="Synchroniser vos données et accéder à toutes les fonctionnalités"
+                  left={props => <List.Icon {...props} icon="account-plus" />}
+                  right={props => <List.Icon {...props} icon="chevron-right" />}
+                  onPress={() => navigation.navigate('Register')}
+                  titleStyle={{ fontSize: textSizes.body }}
+                  descriptionStyle={{ fontSize: textSizes.caption }}
+                />
+                <Divider />
+              </>
+            )}
+            
             <List.Item
               title="Vider la carte"
               description="Supprimer tous mes marqueurs"
@@ -525,16 +560,31 @@ const styles = StyleSheet.create({
   userLocation: {
     fontSize: 14,
   },
-  joinDate: {
-    fontSize: 14,
-  },
   userBio: {
     fontSize: 14,
   },
-  visitorBadge: {
+  visitorBadgeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginVertical: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  visitorBadgeIcon: {
+    marginRight: 6,
+  },
+  visitorBadgeText: {
     fontSize: 14,
-    padding: 4,
-    borderRadius: 4,
+    fontWeight: '600',
   },
   statsCard: {
     marginBottom: 16,
@@ -583,5 +633,16 @@ const styles = StyleSheet.create({
   },
   logoutLabel: {
     fontWeight: 'bold',
+  },
+  visitorInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingHorizontal: 16,
+  },
+  visitorAvatarContainer: {
+    marginTop: -16,
+    paddingBottom: 8,
   },
 }); 
