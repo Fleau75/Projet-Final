@@ -23,6 +23,7 @@ import { useScreenReader } from '../theme/ScreenReaderContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BiometricService } from '../services/biometricService';
 import { useAuth } from '../theme/AuthContext';
+import NotificationService from '../services/notificationService';
 
 // Constantes pour les valeurs par défaut et les limites
 const SEARCH_RADIUS_DEFAULT = 800;
@@ -366,6 +367,69 @@ export default function SettingsScreen({ navigation, route }) {
     }
   };
 
+  // Fonctions de test pour les notifications
+  const testNotification = async (type) => {
+    try {
+      let success = false;
+      
+      switch (type) {
+        case 'newPlace':
+          success = await NotificationService.notifyNewPlace('Restaurant Le Petit Bistrot', '150');
+          break;
+        case 'newReview':
+          success = await NotificationService.notifyNewReview('Musée du Louvre', 4);
+          break;
+        case 'appUpdate':
+          success = await NotificationService.notifyAppUpdate('1.1.0', ['Nouvelles fonctionnalités', 'Améliorations de performance']);
+          break;
+        case 'nearbyPlace':
+          success = await NotificationService.notifyNearbyPlace('Café Central', '200', ['Rampe', 'Ascenseur']);
+          break;
+        default:
+          success = await NotificationService.sendLocalNotification('Test', 'Ceci est une notification de test');
+      }
+      
+      if (success) {
+        Alert.alert(
+          "✅ Test réussi",
+          `Notification ${type} envoyée avec succès !`,
+          [{ text: "OK" }]
+        );
+      } else {
+        Alert.alert(
+          "❌ Test échoué",
+          "La notification n'a pas pu être envoyée. Vérifiez vos préférences.",
+          [{ text: "OK" }]
+        );
+      }
+    } catch (error) {
+      console.error('Erreur lors du test de notification:', error);
+      Alert.alert(
+        "❌ Erreur",
+        "Une erreur est survenue lors du test de notification",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  const checkNotificationStatus = async () => {
+    try {
+      const isEnabled = await NotificationService.isEnabled();
+      const prefs = await NotificationService.getNotificationPreferences();
+      
+      Alert.alert(
+        "🔔 Statut des notifications",
+        `Permissions: ${isEnabled ? '✅ Accordées' : '❌ Refusées'}\n\n` +
+        `Nouveaux lieux: ${prefs.newPlaces ? '✅ Activé' : '❌ Désactivé'}\n` +
+        `Nouveaux avis: ${prefs.reviews ? '✅ Activé' : '❌ Désactivé'}\n` +
+        `Mises à jour: ${prefs.updates ? '✅ Activé' : '❌ Désactivé'}`,
+        [{ text: "OK" }]
+      );
+    } catch (error) {
+      console.error('Erreur lors de la vérification du statut:', error);
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView ref={scrollViewRef} style={styles.scrollView}>
@@ -644,6 +708,87 @@ export default function SettingsScreen({ navigation, route }) {
                 />
               )}
             />
+
+            <Divider style={styles.divider} />
+            
+            {/* Section de test des notifications - Design amélioré */}
+            <View style={styles.testSection}>
+              <Text style={[styles.testSectionTitle, { fontSize: textSizes.subtitle, color: theme.colors.primary }]}>
+                🧪 Tests de notifications
+              </Text>
+              <Text style={[styles.testSectionDescription, { fontSize: textSizes.caption, color: theme.colors.onSurfaceVariant }]}>
+                Vérifiez que vos notifications fonctionnent correctement
+              </Text>
+              
+              <View style={styles.testButtonsGrid}>
+                <View style={styles.testButtonRow}>
+                  <Button
+                    mode="outlined"
+                    onPress={() => testNotification('newPlace')}
+                    style={[styles.testButton, { flex: 1, marginRight: 8 }]}
+                    labelStyle={{ fontSize: textSizes.caption }}
+                    icon="map-marker-plus"
+                    compact
+                    buttonColor={theme.colors.surface}
+                    textColor={theme.colors.primary}
+                  >
+                    Nouveau lieu
+                  </Button>
+                  
+                  <Button
+                    mode="outlined"
+                    onPress={() => testNotification('newReview')}
+                    style={[styles.testButton, { flex: 1, marginLeft: 8 }]}
+                    labelStyle={{ fontSize: textSizes.caption }}
+                    icon="star-plus"
+                    compact
+                    buttonColor={theme.colors.surface}
+                    textColor={theme.colors.primary}
+                  >
+                    Nouvel avis
+                  </Button>
+                </View>
+                
+                <View style={styles.testButtonRow}>
+                  <Button
+                    mode="outlined"
+                    onPress={() => testNotification('appUpdate')}
+                    style={[styles.testButton, { flex: 1, marginRight: 8 }]}
+                    labelStyle={{ fontSize: textSizes.caption }}
+                    icon="update"
+                    compact
+                    buttonColor={theme.colors.surface}
+                    textColor={theme.colors.primary}
+                  >
+                    Mise à jour
+                  </Button>
+                  
+                  <Button
+                    mode="outlined"
+                    onPress={() => testNotification('nearbyPlace')}
+                    style={[styles.testButton, { flex: 1, marginLeft: 8 }]}
+                    labelStyle={{ fontSize: textSizes.caption }}
+                    icon="map-marker"
+                    compact
+                    buttonColor={theme.colors.surface}
+                    textColor={theme.colors.primary}
+                  >
+                    Lieu proche
+                  </Button>
+                </View>
+              </View>
+              
+              <Button
+                mode="text"
+                onPress={checkNotificationStatus}
+                style={styles.statusButton}
+                labelStyle={{ fontSize: textSizes.caption, color: theme.colors.primary }}
+                icon="information-outline"
+                compact
+              >
+                Vérifier le statut
+              </Button>
+            </View>
           </Card.Content>
         </Card>
 
@@ -757,8 +902,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   testButton: {
-    marginTop: 16,
-    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   infoTitle: {
     fontSize: 16,
@@ -798,5 +949,30 @@ const styles = StyleSheet.create({
   },
   rangeLabel: {
     fontSize: 12,
+  },
+  testSection: {
+    marginTop: 16,
+    padding: 16,
+  },
+  testSectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  testSectionDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 16,
+  },
+  testButtonsGrid: {
+    marginBottom: 16,
+  },
+  testButtonRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  statusButton: {
+    marginTop: 16,
+    paddingVertical: 8,
   },
 }); 

@@ -18,6 +18,7 @@ import { AuthProvider, useAuth } from './theme/AuthContext';
 import LoadingOverlay from './components/LoadingOverlay';
 import { AuthService } from './services/authService';
 import ConfigService from './services/configService';
+import NotificationService from './services/notificationService';
 
 // Import des différents écrans de l'application
 import LoginScreen from './screens/LoginScreen';
@@ -200,6 +201,11 @@ function AppContent() {
         // Initialiser le service d'authentification sécurisé
         console.log('🔧 Initialisation du service d\'authentification...');
         await AuthService.initialize();
+        
+        // Initialiser le service de notifications
+        console.log('🔔 Initialisation du service de notifications...');
+        await NotificationService.initialize();
+        
         console.log('✅ Application initialisée avec succès');
       } catch (error) {
         console.error('❌ Erreur lors de l\'initialisation:', error);
