@@ -4,10 +4,10 @@
     "slug": "accessplus",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/default-avatar.png",
+    "icon": "./assets/logo-new.png",
     "userInterfaceStyle": "light",
           "splash": {
-        "image": "./assets/default-avatar.png",
+        "image": "./assets/logo-new.png",
         "resizeMode": "contain",
         "backgroundColor": "#2563EB"
       },
@@ -28,7 +28,7 @@
     },
           "android": {
         "adaptiveIcon": {
-          "foregroundImage": "./assets/default-avatar.png",
+          "foregroundImage": "./assets/logo-new.png",
           "backgroundColor": "#2563EB"
         },
       "package": "com.accessplus.app",
@@ -46,7 +46,7 @@
       ]
     },
           "web": {
-        "favicon": "./assets/default-avatar.png"
+        "favicon": "./assets/logo-new.png"
       },
     "plugins": [
       [
