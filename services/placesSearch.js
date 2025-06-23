@@ -106,7 +106,20 @@ export const searchPlacesByText = async (query, location = null, maxResults = 20
       const placesWithDetails = await Promise.all(
         limitedResults.map(async (place) => {
           try {
+            console.log(`🔍 Récupération des détails pour: ${place.name} (${place.place_id})`);
             const details = await getPlaceDetails(place.place_id);
+            
+            // Debug: Vérifier les avis récupérés
+            console.log(`🔍 Lieu "${place.name}" - Avis récupérés:`, {
+              hasDetails: !!details,
+              hasReviews: !!details?.reviews,
+              reviewsCount: details?.reviews?.length || 0,
+              firstReviewAuthor: details?.reviews?.[0]?.author_name || 'Aucun',
+              // Debug complet
+              detailsKeys: details ? Object.keys(details) : 'Pas de détails',
+              placeId: place.place_id
+            });
+            
             return {
               id: place.place_id,
               name: place.name,
@@ -134,7 +147,7 @@ export const searchPlacesByText = async (query, location = null, maxResults = 20
               fullDetails: details
             };
           } catch (error) {
-            console.warn(`Détails non récupérés pour ${place.name}:`, error);
+            console.warn(`❌ Détails non récupérés pour ${place.name}:`, error);
             // Fallback avec données basiques
             return {
               id: place.place_id,

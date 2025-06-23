@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Linking, Alert } from 'react-native';
 import { Text, Button, Surface, useTheme, Chip, Divider } from 'react-native-paper';
 import CustomRating from '../components/CustomRating';
 import { useTextSize } from '../theme/TextSizeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import PlacesApiService from '../services/placesApi';
 
 const AccessibilityFeature = ({ label, available }) => {
   const { textSizes } = useTextSize();
@@ -112,6 +113,20 @@ export default function PlaceDetailScreen({ navigation, route }) {
     },
   };
 
+  // États pour les avis Google
+  const [realReviews, setRealReviews] = useState([]);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
+
+  // Debug: Afficher les informations du lieu
+  console.log('🔍 PlaceDetailScreen - Données du lieu:', {
+    name: place.name,
+    rating: place.rating,
+    reviewCount: place.reviewCount,
+    reviewsCount: place.reviews?.length || 0,
+    hasReviews: !!place.reviews,
+    reviews: place.reviews?.slice(0, 2) // Afficher les 2 premiers avis pour debug
+  });
+
   // S'assurer que place.accessibility existe
   const accessibility = place.accessibility || {
     ramp: false,
@@ -120,9 +135,58 @@ export default function PlaceDetailScreen({ navigation, route }) {
     toilets: false,
   };
 
-  // Utiliser les vrais avis Google ou fallback
-  const realReviews = place.reviews || [];
-  
+  // Fonction pour récupérer les vrais avis Google
+  const fetchGoogleReviews = async () => {
+    try {
+      setIsLoadingReviews(true);
+      console.log('🔍 Tentative de récupération des avis Google pour:', place.name);
+      
+      // Chercher le lieu sur Google Places par nom et adresse
+      const searchQuery = `${place.name} ${place.address}`;
+      console.log('🔍 Recherche Google Places pour:', searchQuery);
+      
+      const searchResults = await PlacesApiService.searchPlaces(searchQuery);
+      
+      if (searchResults.length > 0) {
+        const googlePlace = searchResults[0];
+        console.log('✅ Lieu Google trouvé:', googlePlace.name, 'ID:', googlePlace.place_id);
+        
+        // Récupérer les détails avec les avis
+        const details = await PlacesApiService.getPlaceDetails(googlePlace.place_id);
+        
+        if (details && details.reviews) {
+          console.log('✅ Avis Google récupérés:', details.reviews.length);
+          setRealReviews(details.reviews);
+        } else {
+          console.log('❌ Aucun avis trouvé dans les détails Google');
+          setRealReviews([]);
+        }
+      } else {
+        console.log('❌ Aucun lieu Google trouvé pour:', searchQuery);
+        setRealReviews([]);
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des avis Google:', error);
+      setRealReviews([]);
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  };
+
+  // Charger les avis Google au montage du composant
+  useEffect(() => {
+    fetchGoogleReviews();
+  }, [place.id]);
+
+  console.log('🔍 PlaceDetailScreen - Avis récupérés:', {
+    realReviewsLength: realReviews.length,
+    firstReview: realReviews[0] || 'Aucun avis'
+  });
+
+  // Utiliser uniquement les vrais avis Google
+  const displayReviews = realReviews;
+
   const handleCall = () => {
     if (place.phone) {
       Linking.openURL(`tel:${place.phone}`);
@@ -260,12 +324,18 @@ export default function PlaceDetailScreen({ navigation, route }) {
       {/* Vrais avis Google */}
       <Surface style={styles.section}>
         <Text style={[styles.sectionTitle, { fontSize: textSizes.subtitle, color: theme.colors.onSurface }]}>
-          Avis Google ({realReviews.length})
+          Avis Google ({displayReviews.length})
         </Text>
 
-        {realReviews.length > 0 ? (
+        {isLoadingReviews ? (
+          <View style={styles.loadingContainer}>
+            <Text style={[styles.loadingText, { fontSize: textSizes.body, color: theme.colors.onSurface }]}>
+              🔍 Chargement des avis Google...
+            </Text>
+          </View>
+        ) : displayReviews.length > 0 ? (
           <View style={styles.reviewsContainer}>
-            {realReviews.map((review, index) => (
+            {displayReviews.map((review, index) => (
               <GoogleReviewCard key={`${review.author_name}-${index}`} review={review} />
             ))}
           </View>
@@ -421,5 +491,13 @@ const styles = StyleSheet.create({
   },
   addReviewButton: {
     marginTop: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontWeight: 'bold',
   },
 });
