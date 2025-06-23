@@ -37,7 +37,7 @@ export default function LoginScreen({ navigation }) {
         setLastEmail(prefs.email || '');
         
         // Si la biométrie est activée, proposer l'authentification automatique
-        if (prefs.enabled && prefs.email) {
+        if (prefs.enabled && prefs.email && prefs.email !== 'visiteur@accessplus.com') {
           setTimeout(() => {
             handleBiometricLogin();
           }, 1000); // Délai pour laisser l'écran se charger
@@ -50,6 +50,12 @@ export default function LoginScreen({ navigation }) {
 
   const handleBiometricLogin = async () => {
     if (!biometricAvailable || !biometricEnabled) {
+      return;
+    }
+
+    // Empêcher la biométrie pour le mode visiteur
+    if (lastEmail === 'visiteur@accessplus.com') {
+      console.log('🚫 Biométrie non autorisée pour le mode visiteur');
       return;
     }
 
@@ -168,6 +174,15 @@ export default function LoginScreen({ navigation }) {
 
   const setupBiometricAuthentication = async () => {
     try {
+      // Empêcher l'activation de la biométrie pour le mode visiteur
+      if (email === 'visiteur@accessplus.com') {
+        Alert.alert(
+          "Mode visiteur",
+          "La biométrie n'est pas disponible en mode visiteur. Veuillez créer un compte pour utiliser cette fonctionnalité."
+        );
+        return;
+      }
+
       const result = await BiometricService.authenticateWithBiometrics(
         'Configurez l\'authentification biométrique'
       );
@@ -196,6 +211,11 @@ export default function LoginScreen({ navigation }) {
   const handleContinueWithoutAccount = async () => {
     setIsLoading(true);
     try {
+      // Désactiver la biométrie pour le mode visiteur
+      await BiometricService.disableBiometrics();
+      setBiometricEnabled(false);
+      setLastEmail('');
+      
       // Créer un utilisateur temporaire pour le mode "sans compte"
       await register('visiteur@accessplus.com', '123456', {
         firstName: 'Visiteur',
@@ -203,6 +223,12 @@ export default function LoginScreen({ navigation }) {
         email: 'visiteur@accessplus.com',
         phone: ''
       });
+      
+      // Forcer le rechargement de la biométrie après la création du compte
+      setTimeout(() => {
+        checkBiometricAvailability();
+      }, 100);
+      
       // La navigation se fait automatiquement via le contexte
     } catch (err) {
       console.error('Erreur lors de la création du compte visiteur:', err);
@@ -314,7 +340,7 @@ export default function LoginScreen({ navigation }) {
           </Button>
 
           {/* Bouton d'authentification biométrique */}
-          {biometricAvailable && biometricEnabled && (
+          {biometricAvailable && biometricEnabled && lastEmail !== 'visiteur@accessplus.com' && lastEmail !== '' && (
             <Button
               mode="outlined"
               onPress={handleBiometricLogin}

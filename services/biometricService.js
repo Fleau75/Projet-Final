@@ -88,6 +88,12 @@ export class BiometricService {
    */
   static async saveBiometricPreferences(enabled, email) {
     try {
+      // Empêcher l'activation de la biométrie pour le mode visiteur
+      if (email === 'visiteur@accessplus.com') {
+        console.log('🚫 Impossible d\'activer la biométrie pour le mode visiteur');
+        return false;
+      }
+      
       const prefs = {
         enabled,
         email,
@@ -197,6 +203,12 @@ export class BiometricService {
   static async getStoredCredentials(email) {
     try {
       console.log('🔍 Récupération des informations de connexion pour:', email);
+      
+      // Empêcher la biométrie pour le mode visiteur
+      if (email === 'visiteur@accessplus.com') {
+        console.log('🚫 Biométrie non autorisée pour le mode visiteur');
+        return null;
+      }
       
       // Vérifier si la biométrie est activée pour cet utilisateur
       const isEnabled = await this.isBiometricEnabledForUser(email);

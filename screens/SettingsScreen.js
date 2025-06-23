@@ -287,6 +287,16 @@ export default function SettingsScreen({ navigation, route }) {
       return;
     }
 
+    // Empêcher la biométrie pour les visiteurs
+    if (user.isVisitor) {
+      Alert.alert(
+        "Mode visiteur",
+        "La biométrie n'est pas disponible en mode visiteur. Veuillez créer un compte pour utiliser cette fonctionnalité.",
+        [{ text: "OK" }]
+      );
+      return;
+    }
+
     if (biometricEnabled) {
       // Désactiver la biométrie
       Alert.alert(
@@ -498,7 +508,7 @@ export default function SettingsScreen({ navigation, route }) {
         </Card>
 
         {/* Authentification biométrique */}
-        {biometricAvailable && (
+        {biometricAvailable && user && !user.isVisitor && (
           <Card style={styles.card}>
             <Card.Content>
               <Title style={[styles.sectionTitle, { fontSize: textSizes.title }]}>🔐 Authentification biométrique</Title>

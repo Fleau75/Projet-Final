@@ -37,19 +37,25 @@ export const AuthProvider = ({ children }) => {
         if (userProfile) {
           console.log('✅ Utilisateur déjà connecté:', userProfile.email);
           
-          // Vérifier si la biométrie est activée pour cet utilisateur
-          const biometricPrefs = await BiometricService.loadBiometricPreferences();
-          const isBiometricEnabled = biometricPrefs.enabled && biometricPrefs.email === userProfile.email;
-          
-          if (isBiometricEnabled) {
-            console.log('🔐 Biométrie activée pour cet utilisateur');
-            // L'utilisateur peut utiliser la biométrie pour se reconnecter
-            // mais on le connecte directement pour l'instant
-            setUser(userProfile);
+          // Vérifier si c'est un visiteur et désactiver la biométrie si nécessaire
+          if (userProfile.isVisitor) {
+            console.log('🚫 Utilisateur visiteur détecté - désactivation biométrie');
+            await BiometricService.disableBiometrics();
           } else {
-            console.log('🔐 Biométrie non activée, connexion directe');
-            setUser(userProfile);
+            // Vérifier si la biométrie est activée pour cet utilisateur
+            const biometricPrefs = await BiometricService.loadBiometricPreferences();
+            const isBiometricEnabled = biometricPrefs.enabled && biometricPrefs.email === userProfile.email;
+            
+            if (isBiometricEnabled) {
+              console.log('🔐 Biométrie activée pour cet utilisateur');
+              // L'utilisateur peut utiliser la biométrie pour se reconnecter
+              // mais on le connecte directement pour l'instant
+            } else {
+              console.log('🔐 Biométrie non activée, connexion directe');
+            }
           }
+          
+          setUser(userProfile);
         } else {
           console.log('❌ Profil utilisateur invalide, nettoyage nécessaire');
           await AuthService.logout();
