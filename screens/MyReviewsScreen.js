@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, Alert, Image, TouchableOpacity } from 'react-native';
 import { 
   Card, 
   Title, 
@@ -376,6 +376,26 @@ export default function MyReviewsScreen({ navigation }) {
                 {review.comment}
               </Text>
 
+              {/* Photos de l'avis */}
+              {review.photos && review.photos.length > 0 && (
+                <View style={styles.photosContainer}>
+                  <Text style={[styles.photosTitle, { fontSize: textSizes.caption, color: theme.colors.onSurfaceVariant }]}>
+                    📸 Photos ({review.photos.length})
+                  </Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosScroll}>
+                    {review.photos.map((photo, index) => (
+                      <TouchableOpacity key={index} style={styles.photoContainer}>
+                        <Image 
+                          source={{ uri: photo }} 
+                          style={styles.photo}
+                          resizeMode="cover"
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
               {/* Équipements d'accessibilité */}
               <AccessibilityFeatures accessibility={review.accessibility} />
 
@@ -583,5 +603,24 @@ const styles = StyleSheet.create({
   },
   addButton: {
     paddingHorizontal: 24,
+  },
+  photosContainer: {
+    marginBottom: 16,
+  },
+  photosTitle: {
+    fontWeight: '500',
+    marginBottom: 8,
+    color: '#666',
+  },
+  photosScroll: {
+    flexDirection: 'row',
+  },
+  photoContainer: {
+    marginRight: 8,
+  },
+  photo: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
   },
 }); 

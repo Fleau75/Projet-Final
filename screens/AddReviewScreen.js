@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, Linking } from 'react-native';
 import { Text, TextInput, Button, Surface, Checkbox, useTheme, Searchbar, List } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import CustomRating from '../components/CustomRating';
@@ -81,47 +81,89 @@ export default function AddReviewScreen({ navigation, route }) {
   // Fonction pour prendre une photo
   const takePhoto = async () => {
     try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      // Vérifier d'abord si la permission est déjà accordée
+      let { status } = await ImagePicker.getCameraPermissionsAsync();
+      
       if (status !== 'granted') {
-        alert('Nous avons besoin de votre permission pour accéder à l\'appareil photo');
+        const { status: newStatus } = await ImagePicker.requestCameraPermissionsAsync();
+        status = newStatus;
+      }
+      
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission requise',
+          'Nous avons besoin de votre permission pour accéder à l\'appareil photo. Veuillez l\'activer dans les paramètres de votre appareil.',
+          [
+            { text: 'Annuler', style: 'cancel' },
+            { text: 'Paramètres', onPress: () => Linking.openSettings() }
+          ]
+        );
         return;
       }
 
+      // Utiliser la nouvelle API sans MediaTypeOptions déprécié
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 0.8,
+        mediaTypes: 'Images', // Nouvelle syntaxe
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets && result.assets.length > 0) {
         setPhotos([...photos, result.assets[0].uri]);
       }
     } catch (error) {
-      console.error('Erreur lors de la prise de photo:', error);
+      console.error('❌ Erreur lors de la prise de photo:', error);
+      Alert.alert(
+        'Erreur', 
+        'Impossible d\'accéder à l\'appareil photo. Veuillez vérifier les permissions et réessayer.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
   // Fonction pour choisir une photo depuis la galerie
   const pickImage = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        alert('Nous avons besoin de votre permission pour accéder à la galerie');
-        return;
-      }
-
+      // Essayer directement d'ouvrir la galerie (contournement iOS)
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: 'Images',
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 1,
+        quality: 0.8,
+        allowsMultipleSelection: false,
       });
 
-      if (!result.canceled) {
+      if (!result.canceled && result.assets && result.assets.length > 0) {
         setPhotos([...photos, result.assets[0].uri]);
       }
     } catch (error) {
-      console.error('Erreur lors de la sélection de l\'image:', error);
+      console.error('❌ Erreur lors de la sélection de l\'image:', error);
+      
+      // Si l'erreur est liée aux permissions, essayer une approche alternative
+      if (error.message?.includes('permission') || error.message?.includes('denied')) {
+        try {
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: 'Images',
+            allowsEditing: false, // Désactiver l'édition
+            quality: 0.5, // Qualité réduite
+            allowsMultipleSelection: false,
+          });
+          
+          if (!result.canceled && result.assets && result.assets.length > 0) {
+            setPhotos([...photos, result.assets[0].uri]);
+            return;
+          }
+        } catch (alternativeError) {
+          console.error('❌ Tentative alternative échouée:', alternativeError);
+        }
+      }
+      
+      Alert.alert(
+        'Erreur', 
+        'Impossible d\'accéder à la galerie. Veuillez réessayer.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -148,14 +190,15 @@ export default function AddReviewScreen({ navigation, route }) {
     setIsLoading(true);
     
     try {
-      console.log('🚀 Début de la soumission de l\'avis...');
-      
       // 1. Upload des photos si il y en a
       let imageUrls = [];
       if (photos.length > 0) {
-        console.log(`📸 Upload de ${photos.length} photos...`);
-        imageUrls = await ReviewsService.uploadMultipleImages(photos, 'reviews');
-        console.log('✅ Photos uploadées:', imageUrls);
+        try {
+          imageUrls = await ReviewsService.uploadMultipleImages(photos, 'reviews');
+        } catch (uploadError) {
+          // Continuer sans les images plutôt que d'échouer complètement
+          imageUrls = [];
+        }
       }
 
       // 2. Préparer les données de l'avis
@@ -171,11 +214,8 @@ export default function AddReviewScreen({ navigation, route }) {
         userName: user?.name || 'Utilisateur AccessPlus',
       };
 
-      console.log('📝 Données de l\'avis:', reviewData);
-
       // 3. Sauvegarder l'avis dans Firestore
       const reviewId = await ReviewsService.addReview(reviewData, user?.uid);
-      console.log('✅ Avis sauvegardé avec l\'ID:', reviewId);
 
       // 4. Afficher le succès et retourner
       Alert.alert(
@@ -186,9 +226,21 @@ export default function AddReviewScreen({ navigation, route }) {
 
     } catch (error) {
       console.error('❌ Erreur lors de la soumission:', error);
+      
+      let errorMessage = 'Une erreur est survenue lors de la publication de votre avis. Veuillez réessayer.';
+      
+      // Messages d'erreur plus spécifiques
+      if (error.message?.includes('Firebase Storage')) {
+        errorMessage = 'Impossible d\'uploader les images. Votre avis sera publié sans photos.';
+      } else if (error.message?.includes('network')) {
+        errorMessage = 'Problème de connexion. Vérifiez votre connexion internet et réessayez.';
+      } else if (error.message?.includes('permission')) {
+        errorMessage = 'Vous n\'avez pas les permissions nécessaires. Contactez l\'administrateur.';
+      }
+      
       Alert.alert(
         'Erreur', 
-        'Une erreur est survenue lors de la publication de votre avis. Veuillez réessayer.',
+        errorMessage,
         [{ text: 'OK' }]
       );
     } finally {

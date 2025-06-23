@@ -1,5 +1,5 @@
 import { GOOGLE_PLACES_API_KEY } from '@env';
-import { getPlaceDetails } from './placesApi';
+import PlacesApiService from './placesApi';
 
 /**
  * Recherche des lieux avec l'API Google Places
@@ -21,7 +21,7 @@ export const searchPlaces = async (query) => {
           const placesWithDetails = await Promise.all(
       data.results.slice(0, 15).map(async (place) => {
           try {
-            const details = await getPlaceDetails(place.place_id);
+            const details = await PlacesApiService.getPlaceDetails(place.place_id);
             return {
               id: place.place_id,
               name: place.name,
@@ -107,7 +107,7 @@ export const searchPlacesByText = async (query, location = null, maxResults = 20
         limitedResults.map(async (place) => {
           try {
             console.log(`🔍 Récupération des détails pour: ${place.name} (${place.place_id})`);
-            const details = await getPlaceDetails(place.place_id);
+            const details = await PlacesApiService.getPlaceDetails(place.place_id);
             
             // Debug: Vérifier les avis récupérés
             console.log(`🔍 Lieu "${place.name}" - Avis récupérés:`, {

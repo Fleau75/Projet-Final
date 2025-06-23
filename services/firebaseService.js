@@ -4,25 +4,23 @@ import { getFirestore, collection, getDocs, doc, getDoc, addDoc, updateDoc, dele
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { AuthService } from './authService';
 import ConfigService from './configService';
+import { firebaseConfig, devConfig } from '../firebase.config';
 
-// Configuration Firebase depuis les variables d'environnement
-const firebaseConfig = {
-  apiKey: ConfigService.get('FIREBASE_API_KEY'),
-  authDomain: ConfigService.get('FIREBASE_AUTH_DOMAIN'),
-  projectId: ConfigService.get('FIREBASE_PROJECT_ID'),
-  storageBucket: ConfigService.get('FIREBASE_STORAGE_BUCKET'),
-  messagingSenderId: ConfigService.get('FIREBASE_MESSAGING_SENDER_ID'),
-  appId: ConfigService.get('FIREBASE_APP_ID'),
-  measurementId: ConfigService.get('FIREBASE_MEASUREMENT_ID')
+// Configuration Firebase depuis les variables d'environnement ou le fichier de config
+const config = {
+  apiKey: ConfigService.get('FIREBASE_API_KEY') || firebaseConfig.apiKey,
+  authDomain: ConfigService.get('FIREBASE_AUTH_DOMAIN') || firebaseConfig.authDomain,
+  projectId: ConfigService.get('FIREBASE_PROJECT_ID') || firebaseConfig.projectId,
+  storageBucket: ConfigService.get('FIREBASE_STORAGE_BUCKET') || firebaseConfig.storageBucket,
+  messagingSenderId: ConfigService.get('FIREBASE_MESSAGING_SENDER_ID') || firebaseConfig.messagingSenderId,
+  appId: ConfigService.get('FIREBASE_APP_ID') || firebaseConfig.appId,
+  measurementId: ConfigService.get('FIREBASE_MEASUREMENT_ID') || firebaseConfig.measurementId
 };
-
-// Alternative: importez depuis un fichier de configuration séparé
-// import { firebaseConfig } from '../firebase.config.js';
 
 // Initialiser Firebase seulement si ce n'est pas déjà fait
 let app;
 if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
+  app = initializeApp(config);
 } else {
   app = getApps()[0];
 }
@@ -479,10 +477,21 @@ export class ReviewsService {
    */
   static async uploadImage(imageUri, path = 'reviews') {
     try {
-      console.log('📸 Upload de l\'image:', imageUri);
+      // Mode de développement : retourner l'URI local pour voir les vraies images
+      if (devConfig.useMockStorage) {
+        return imageUri;
+      }
+      
+      // Vérifier que Firebase est configuré
+      if (!storage) {
+        throw new Error('Firebase Storage non configuré');
+      }
       
       // Convertir l'URI en blob
       const response = await fetch(imageUri);
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
       const blob = await response.blob();
       
       // Créer une référence unique pour l'image
@@ -492,15 +501,19 @@ export class ReviewsService {
       
       // Upload du blob
       const snapshot = await uploadBytes(imageRef, blob);
-      console.log('✅ Image uploadée:', snapshot.ref.fullPath);
       
       // Récupérer l'URL de téléchargement
       const downloadURL = await getDownloadURL(snapshot.ref);
-      console.log('🔗 URL de l\'image:', downloadURL);
       
       return downloadURL;
     } catch (error) {
       console.error('❌ Erreur lors de l\'upload de l\'image:', error);
+      
+      // Si c'est une erreur Firebase Storage, retourner l'URI local pour continuer
+      if (error.code === 'storage/unknown' || error.code === 'storage/unauthorized') {
+        return imageUri;
+      }
+      
       throw error;
     }
   }
@@ -510,12 +523,9 @@ export class ReviewsService {
    */
   static async uploadMultipleImages(imageUris, path = 'reviews') {
     try {
-      console.log(`📸 Upload de ${imageUris.length} images`);
-      
       const uploadPromises = imageUris.map(uri => this.uploadImage(uri, path));
       const imageUrls = await Promise.all(uploadPromises);
       
-      console.log('✅ Toutes les images uploadées:', imageUrls);
       return imageUrls;
     } catch (error) {
       console.error('❌ Erreur lors de l\'upload des images:', error);
