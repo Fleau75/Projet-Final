@@ -180,7 +180,7 @@ export default function ProfileScreen({ navigation, route }) {
         [
           {
             text: "Créer un compte",
-            onPress: () => navigation.navigate('Login')
+            onPress: () => navigation.navigate('Register')
           },
           {
             text: "Annuler",

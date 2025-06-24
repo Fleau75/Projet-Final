@@ -101,18 +101,12 @@ export default function ChangePasswordScreen({ navigation }) {
                 await logout();
                 console.log('✅ Déconnexion effectuée via le contexte d\'authentification');
                 
-                // Attendre un peu pour que la déconnexion se propage
-                setTimeout(() => {
-                  // Forcer la navigation vers l'écran de connexion si nécessaire
-                  if (navigation.canGoBack()) {
-                    navigation.navigate('Login');
-                  }
-                }, 500);
+                // La navigation se fait automatiquement via le contexte d'authentification
+                // Pas besoin de navigation forcée
                 
               } catch (error) {
                 console.error('❌ Erreur lors de la déconnexion:', error);
-                // Même en cas d'erreur, forcer la navigation vers la connexion
-                navigation.navigate('Login');
+                // Même en cas d'erreur, la déconnexion locale est forcée dans le contexte
               }
             }
           }

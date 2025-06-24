@@ -9,7 +9,7 @@ import { useAuth } from '../theme/AuthContext';
 export default function RegisterScreen({ navigation }) {
   const theme = useTheme();
   const { textSizes } = useTextSize();
-  const { register, user } = useAuth();
+  const { register, user, logout } = useAuth();
   
   // États pour les champs du formulaire
   const [formData, setFormData] = useState({
@@ -30,8 +30,8 @@ export default function RegisterScreen({ navigation }) {
   // Effet pour détecter quand l'utilisateur est connecté et naviguer
   useEffect(() => {
     console.log('🔧 RegisterScreen.useEffect - user changé:', user);
-    if (user) {
-      console.log('✅ Utilisateur détecté, redirection vers MainTabs...');
+    if (user && !user.isVisitor) {
+      console.log('✅ Utilisateur non-visiteur détecté, redirection vers MainTabs...');
       navigation.reset({
         index: 0,
         routes: [{ name: 'MainTabs' }],
@@ -337,7 +337,34 @@ export default function RegisterScreen({ navigation }) {
               </Text>
               <Button
                 mode="text"
-                onPress={() => navigation.navigate('Login')}
+                onPress={async () => {
+                  try {
+                    console.log('🔓 Déconnexion depuis RegisterScreen...');
+                    // Toujours déconnecter pour retourner à l'écran de connexion
+                    await logout();
+                    console.log('✅ Déconnexion réussie');
+                    
+                    // Attendre que la déconnexion soit complètement terminée
+                    // et que l'App.js ait basculé vers le navigateur d'authentification
+                    setTimeout(() => {
+                      console.log('🔄 Redirection vers Login...');
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Login' }],
+                      });
+                    }, 100);
+                    
+                  } catch (error) {
+                    console.error('❌ Erreur lors de la déconnexion:', error);
+                    // En cas d'erreur, forcer la redirection quand même
+                    setTimeout(() => {
+                      navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'Login' }],
+                      });
+                    }, 100);
+                  }
+                }}
                 style={styles.loginButton}
                 labelStyle={{ fontSize: textSizes.body }}
               >

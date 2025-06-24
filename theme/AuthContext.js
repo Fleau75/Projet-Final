@@ -35,8 +35,8 @@ export const AuthProvider = ({ children }) => {
       // Nettoyer l'état d'authentification pour forcer la reconnexion
       setUser(null);
       
-      // Optionnel : nettoyer les données d'authentification stockées
-      // await AuthService.logout(); // Décommentez si vous voulez nettoyer complètement
+      // Nettoyer les données d'authentification stockées pour éviter les conflits
+      await AuthService.logout();
       
     } catch (error) {
       console.error('❌ Erreur lors de l\'initialisation de l\'authentification:', error);
@@ -94,7 +94,12 @@ export const AuthProvider = ({ children }) => {
       console.log('🔓 Début de la déconnexion...');
       await AuthService.logout();
       setUser(null);
-      console.log('✅ Déconnexion réussie');
+      console.log('✅ Déconnexion réussie - utilisateur mis à null');
+      
+      // Forcer la redirection vers l'écran de connexion
+      // L'App.js va automatiquement basculer vers le navigateur d'authentification
+      // car user est maintenant null
+      
     } catch (error) {
       console.error('❌ Erreur lors de la déconnexion:', error);
       // Même en cas d'erreur, on force la déconnexion dans l'état local
