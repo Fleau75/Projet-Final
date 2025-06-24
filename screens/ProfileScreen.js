@@ -244,55 +244,81 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   const handleLogout = async () => {
-    // Vérifier si l'utilisateur est un visiteur
+    try {
+      // Vérifier si l'utilisateur est un visiteur
+      if (userInfo.isVisitor) {
+        Alert.alert(
+          "Retour au menu",
+          "Voulez-vous retourner à l'écran de connexion ?",
+          [
+            {
+              text: "Annuler",
+              style: "cancel"
+            },
+            {
+              text: "Retour au menu",
+              style: "default",
+              onPress: async () => {
+                try {
+                  await logout();
+                  // La navigation se fait automatiquement via le contexte
+                } catch (error) {
+                  console.error('Erreur lors du retour au menu:', error);
+                  Alert.alert("Erreur", "Impossible de retourner au menu");
+                }
+              }
+            }
+          ]
+        );
+      } else {
+        Alert.alert(
+          "Déconnexion",
+          "Êtes-vous sûr de vouloir vous déconnecter ?",
+          [
+            {
+              text: "Annuler",
+              style: "cancel"
+            },
+            {
+              text: "Se déconnecter",
+              style: "destructive",
+              onPress: async () => {
+                try {
+                  await logout();
+                  // La navigation se fait automatiquement via le contexte
+                } catch (error) {
+                  console.error('Erreur lors de la déconnexion:', error);
+                  Alert.alert("Erreur", "Impossible de se déconnecter");
+                }
+              }
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    }
+  };
+
+  // Nouvelle fonction pour gérer la création de compte depuis le mode visiteur
+  const handleCreateAccount = async () => {
+    // Pour les visiteurs, on se déconnecte silencieusement puis on navigue vers l'inscription
     if (userInfo.isVisitor) {
-      Alert.alert(
-        "Retour au menu",
-        "Voulez-vous retourner à l'écran de connexion ?",
-        [
-          {
-            text: "Annuler",
-            style: "cancel"
-          },
-          {
-            text: "Retour au menu",
-            style: "default",
-            onPress: async () => {
-              try {
-                await logout();
-                // La navigation se fait automatiquement via le contexte
-              } catch (error) {
-                console.error('Erreur lors du retour au menu:', error);
-                Alert.alert("Erreur", "Impossible de retourner au menu");
-              }
-            }
-          }
-        ]
-      );
+      try {
+        // Se déconnecter silencieusement du mode visiteur
+        await logout();
+        // Navigation directe vers Register après un court délai
+        setTimeout(() => {
+          navigation.navigate('Register');
+        }, 100);
+      } catch (error) {
+        console.error('Erreur lors de la transition vers l\'inscription:', error);
+        // En cas d'erreur, essayer quand même la navigation
+        navigation.navigate('Register');
+      }
     } else {
-      Alert.alert(
-        "Déconnexion",
-        "Êtes-vous sûr de vouloir vous déconnecter ?",
-        [
-          {
-            text: "Annuler",
-            style: "cancel"
-          },
-          {
-            text: "Se déconnecter",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                await logout();
-                // La navigation se fait automatiquement via le contexte
-              } catch (error) {
-                console.error('Erreur lors de la déconnexion:', error);
-                Alert.alert("Erreur", "Impossible de se déconnecter");
-              }
-            }
-          }
-        ]
-      );
+      // Pour les utilisateurs normaux, navigation directe
+      navigation.navigate('Register');
     }
   };
 
@@ -455,7 +481,7 @@ export default function ProfileScreen({ navigation, route }) {
                   description="Synchroniser vos données et accéder à toutes les fonctionnalités"
                   left={props => <List.Icon {...props} icon="account-plus" />}
                   right={props => <List.Icon {...props} icon="chevron-right" />}
-                  onPress={() => navigation.navigate('Register')}
+                  onPress={handleCreateAccount}
                   titleStyle={{ fontSize: textSizes.body }}
                   descriptionStyle={{ fontSize: textSizes.caption }}
                 />

@@ -19,55 +19,27 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Vérifier l'état d'authentification au démarrage
+  // Initialisation - ne plus restaurer automatiquement l'état d'authentification
   useEffect(() => {
-    checkAuthState();
+    initializeAuth();
   }, []);
 
-  const checkAuthState = async () => {
+  const initializeAuth = async () => {
     try {
-      console.log('🔍 Vérification de l\'état d\'authentification au démarrage...');
+      console.log('🔍 Initialisation de l\'authentification...');
       
-      // Vérifier si l'utilisateur est déjà connecté
-      const isAuthenticated = await AuthService.isAuthenticated();
+      // Ne plus vérifier l'état d'authentification au démarrage
+      // L'utilisateur devra toujours se reconnecter (via biométrie ou manuellement)
+      console.log('🔐 Aucune restauration automatique - retour à l\'écran de connexion');
       
-      if (isAuthenticated) {
-        const userProfile = await AuthService.getCurrentUser();
-        
-        if (userProfile) {
-          console.log('✅ Utilisateur déjà connecté:', userProfile.email);
-          
-          // Vérifier si c'est un visiteur et désactiver la biométrie si nécessaire
-          if (userProfile.isVisitor) {
-            console.log('🚫 Utilisateur visiteur détecté - désactivation biométrie');
-            await BiometricService.disableBiometrics();
-          } else {
-            // Vérifier si la biométrie est activée pour cet utilisateur
-            const biometricPrefs = await BiometricService.loadBiometricPreferences();
-            const isBiometricEnabled = biometricPrefs.enabled && biometricPrefs.email === userProfile.email;
-            
-            if (isBiometricEnabled) {
-              console.log('🔐 Biométrie activée pour cet utilisateur');
-              // L'utilisateur peut utiliser la biométrie pour se reconnecter
-              // mais on le connecte directement pour l'instant
-            } else {
-              console.log('🔐 Biométrie non activée, connexion directe');
-            }
-          }
-          
-          setUser(userProfile);
-        } else {
-          console.log('❌ Profil utilisateur invalide, nettoyage nécessaire');
-          await AuthService.logout();
-          setUser(null);
-        }
-      } else {
-        console.log('❌ Aucun utilisateur connecté');
-        setUser(null);
-      }
+      // Nettoyer l'état d'authentification pour forcer la reconnexion
+      setUser(null);
+      
+      // Optionnel : nettoyer les données d'authentification stockées
+      // await AuthService.logout(); // Décommentez si vous voulez nettoyer complètement
       
     } catch (error) {
-      console.error('❌ Erreur lors de la vérification de l\'état d\'authentification:', error);
+      console.error('❌ Erreur lors de l\'initialisation de l\'authentification:', error);
       setUser(null);
     } finally {
       setIsLoading(false);

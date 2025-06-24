@@ -32,15 +32,27 @@ export default function LoginScreen({ navigation }) {
       setBiometricAvailable(isAvailable);
       
       if (isAvailable) {
+        // Charger les préférences biométriques sauvegardées
         const prefs = await BiometricService.loadBiometricPreferences();
-        setBiometricEnabled(prefs.enabled);
-        setLastEmail(prefs.email || '');
         
-        // Si la biométrie est activée, proposer l'authentification automatique
-        if (prefs.enabled && prefs.email && prefs.email !== 'visiteur@accessplus.com') {
+        // Si un email valide est sauvegardé (non visiteur), réactiver la biométrie
+        if (prefs.email && prefs.email !== 'visiteur@accessplus.com') {
+          // Réactiver automatiquement la biométrie si elle était désactivée temporairement
+          if (!prefs.enabled) {
+            console.log('🔄 Réactivation automatique de la biométrie pour:', prefs.email);
+            await BiometricService.saveBiometricPreferences(true, prefs.email);
+          }
+          
+          setBiometricEnabled(true);
+          setLastEmail(prefs.email);
+          
+          // Proposer l'authentification automatique après un délai
           setTimeout(() => {
             handleBiometricLogin();
           }, 1000); // Délai pour laisser l'écran se charger
+        } else {
+          setBiometricEnabled(false);
+          setLastEmail('');
         }
       }
     } catch (error) {
@@ -211,8 +223,13 @@ export default function LoginScreen({ navigation }) {
   const handleContinueWithoutAccount = async () => {
     setIsLoading(true);
     try {
-      // Désactiver la biométrie pour le mode visiteur
-      await BiometricService.disableBiometrics();
+      // Sauvegarder l'email biométrique actuel avant de le désactiver temporairement
+      const currentBiometricPrefs = await BiometricService.loadBiometricPreferences();
+      const savedEmail = currentBiometricPrefs.email;
+      
+      // Désactiver temporairement la biométrie pour le mode visiteur
+      // mais garder l'email sauvegardé pour pouvoir le restaurer plus tard
+      await BiometricService.saveBiometricPreferences(false, savedEmail || 'visiteur@accessplus.com');
       setBiometricEnabled(false);
       setLastEmail('');
       
@@ -223,11 +240,6 @@ export default function LoginScreen({ navigation }) {
         email: 'visiteur@accessplus.com',
         phone: ''
       });
-      
-      // Forcer le rechargement de la biométrie après la création du compte
-      setTimeout(() => {
-        checkBiometricAvailability();
-      }, 100);
       
       // La navigation se fait automatiquement via le contexte
     } catch (err) {
