@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
 import { useAuth } from '../theme/AuthContext';
+import StorageService from '../services/storageService';
 
 export default function RegisterScreen({ navigation }) {
   const theme = useTheme();
@@ -134,9 +135,11 @@ export default function RegisterScreen({ navigation }) {
       console.log('✅ Inscription réussie ! Résultat:', result);
       console.log('🔧 État user après inscription:', user);
       setIsLoading(false);
+
+      // La migration se fait maintenant automatiquement dans authService.js
+      console.log('✅ Inscription terminée, migration automatique effectuée si nécessaire');
       
       // La navigation se fait automatiquement via le contexte
-      // Pas besoin d'alerte qui peut interférer avec la redirection
     } catch (err) {
       console.error('❌ Erreur lors de l\'inscription:', err);
       setIsLoading(false);

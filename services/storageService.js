@@ -372,6 +372,115 @@ export class StorageService {
       console.error('❌ Erreur lors de l\'initialisation du stockage:', error);
     }
   }
+
+  /**
+   * Migre toutes les données du visiteur vers un nouvel utilisateur
+   * @param {string} userEmail - Email du nouvel utilisateur
+   */
+  static async migrateVisitorDataToUser(userEmail) {
+    try {
+      const visitorId = 'visitor';
+      const visitorData = await this.getAllUserData(visitorId);
+      let migratedCount = 0;
+      let reviewsMigrated = 0;
+      
+      // Migration des données locales
+      if (visitorData && Object.keys(visitorData).length > 0) {
+        // Copier chaque clé du visiteur vers le nouvel utilisateur
+        for (const [key, value] of Object.entries(visitorData)) {
+          await this.setUserData(key, value, userEmail);
+          console.log(`Migré ${key} du visiteur vers ${userEmail}`);
+          migratedCount++;
+        }
+      }
+
+      // Migration des avis Firebase (import dynamique pour éviter les conflits)
+      try {
+        console.log('🔄 Migration des avis Firebase du visiteur...');
+        const { ReviewsService } = await import('./firebaseService');
+        console.log('✅ ReviewsService importé avec succès');
+        
+        const visitorReviews = await ReviewsService.getReviewsByUserId('visitor');
+        console.log(`📝 ${visitorReviews.length} avis visiteur trouvés à migrer`);
+        
+        if (visitorReviews && visitorReviews.length > 0) {
+          console.log(`📝 ${visitorReviews.length} avis visiteur trouvés à migrer`);
+          reviewsMigrated = visitorReviews.length;
+          
+          for (const review of visitorReviews) {
+            console.log(`🔄 Migration de l'avis: ${review.placeName} (${review.id})`);
+            
+            // Recréer l'avis avec le nouvel ID utilisateur
+            const newReviewData = {
+              placeId: review.placeId,
+              placeName: review.placeName,
+              rating: review.rating,
+              comment: review.comment,
+              images: review.images || [],
+              accessibility: review.accessibility || {},
+              userEmail: userEmail, // Ajouter directement l'email
+              // Ne pas inclure les champs Firebase (id, createdAt, etc.)
+            };
+            
+            console.log(`📝 Données du nouvel avis:`, newReviewData);
+            console.log(`📝 Email utilisateur: ${userEmail}`);
+            
+            const newReviewId = await ReviewsService.addReview(newReviewData, userEmail);
+            console.log(`✅ Avis migré pour ${review.placeName} -> ID: ${newReviewId}`);
+            
+            // Supprimer l'ancien avis visiteur
+            await ReviewsService.deleteReview(review.id);
+            console.log(`🗑️ Ancien avis visiteur supprimé: ${review.id}`);
+          }
+          
+          console.log(`✅ ${visitorReviews.length} avis Firebase migrés avec succès`);
+          
+          // Mettre à jour les statistiques de l'utilisateur
+          try {
+            console.log('📊 Mise à jour des statistiques...');
+            const { AuthService } = await import('./authService');
+            const currentStats = await AuthService.getUserStatsByEmail(userEmail);
+            console.log('📊 Statistiques actuelles:', currentStats);
+            
+            const updatedStats = {
+              ...currentStats,
+              reviewsAdded: (currentStats.reviewsAdded || 0) + visitorReviews.length,
+              placesAdded: (currentStats.placesAdded || 0) + (visitorData.mapMarkers ? visitorData.mapMarkers.length : 0),
+              lastActivity: new Date().toISOString()
+            };
+            
+            const statsKey = `userStats_email_${userEmail}`;
+            await AsyncStorage.setItem(statsKey, JSON.stringify(updatedStats));
+            console.log(`✅ Statistiques mises à jour: ${updatedStats.reviewsAdded} avis pour ${userEmail}`);
+            
+            // Mettre à jour le statut de vérification
+            console.log('🔍 Mise à jour du statut de vérification...');
+            await AuthService.updateUserVerificationStatusByEmail(userEmail, updatedStats.reviewsAdded >= 3);
+            console.log(`✅ Statut de vérification mis à jour: ${updatedStats.reviewsAdded >= 3 ? 'Vérifié' : 'Non vérifié'}`);
+            
+          } catch (statsError) {
+            console.error('❌ Erreur lors de la mise à jour des statistiques:', statsError);
+          }
+        } else {
+          console.log('📝 Aucun avis visiteur à migrer');
+        }
+      } catch (firebaseError) {
+        console.error('❌ Erreur lors de la migration des avis Firebase:', firebaseError);
+        console.error('❌ Détails de l\'erreur:', firebaseError.message);
+        console.error('❌ Stack trace:', firebaseError.stack);
+        // Ne pas faire échouer toute la migration si Firebase échoue
+      }
+
+      return { 
+        migrated: migratedCount > 0 || reviewsMigrated > 0, 
+        count: migratedCount,
+        reviewsMigrated: reviewsMigrated
+      };
+    } catch (error) {
+      console.error('Erreur lors de la migration des données visiteur:', error);
+      return { migrated: false, error };
+    }
+  }
 }
 
 export default StorageService; 

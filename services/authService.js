@@ -106,6 +106,21 @@ export class AuthService {
           throw new Error('Cette adresse email est déjà utilisée');
         }
         
+        // MIGRATION DES DONNÉES VISITEUR AVANT LE NETTOYAGE
+        console.log('🔄 Vérification des données visiteur pour migration...');
+        const visitorData = await StorageService.getAllUserData('visitor');
+        if (visitorData && Object.keys(visitorData).length > 0) {
+          console.log('✅ Données visiteur trouvées, migration automatique...');
+          try {
+            const migrationResult = await StorageService.migrateVisitorDataToUser(userData.email);
+            console.log('📊 Résultat migration automatique:', migrationResult);
+          } catch (migrationError) {
+            console.error('❌ Erreur migration automatique:', migrationError);
+          }
+        } else {
+          console.log('❌ Aucune donnée visiteur à migrer');
+        }
+        
         // NETTOYER LE PROFIL VISITEUR SI IL EXISTE
         console.log('🧹 Nettoyage du profil visiteur pour le nouveau compte...');
         await AsyncStorage.removeItem('userProfile');

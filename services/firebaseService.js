@@ -336,9 +336,15 @@ export class ReviewsService {
     try {
       // Récupérer l'email de l'utilisateur connecté
       let userEmail = null;
-      if (userId && userId !== 'anonymous') {
+      
+      // Si l'email est déjà dans les données, l'utiliser
+      if (reviewData.userEmail) {
+        userEmail = reviewData.userEmail;
+        console.log(`📝 Utilisation de l'email fourni: ${userEmail}`);
+      } else if (userId && userId !== 'anonymous') {
         const currentUser = await AuthService.getCurrentUser();
         userEmail = currentUser ? currentUser.email : null;
+        console.log(`📝 Utilisation de l'email de l'utilisateur connecté: ${userEmail}`);
       }
       
       const reviewsRef = collection(db, REVIEWS_COLLECTION);

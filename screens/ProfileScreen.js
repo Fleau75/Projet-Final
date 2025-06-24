@@ -84,7 +84,11 @@ export default function ProfileScreen({ navigation, route }) {
   const loadVerificationStatus = useCallback(async () => {
     try {
       const userId = user?.uid || 'anonymous';
-      const verificationStatus = await AuthService.getUserVerificationStatus(userId);
+      const userEmail = user?.email; // Récupérer l'email de l'utilisateur
+      
+      // Utiliser l'email pour récupérer le statut de vérification (comme les statistiques)
+      const verificationUserId = userEmail || userId;
+      const verificationStatus = await AuthService.getUserVerificationStatus(verificationUserId);
       setVerificationData(verificationStatus);
       
       console.log('🔍 Statut de vérification:', verificationStatus);
@@ -98,9 +102,10 @@ export default function ProfileScreen({ navigation, route }) {
     setIsLoadingStats(true);
     try {
       const userId = user?.uid || 'anonymous';
+      const userEmail = user?.email; // Récupérer l'email de l'utilisateur
       
-      // 🔥 Charger les avis Firebase
-      const reviews = await ReviewsService.getReviewsByUserId(userId);
+      // 🔥 Charger les avis Firebase (utiliser l'email pour la recherche)
+      const reviews = await ReviewsService.getReviewsByUserId(userEmail || userId);
       
       // 🗺️ Charger les lieux ajoutés depuis StorageService
       const mapPlaces = await StorageService.getMapMarkers();
@@ -109,16 +114,28 @@ export default function ProfileScreen({ navigation, route }) {
       
       // Mettre à jour les statistiques AsyncStorage avec les vraies données
       if (userId !== 'anonymous') {
-        const currentStats = await AuthService.getUserStats(userId);
+        // Utiliser l'email pour récupérer les statistiques (comme la migration)
+        const statsUserId = userEmail || userId;
+        const currentStats = await AuthService.getUserStats(statsUserId);
+        
+        // Ne pas écraser les statistiques migrées, mais les mettre à jour avec les vraies données Firebase
         const updatedStats = {
           ...currentStats,
-          reviewsAdded: reviews?.length || 0,
+          reviewsAdded: reviews?.length || 0, // Utiliser directement les avis Firebase
+          placesAdded: mapPlaces.length, // Utiliser directement les lieux ajoutés
           lastActivity: new Date().toISOString()
         };
         
-        const statsKey = `userStats_${userId}`;
-        await StorageService.setUserData('stats', updatedStats);
-        console.log(`✅ Statistiques mises à jour: ${updatedStats.reviewsAdded} avis`);
+        // Sauvegarder avec la même clé que la migration
+        const statsKey = userEmail ? `userStats_email_${userEmail}` : `userStats_${userId}`;
+        await AsyncStorage.setItem(statsKey, JSON.stringify(updatedStats));
+        console.log(`✅ Statistiques mises à jour: ${updatedStats.reviewsAdded} avis, ${updatedStats.placesAdded} lieux`);
+        
+        // Mettre à jour le statut de vérification avec les nouvelles statistiques
+        if (userEmail) {
+          await AuthService.updateUserVerificationStatusByEmail(userEmail, updatedStats.reviewsAdded >= 3);
+          console.log(`✅ Statut de vérification mis à jour: ${updatedStats.reviewsAdded >= 3 ? 'Vérifié' : 'Non vérifié'}`);
+        }
       }
       
       if (reviews && reviews.length > 0) {
@@ -158,6 +175,16 @@ export default function ProfileScreen({ navigation, route }) {
       console.log('🔄 ProfileScreen: Rechargement des statistiques...');
     }, [loadProfile, loadUserStats])
   );
+
+  // Forcer le rechargement des statistiques après un délai pour la migration
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      console.log('🔄 Rechargement différé des statistiques (migration)...');
+      loadUserStats();
+    }, 2000); // 2 secondes après le montage
+
+    return () => clearTimeout(timer);
+  }, [loadUserStats]);
 
   // Mettre à jour le profil si on revient avec des nouvelles données
   useEffect(() => {
