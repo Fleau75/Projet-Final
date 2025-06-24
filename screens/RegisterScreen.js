@@ -463,20 +463,6 @@ export default function RegisterScreen({ navigation }) {
             >
               {isLoading ? 'Création en cours...' : 'Créer mon compte'}
             </Button>
-
-            {/* Lien vers la connexion */}
-            <View style={styles.loginContainer}>
-              <Text style={[styles.loginText, { fontSize: textSizes.body, color: theme.colors.onSurfaceVariant }]}>
-                Déjà un compte ?
-              </Text>
-              <Button
-                mode="text"
-                onPress={() => navigation.navigate('Login')}
-                style={styles.loginButton}
-              >
-                Se connecter
-              </Button>
-            </View>
           </Surface>
         </ScrollView>
       </KeyboardAvoidingView>
