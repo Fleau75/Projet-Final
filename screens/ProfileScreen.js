@@ -331,8 +331,25 @@ export default function ProfileScreen({ navigation, route }) {
   // Nouvelle fonction pour gérer la création de compte depuis le mode visiteur
   const handleCreateAccount = async () => {
     try {
-      // Naviguer vers l'écran d'inscription
-      navigation.navigate('Register');
+      // Afficher une alerte informative sur la synchronisation
+      Alert.alert(
+        '🔄 Synchronisation des données',
+        'Vos données de mode visiteur (favoris, marqueurs de carte et avis) seront automatiquement synchronisées avec votre nouveau compte.',
+        [
+          {
+            text: 'Annuler',
+            style: 'cancel'
+          },
+          {
+            text: 'Continuer',
+            onPress: () => {
+              console.log('🚀 Navigation vers l\'écran d\'inscription avec synchronisation...');
+              navigation.navigate('Register');
+            }
+          }
+        ],
+        { cancelable: true }
+      );
     } catch (error) {
       console.error('Erreur lors de la navigation vers l\'inscription:', error);
     }
