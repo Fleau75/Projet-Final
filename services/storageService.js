@@ -410,13 +410,49 @@ export class StorageService {
           for (const review of visitorReviews) {
             console.log(`🔄 Migration de l'avis: ${review.placeName} (${review.id})`);
             
-            // Recréer l'avis avec le nouvel ID utilisateur
+            // Recopier les images vers le nouveau compte utilisateur
+            let migratedImages = [];
+            if (review.photos && review.photos.length > 0) {
+              console.log(`🖼️ Migration de ${review.photos.length} photos...`);
+              console.log(`🖼️ Photos originales:`, review.photos);
+              try {
+                // Recopier chaque image vers le nouveau compte
+                const { ReviewsService } = await import('./firebaseService');
+                
+                // Forcer l'upload des images même en mode développement
+                const uploadPromises = review.photos.map(async (imageUri, index) => {
+                  console.log(`🖼️ Upload de la photo ${index + 1}: ${imageUri}`);
+                  
+                  // Vérifier si c'est une URL Firebase ou une URI locale
+                  if (imageUri.startsWith('http') && imageUri.includes('firebase')) {
+                    console.log(`🖼️ Photo Firebase détectée, recopie...`);
+                    // C'est une image Firebase, la recopier
+                    return await ReviewsService.uploadImage(imageUri, 'reviews');
+                  } else {
+                    console.log(`🖼️ Photo locale détectée, upload...`);
+                    // C'est une image locale, l'uploader
+                    return await ReviewsService.uploadImage(imageUri, 'reviews');
+                  }
+                });
+                
+                migratedImages = await Promise.all(uploadPromises);
+                console.log(`✅ ${migratedImages.length} photos migrées avec succès:`, migratedImages);
+              } catch (imageError) {
+                console.error('❌ Erreur lors de la migration des photos:', imageError);
+                console.error('❌ Détails de l\'erreur:', imageError.message);
+                // Continuer avec les photos originales si la migration échoue
+                migratedImages = review.photos;
+                console.log(`⚠️ Utilisation des photos originales:`, migratedImages);
+              }
+            }
+            
+            // Recréer l'avis avec le nouvel ID utilisateur et les nouvelles photos
             const newReviewData = {
               placeId: review.placeId,
               placeName: review.placeName,
               rating: review.rating,
               comment: review.comment,
-              images: review.images || [],
+              photos: migratedImages, // Utiliser les photos migrées (champ 'photos' pas 'images')
               accessibility: review.accessibility || {},
               userEmail: userEmail, // Ajouter directement l'email
               // Ne pas inclure les champs Firebase (id, createdAt, etc.)

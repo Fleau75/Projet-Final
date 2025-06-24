@@ -483,8 +483,12 @@ export class ReviewsService {
    */
   static async uploadImage(imageUri, path = 'reviews') {
     try {
+      console.log(`🖼️ Upload de l'image: ${imageUri}`);
+      
       // Mode de développement : retourner l'URI local pour voir les vraies images
-      if (devConfig.useMockStorage) {
+      // MAIS seulement si ce n'est pas une migration (on veut forcer l'upload pour la migration)
+      if (devConfig.useMockStorage && !imageUri.includes('firebase')) {
+        console.log(`🖼️ Mode dev: retour de l'URI local`);
         return imageUri;
       }
       
@@ -493,30 +497,38 @@ export class ReviewsService {
         throw new Error('Firebase Storage non configuré');
       }
       
+      console.log(`🖼️ Conversion de l'URI en blob...`);
       // Convertir l'URI en blob
       const response = await fetch(imageUri);
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`);
       }
       const blob = await response.blob();
+      console.log(`🖼️ Blob créé, taille: ${blob.size} bytes`);
       
       // Créer une référence unique pour l'image
       const timestamp = Date.now();
       const filename = `${path}/${timestamp}_${Math.random().toString(36).substring(7)}.jpg`;
       const imageRef = ref(storage, filename);
+      console.log(`🖼️ Référence créée: ${filename}`);
       
       // Upload du blob
+      console.log(`🖼️ Upload vers Firebase Storage...`);
       const snapshot = await uploadBytes(imageRef, blob);
+      console.log(`🖼️ Upload terminé, snapshot:`, snapshot);
       
       // Récupérer l'URL de téléchargement
       const downloadURL = await getDownloadURL(snapshot.ref);
+      console.log(`🖼️ URL de téléchargement: ${downloadURL}`);
       
       return downloadURL;
     } catch (error) {
       console.error('❌ Erreur lors de l\'upload de l\'image:', error);
+      console.error('❌ URI de l\'image:', imageUri);
       
       // Si c'est une erreur Firebase Storage, retourner l'URI local pour continuer
       if (error.code === 'storage/unknown' || error.code === 'storage/unauthorized') {
+        console.log(`⚠️ Erreur Firebase Storage, retour de l'URI local`);
         return imageUri;
       }
       
