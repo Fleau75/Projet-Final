@@ -312,7 +312,6 @@ export class AuthService {
         const userProfile = await AsyncStorage.getItem('userProfile');
         if (userProfile) {
           const profile = JSON.parse(userProfile);
-          // Vérifier que le profil est valide
           if (profile && profile.email && profile.name) {
             return profile;
           }

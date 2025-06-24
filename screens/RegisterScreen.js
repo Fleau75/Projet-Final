@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { Text, Button, TextInput, Surface, useTheme, Checkbox, HelperText } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,7 +9,7 @@ import { useAuth } from '../theme/AuthContext';
 export default function RegisterScreen({ navigation }) {
   const theme = useTheme();
   const { textSizes } = useTextSize();
-  const { register } = useAuth();
+  const { register, user } = useAuth();
   
   // États pour les champs du formulaire
   const [formData, setFormData] = useState({
@@ -26,6 +26,16 @@ export default function RegisterScreen({ navigation }) {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Effet pour détecter quand l'utilisateur est connecté et naviguer
+  useEffect(() => {
+    if (user) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' }],
+      });
+    }
+  }, [user, navigation]);
 
   // Fonction pour mettre à jour les champs
   const updateField = (field, value) => {
@@ -122,18 +132,8 @@ export default function RegisterScreen({ navigation }) {
       console.log('✅ Inscription réussie !');
       setIsLoading(false);
       
-      Alert.alert(
-        "Inscription réussie ! 🎉",
-        "Bienvenue dans AccessPlus ! Votre compte a été créé avec succès.",
-        [
-          {
-            text: "Continuer",
-            onPress: () => {
-              // La navigation se fait automatiquement via le contexte
-            }
-          }
-        ]
-      );
+      // La navigation se fait automatiquement via le contexte
+      // Pas besoin d'alerte qui peut interférer avec la redirection
     } catch (err) {
       setIsLoading(false);
       Alert.alert(
@@ -244,9 +244,15 @@ export default function RegisterScreen({ navigation }) {
                 <TextInput.Icon 
                   icon={showPassword ? "eye-off" : "eye"} 
                   onPress={() => setShowPassword(!showPassword)}
+                  forceTextInputFocus={false}
+                  accessibilityRole="button"
+                  accessibilityLabel={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 />
               }
               error={!!errors.password}
+              accessible={true}
+              accessibilityLabel="Champ mot de passe"
+              accessibilityHint="Entrez votre mot de passe"
             />
             {errors.password && (
               <HelperText type="error" style={{ fontSize: textSizes.caption }}>
@@ -267,9 +273,15 @@ export default function RegisterScreen({ navigation }) {
                 <TextInput.Icon 
                   icon={showConfirmPassword ? "eye-off" : "eye"} 
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  forceTextInputFocus={false}
+                  accessibilityRole="button"
+                  accessibilityLabel={showConfirmPassword ? "Masquer la confirmation" : "Afficher la confirmation"}
                 />
               }
               error={!!errors.confirmPassword}
+              accessible={true}
+              accessibilityLabel="Champ confirmation mot de passe"
+              accessibilityHint="Confirmez votre mot de passe"
             />
             {errors.confirmPassword && (
               <HelperText type="error" style={{ fontSize: textSizes.caption }}>
