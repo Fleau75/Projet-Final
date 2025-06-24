@@ -15,6 +15,7 @@ import { useTextSize } from '../theme/TextSizeContext';
 import PlacesService from '../services/firebaseService';
 import SimplePlacesService from '../services/simplePlacesService';
 import { AccessibilityService } from '../services/accessibilityService';
+import StorageService from '../services/storageService';
 
 /**
  * Liste des catégories de lieux disponibles dans l'application
@@ -313,7 +314,7 @@ export default function HomeScreen({ navigation }) {
    */
   const loadSearchRadius = useCallback(async () => {
     try {
-      const savedRadius = await AsyncStorage.getItem('searchRadius');
+      const savedRadius = await StorageService.getSearchRadius();
       if (savedRadius !== null) {
         setSearchRadius(parseInt(savedRadius));
       }

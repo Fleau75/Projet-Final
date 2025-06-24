@@ -3,62 +3,66 @@
  * Utile pour forcer l'utilisateur à se reconnecter
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+const AsyncStorage = require('@react-native-async-storage/async-storage');
 
-export const clearAuthState = async () => {
+async function fixAuth() {
   try {
-    console.log('🧹 Nettoyage de l\'état d\'authentification...');
+    console.log('🔧 Début de la correction de l\'authentification...\n');
     
-    // Supprimer toutes les données d'authentification
-    await AsyncStorage.removeItem('userProfile');
-    await AsyncStorage.removeItem('isAuthenticated');
-    await AsyncStorage.removeItem('currentUser');
-    await AsyncStorage.removeItem('userPassword');
+    // 1. Nettoyer complètement le stockage
+    console.log('🧹 Nettoyage complet du stockage...');
+    const allKeys = await AsyncStorage.getAllKeys();
+    console.log(`📋 ${allKeys.length} clés trouvées`);
     
-    // Supprimer aussi les utilisateurs de test pour forcer une reconnexion propre
-    const keys = await AsyncStorage.getAllKeys();
-    const testUserKeys = keys.filter(key => key.startsWith('user_test@') || key.startsWith('user_demo@') || key.startsWith('user_admin@'));
-    
-    if (testUserKeys.length > 0) {
-      await AsyncStorage.multiRemove(testUserKeys);
-      console.log(`🗑️ Supprimé ${testUserKeys.length} utilisateurs de test`);
+    if (allKeys.length > 0) {
+      await AsyncStorage.multiRemove(allKeys);
+      console.log('✅ Toutes les clés supprimées');
     }
     
-    console.log('✅ État d\'authentification nettoyé avec succès');
-    return true;
-  } catch (error) {
-    console.error('❌ Erreur lors du nettoyage:', error);
-    return false;
-  }
-};
-
-export const checkAuthState = async () => {
-  try {
-    console.log('🔍 Vérification de l\'état d\'authentification...');
+    // 2. Recréer les utilisateurs de test
+    console.log('\n👥 Recréation des utilisateurs de test...');
     
-    const isAuth = await AsyncStorage.getItem('isAuthenticated');
-    const userProfile = await AsyncStorage.getItem('userProfile');
-    const currentUser = await AsyncStorage.getItem('currentUser');
+    const testUsers = [
+      {
+        email: 'test@accessplus.com',
+        password: 'test123',
+        name: 'Utilisateur Test',
+        uid: 'test_user_1',
+        createdAt: new Date().toISOString()
+      },
+      {
+        email: 'admin@accessplus.com',
+        password: 'admin123',
+        name: 'Administrateur',
+        uid: 'admin_user_1',
+        createdAt: new Date().toISOString()
+      }
+    ];
     
-    console.log('📊 État actuel:');
-    console.log('- isAuthenticated:', isAuth);
-    console.log('- userProfile:', userProfile ? 'Présent' : 'Absent');
-    console.log('- currentUser:', currentUser ? 'Présent' : 'Absent');
-    
-    if (userProfile) {
-      const profile = JSON.parse(userProfile);
-      console.log('- Email:', profile.email);
-      console.log('- Nom:', profile.name);
-      console.log('- Visiteur:', profile.isVisitor || false);
+    for (const user of testUsers) {
+      const testUserKey = `user_${user.email}`;
+      await AsyncStorage.setItem(testUserKey, JSON.stringify(user));
+      console.log(`✅ Utilisateur de test créé: ${user.email}`);
     }
     
-    return {
-      isAuthenticated: isAuth === 'true',
-      hasProfile: !!userProfile,
-      hasCurrentUser: !!currentUser
-    };
+    // 3. Vérifier que tout est bien créé
+    console.log('\n🔍 Vérification finale...');
+    const finalKeys = await AsyncStorage.getAllKeys();
+    console.log('📋 Clés finales:', finalKeys);
+    
+    for (const key of finalKeys) {
+      const value = await AsyncStorage.getItem(key);
+      console.log(`${key}:`, value);
+    }
+    
+    console.log('\n✅ Correction terminée !');
+    console.log('🎯 Vous pouvez maintenant tester la connexion avec:');
+    console.log('   - Email: test@accessplus.com');
+    console.log('   - Mot de passe: test123');
+    
   } catch (error) {
-    console.error('❌ Erreur lors de la vérification:', error);
-    return null;
+    console.error('❌ Erreur lors de la correction:', error);
   }
-}; 
+}
+
+fixAuth(); 

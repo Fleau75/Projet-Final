@@ -7,6 +7,7 @@ import { useTextSize } from '../theme/TextSizeContext';
 import { useAuth } from '../theme/AuthContext';
 import { BiometricService } from '../services/biometricService';
 import { useAppTheme } from '../theme/ThemeContext';
+import StorageService from '../services/storageService';
 
 export default function LoginScreen({ navigation }) {
   const theme = useTheme();
@@ -76,7 +77,7 @@ export default function LoginScreen({ navigation }) {
 
     try {
       // Utiliser la nouvelle méthode qui récupère automatiquement les informations
-      const result = await BiometricService.authenticateAndGetCredentials(lastEmail);
+      const result = await BiometricService.authenticateAndGetCredentials();
       
       if (result.success && result.credentials) {
         // Connexion automatique avec les informations récupérées
@@ -104,7 +105,7 @@ export default function LoginScreen({ navigation }) {
     try {
       // Pour les utilisateurs de test
       const testUserKey = `user_${email}`;
-      const testUser = await AsyncStorage.getItem(testUserKey);
+      const testUser = await StorageService.getUserData(testUserKey);
       
       if (testUser) {
         const userData = JSON.parse(testUser);
@@ -112,11 +113,11 @@ export default function LoginScreen({ navigation }) {
       }
       
       // Pour les utilisateurs normaux
-      const userProfile = await AsyncStorage.getItem('userProfile');
+      const userProfile = await StorageService.getUserData('userProfile');
       if (userProfile) {
         const profile = JSON.parse(userProfile);
         if (profile.email === email) {
-          return await AsyncStorage.getItem('userPassword');
+          return await StorageService.getUserData('userPassword');
         }
       }
       
@@ -145,7 +146,7 @@ export default function LoginScreen({ navigation }) {
       if (!result.success) {
         // Ne pas afficher d'erreur, juste vider le mot de passe
         setPassword('');
-        setIsLoading(false);
+        console.log('❌ Connexion échouée:', result.error);
         return;
       }
       
@@ -162,7 +163,9 @@ export default function LoginScreen({ navigation }) {
     } catch (err) {
       // Ce bloc ne devrait plus être atteint pour les erreurs de login,
       // mais on le garde pour les erreurs inattendues.
+      console.error('❌ Erreur inattendue lors de la connexion:', err);
       setError('Une erreur inattendue est survenue.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -195,62 +198,65 @@ export default function LoginScreen({ navigation }) {
         return;
       }
 
-      const result = await BiometricService.authenticateWithBiometrics(
-        'Configurez l\'authentification biométrique'
-      );
+      const result = await BiometricService.setupBiometricAuthentication(email, password);
       
       if (result.success) {
-        await BiometricService.saveBiometricPreferences(true, email);
         setBiometricEnabled(true);
         setLastEmail(email);
-        
         Alert.alert(
           "✅ Biométrie activée",
-          "Vous pouvez maintenant vous connecter avec votre empreinte digitale ou reconnaissance faciale !"
+          "L'authentification biométrique a été activée avec succès !"
         );
       } else {
         Alert.alert(
-          "❌ Échec de la configuration",
-          BiometricService.getErrorMessage(result.error)
+          "❌ Erreur",
+          "Impossible d'activer la biométrie. Veuillez réessayer."
         );
       }
     } catch (error) {
       console.error('Erreur lors de la configuration biométrie:', error);
-      Alert.alert("Erreur", "Impossible de configurer l'authentification biométrique");
+      Alert.alert(
+        "❌ Erreur",
+        "Une erreur est survenue lors de la configuration de la biométrie."
+      );
     }
   };
 
   const handleContinueWithoutAccount = async () => {
     setIsLoading(true);
+    setError('');
+    
     try {
-      // Sauvegarder l'email biométrique actuel avant de le désactiver temporairement
-      const currentBiometricPrefs = await BiometricService.loadBiometricPreferences();
-      const savedEmail = currentBiometricPrefs.email;
+      console.log('🚀 Début de la création du compte visiteur...');
       
-      // Désactiver temporairement la biométrie pour le mode visiteur
-      // mais garder l'email sauvegardé pour pouvoir le restaurer plus tard
-      await BiometricService.saveBiometricPreferences(false, savedEmail || 'visiteur@accessplus.com');
-      setBiometricEnabled(false);
-      setLastEmail('');
-      
-      // Créer un utilisateur temporaire pour le mode "sans compte"
-      await register('visiteur@accessplus.com', '123456', {
+      // Créer un compte visiteur
+      const visitorData = {
+        email: 'visiteur@accessplus.com',
         firstName: 'Visiteur',
         lastName: 'AccessPlus',
-        email: 'visiteur@accessplus.com',
         phone: ''
-      });
+      };
       
-      // La navigation se fait automatiquement via le contexte
-    } catch (err) {
-      console.error('Erreur lors de la création du compte visiteur:', err);
+      const result = await register('visiteur@accessplus.com', 'visitor123', visitorData);
+      
+      if (result.success) {
+        console.log('✅ Compte visiteur créé avec succès:', result);
+        // La navigation se fait automatiquement via le contexte
+      } else {
+        console.log('❌ Erreur lors de la création du compte visiteur');
+        setError('Impossible de créer le compte visiteur');
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la création du compte visiteur:', error);
+      setError('Une erreur est survenue lors de la création du compte visiteur');
+    } finally {
       setIsLoading(false);
     }
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#F1F5F9' }]}>
-      <KeyboardAvoidingView
+      <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
@@ -269,7 +275,7 @@ export default function LoginScreen({ navigation }) {
           </Text>
         </View>
 
-        <Surface style={[styles.surface, { 
+        <Surface style={[styles.surface, {
           backgroundColor: isDarkMode ? '#1E1E1E' : theme.colors.surface,
           borderColor: isDarkMode ? '#333333' : 'transparent',
           borderWidth: isDarkMode ? 1 : 0

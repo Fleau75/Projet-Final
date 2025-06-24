@@ -6,7 +6,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import StorageService from './storageService';
 
 // Configuration des notifications
 Notifications.setNotificationHandler({
@@ -55,7 +55,7 @@ class NotificationService {
         console.log('✅ Token de notification obtenu:', token.data);
         
         // Sauvegarder le token
-        await AsyncStorage.setItem('pushToken', token.data);
+        await StorageService.setPushToken(token.data);
       } catch (tokenError) {
         console.log('⚠️ Token de notification non disponible (notifications locales uniquement):', tokenError.message);
         // Les notifications locales fonctionnent sans token
@@ -97,8 +97,8 @@ class NotificationService {
    */
   static async getNotificationPreferences() {
     try {
-      const prefs = await AsyncStorage.getItem('notifications');
-      return prefs ? JSON.parse(prefs) : {
+      const prefs = await StorageService.getNotificationPrefs();
+      return prefs || {
         newPlaces: false,
         reviews: false,
         updates: false,
@@ -281,7 +281,7 @@ class NotificationService {
    */
   static async getPushToken() {
     try {
-      return await AsyncStorage.getItem('pushToken');
+      return await StorageService.getPushToken();
     } catch (error) {
       console.error('Erreur lors de la récupération du token:', error);
       return null;

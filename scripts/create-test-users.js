@@ -1,65 +1,66 @@
-const AsyncStorage = require('@react-native-async-storage/async-storage');
+/**
+ * Script pour créer des utilisateurs de test dans l'app
+ * Ce script doit être exécuté dans l'environnement React Native
+ */
 
-// Simuler AsyncStorage pour Node.js
-const mockAsyncStorage = {
-  getItem: async (key) => {
-    console.log(`🔍 Récupération de: ${key}`);
-    return null; // Simuler un AsyncStorage vide
-  },
-  setItem: async (key, value) => {
-    console.log(`💾 Sauvegarde de: ${key}`);
-    console.log(`📄 Contenu: ${value}`);
-  }
-};
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Remplacer AsyncStorage par notre mock
-global.AsyncStorage = mockAsyncStorage;
-
-const createTestUsers = async () => {
-  console.log('🚀 Création des utilisateurs de test...\n');
-
-  const testUsers = [
-    {
-      email: 'test@example.com',
-      password: '123456',
-      name: 'Utilisateur Test',
-      createdAt: new Date().toISOString()
-    },
-    {
-      email: 'demo@accessplus.com',
-      password: 'demo123',
-      name: 'Démo AccessPlus',
-      createdAt: new Date().toISOString()
-    },
-    {
-      email: 'admin@accessplus.com',
-      password: 'admin123',
-      name: 'Administrateur',
-      createdAt: new Date().toISOString()
+export const createTestUsers = async () => {
+  try {
+    console.log('👥 Création des utilisateurs de test...');
+    
+    const testUsers = [
+      {
+        email: 'test@accessplus.com',
+        password: 'test123',
+        name: 'Utilisateur Test',
+        uid: 'test_user_1',
+        createdAt: new Date().toISOString()
+      },
+      {
+        email: 'admin@accessplus.com',
+        password: 'admin123',
+        name: 'Administrateur',
+        uid: 'admin_user_1',
+        createdAt: new Date().toISOString()
+      }
+    ];
+    
+    for (const user of testUsers) {
+      const testUserKey = `user_${user.email}`;
+      await AsyncStorage.setItem(testUserKey, JSON.stringify(user));
+      console.log(`✅ Utilisateur de test créé: ${user.email}`);
     }
-  ];
-
-  for (const user of testUsers) {
-    const userKey = `user_${user.email}`;
-    const userData = JSON.stringify(user);
     
-    console.log(`👤 Création de l'utilisateur: ${user.email}`);
-    console.log(`📧 Email: ${user.email}`);
-    console.log(`🔑 Mot de passe: ${user.password}`);
-    console.log(`👨‍💼 Nom: ${user.name}`);
-    console.log(`📅 Créé le: ${user.createdAt}`);
-    console.log('---');
+    console.log('✅ Tous les utilisateurs de test ont été créés !');
+    console.log('🎯 Vous pouvez maintenant vous connecter avec:');
+    console.log('   - Email: test@accessplus.com');
+    console.log('   - Mot de passe: test123');
     
-    await AsyncStorage.setItem(userKey, userData);
+    return true;
+  } catch (error) {
+    console.error('❌ Erreur lors de la création des utilisateurs de test:', error);
+    return false;
   }
-
-  console.log('✅ Utilisateurs de test créés avec succès!');
-  console.log('\n📋 Informations de connexion:');
-  console.log('1. Email: test@example.com | Mot de passe: 123456');
-  console.log('2. Email: demo@accessplus.com | Mot de passe: demo123');
-  console.log('3. Email: admin@accessplus.com | Mot de passe: admin123');
-  console.log('\n🎯 Vous pouvez maintenant tester la connexion avec ces comptes!');
 };
 
-// Exécuter le script
-createTestUsers().catch(console.error); 
+export const clearTestUsers = async () => {
+  try {
+    console.log('🧹 Suppression des utilisateurs de test...');
+    
+    const allKeys = await AsyncStorage.getAllKeys();
+    const testUserKeys = allKeys.filter(key => key.startsWith('user_test@') || key.startsWith('user_admin@'));
+    
+    if (testUserKeys.length > 0) {
+      await AsyncStorage.multiRemove(testUserKeys);
+      console.log(`✅ ${testUserKeys.length} utilisateurs de test supprimés`);
+    } else {
+      console.log('ℹ️ Aucun utilisateur de test trouvé');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('❌ Erreur lors de la suppression des utilisateurs de test:', error);
+    return false;
+  }
+}; 

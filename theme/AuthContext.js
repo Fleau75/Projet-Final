@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('🔍 Initialisation de l\'authentification...');
       
-      // Ne plus vérifier l'état d'authentification au démarrage
+      // Ne plus restaurer automatiquement l'état d'authentification au démarrage
       // L'utilisateur devra toujours se reconnecter (via biométrie ou manuellement)
       console.log('🔐 Aucune restauration automatique - retour à l\'écran de connexion');
       
@@ -62,11 +62,29 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (email, password, userData) => {
     try {
+      console.log('🔧 AuthContext.register - Début avec:', { email, userData });
+      
       const result = await AuthService.register(email, password, userData);
+      console.log('🔧 AuthService.register résultat:', result);
+      
+      if (result.success) {
+        // Attendre un peu pour s'assurer que les données sont bien sauvegardées
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
       const userProfile = await AuthService.getCurrentUser();
+        console.log('🔧 getCurrentUser après inscription:', userProfile);
+        
+        if (userProfile) {
       setUser(userProfile);
+          console.log('✅ Utilisateur mis à jour dans le contexte:', userProfile);
+        } else {
+          console.warn('⚠️ getCurrentUser retourne null après inscription');
+        }
+      }
+      
       return result;
     } catch (error) {
+      console.error('❌ Erreur dans AuthContext.register:', error);
       throw error;
     }
   };

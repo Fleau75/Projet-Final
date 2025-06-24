@@ -25,6 +25,8 @@ import { ReviewsService } from '../services/firebaseService';
 import { useAuth } from '../theme/AuthContext';
 import { AuthService } from '../services/authService';
 import { UserNameWithBadge, VerificationStats } from '../components/VerifiedBadge';
+import StorageService from '../services/storageService';
+import { BiometricService } from '../services/biometricService';
 
 export default function ProfileScreen({ navigation, route }) {
   const theme = useTheme();
@@ -100,9 +102,8 @@ export default function ProfileScreen({ navigation, route }) {
       // 🔥 Charger les avis Firebase
       const reviews = await ReviewsService.getReviewsByUserId(userId);
       
-      // 🗺️ Charger les lieux ajoutés depuis AsyncStorage
-      const savedMarkers = await AsyncStorage.getItem('mapMarkers');
-      const mapPlaces = savedMarkers ? JSON.parse(savedMarkers) : [];
+      // 🗺️ Charger les lieux ajoutés depuis StorageService
+      const mapPlaces = await StorageService.getMapMarkers();
       
       console.log(`📊 Stats: ${reviews?.length || 0} avis, ${mapPlaces.length} lieux ajoutés`);
       
@@ -116,7 +117,7 @@ export default function ProfileScreen({ navigation, route }) {
         };
         
         const statsKey = `userStats_${userId}`;
-        await AsyncStorage.setItem(statsKey, JSON.stringify(updatedStats));
+        await StorageService.setUserData('stats', updatedStats);
         console.log(`✅ Statistiques mises à jour: ${updatedStats.reviewsAdded} avis`);
       }
       
@@ -227,7 +228,7 @@ export default function ProfileScreen({ navigation, route }) {
           onPress: async () => {
             try {
               // Supprimer les marqueurs de AsyncStorage
-              await AsyncStorage.removeItem('mapMarkers');
+              await StorageService.removeUserData('mapMarkers');
               console.log('🗑️ Tous les marqueurs supprimés du profil');
               Alert.alert("✅ Fait !", "Carte vidée avec succès");
               
@@ -302,23 +303,11 @@ export default function ProfileScreen({ navigation, route }) {
 
   // Nouvelle fonction pour gérer la création de compte depuis le mode visiteur
   const handleCreateAccount = async () => {
-    // Pour les visiteurs, on se déconnecte silencieusement puis on navigue vers l'inscription
-    if (userInfo.isVisitor) {
-      try {
-        // Se déconnecter silencieusement du mode visiteur
-        await logout();
-        // Navigation directe vers Register après un court délai
-        setTimeout(() => {
-          navigation.navigate('Register');
-        }, 100);
-      } catch (error) {
-        console.error('Erreur lors de la transition vers l\'inscription:', error);
-        // En cas d'erreur, essayer quand même la navigation
-        navigation.navigate('Register');
-      }
-    } else {
-      // Pour les utilisateurs normaux, navigation directe
+    try {
+      // Naviguer vers l'écran d'inscription
       navigation.navigate('Register');
+    } catch (error) {
+      console.error('Erreur lors de la navigation vers l\'inscription:', error);
     }
   };
 

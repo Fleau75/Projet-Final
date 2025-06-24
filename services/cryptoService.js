@@ -112,7 +112,18 @@ class CryptoService {
               console.log(`✅ Migration réussie pour: ${user.email}`);
             }
           } catch (parseError) {
-            console.warn(`⚠️ Erreur lors du parsing de ${key}:`, parseError);
+            // Gérer le cas spécial du visiteur où les données ne sont pas au format JSON
+            if (key.includes('visiteur@accessplus.com')) {
+              console.log(`🔄 Migration spéciale pour le visiteur: ${key}`);
+              // Le visiteur a un mot de passe stocké directement
+              if (userData && !userData.startsWith('U2F')) {
+                const encryptedPassword = this.encrypt(userData);
+                await AsyncStorage.setItem(key, encryptedPassword);
+                console.log(`✅ Migration du visiteur réussie pour: ${key}`);
+              }
+            } else {
+              console.warn(`⚠️ Erreur lors du parsing de ${key}:`, parseError);
+            }
           }
         }
       }

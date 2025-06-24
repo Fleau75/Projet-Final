@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import StorageService from './storageService';
 
 /**
  * Service pour gérer les préférences d'accessibilité de l'utilisateur
@@ -10,9 +11,9 @@ export class AccessibilityService {
    */
   static async loadAccessibilityPreferences() {
     try {
-      const savedPrefs = await AsyncStorage.getItem('accessibilityPrefs');
+      const savedPrefs = await StorageService.getAccessibilityPrefs();
       if (savedPrefs !== null) {
-        return JSON.parse(savedPrefs);
+        return savedPrefs;
       }
       return {
         requireRamp: false,

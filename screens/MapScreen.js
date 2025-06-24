@@ -10,6 +10,7 @@ import { searchPlacesByText } from '../services/placesSearch';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { AccessibilityService } from '../services/accessibilityService';
+import StorageService from '../services/storageService';
 
 // Style de carte sombre pour Google Maps
 const darkMapStyle = [
@@ -125,9 +126,8 @@ export default function MapScreen({ navigation, route }) {
   // Charger les marqueurs sauvegardés et les préférences d'accessibilité
   const loadSavedMarkers = async () => {
     try {
-      const savedMarkers = await AsyncStorage.getItem('mapMarkers');
-      if (savedMarkers) {
-        const allPlaces = JSON.parse(savedMarkers);
+      const allPlaces = await StorageService.getMapMarkers();
+      if (allPlaces && allPlaces.length > 0) {
         console.log(`📁 Chargement de ${allPlaces.length} marqueurs sauvegardés`);
         
         // Si on a déjà une position, l'utiliser, sinon essayer de la récupérer
@@ -182,7 +182,7 @@ export default function MapScreen({ navigation, route }) {
   // Sauvegarder les marqueurs
   const saveMarkers = async (markers) => {
     try {
-      await AsyncStorage.setItem('mapMarkers', JSON.stringify(markers));
+      await StorageService.setMapMarkers(markers);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde des marqueurs:', error);
     }
@@ -265,8 +265,7 @@ export default function MapScreen({ navigation, route }) {
   useEffect(() => {
     const checkStorageChanges = setInterval(async () => {
       try {
-        const savedMarkers = await AsyncStorage.getItem('mapMarkers');
-        const currentMarkers = savedMarkers ? JSON.parse(savedMarkers) : [];
+        const currentMarkers = await StorageService.getMapMarkers();
         
         // Si le nombre de marqueurs a changé, mettre à jour l'affichage
         if (currentMarkers.length !== places.length) {

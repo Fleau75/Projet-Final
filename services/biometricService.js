@@ -1,6 +1,7 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CryptoService from './cryptoService';
+import StorageService from './storageService';
 
 /**
  * Service pour gérer l'authentification biométrique
@@ -100,7 +101,18 @@ export class BiometricService {
         updatedAt: new Date().toISOString()
       };
       
-      await AsyncStorage.setItem('biometricPreferences', JSON.stringify(prefs));
+      // Sauvegarder les préférences de l'utilisateur actuel
+      await StorageService.setBiometricPrefs(prefs);
+      
+      // AUSSI sauvegarder l'email du dernier utilisateur qui a activé la biométrie de manière globale
+      if (enabled) {
+        await AsyncStorage.setItem('lastBiometricUser', email);
+        console.log('💾 Email biométrique sauvegardé globalement:', email);
+      } else {
+        await AsyncStorage.removeItem('lastBiometricUser');
+        console.log('🗑️ Email biométrique supprimé globalement');
+      }
+      
       console.log('✅ Préférences biométriques sauvegardées:', prefs);
       
       return true;
@@ -115,14 +127,56 @@ export class BiometricService {
    */
   static async loadBiometricPreferences() {
     try {
-      const prefs = await AsyncStorage.getItem('biometricPreferences');
+      // D'abord essayer de charger les préférences de l'utilisateur actuel
+      const prefs = await StorageService.getBiometricPrefs();
       
-      if (prefs) {
-        const parsedPrefs = JSON.parse(prefs);
-        console.log('📱 Préférences biométriques chargées:', parsedPrefs);
-        return parsedPrefs;
+      if (prefs && prefs.enabled) {
+        console.log('📱 Préférences biométriques chargées (utilisateur actuel):', prefs);
+        return prefs;
       }
       
+      // Si pas de préférences pour l'utilisateur actuel, essayer de récupérer le dernier utilisateur
+      const lastBiometricUser = await AsyncStorage.getItem('lastBiometricUser');
+      if (lastBiometricUser) {
+        console.log('🔍 Dernier utilisateur biométrique trouvé:', lastBiometricUser);
+        
+        // Vérifier si cet utilisateur existe encore et a la biométrie activée
+        const lastUserPrefs = await this.getBiometricPrefsForUser(lastBiometricUser);
+        if (lastUserPrefs && lastUserPrefs.enabled) {
+          console.log('📱 Préférences biométriques restaurées pour:', lastBiometricUser);
+          return lastUserPrefs;
+        } else {
+          console.log('❌ Dernier utilisateur biométrique n\'a plus la biométrie activée');
+          // Nettoyer la référence si l'utilisateur n'a plus la biométrie activée
+          await AsyncStorage.removeItem('lastBiometricUser');
+        }
+      } else {
+        console.log('🔍 Aucun dernier utilisateur biométrique trouvé');
+      }
+      
+      // Si on arrive ici, essayer de chercher dans toutes les clés AsyncStorage
+      console.log('🔍 Recherche de toutes les préférences biométriques...');
+      const allKeys = await AsyncStorage.getAllKeys();
+      const biometricKeys = allKeys.filter(key => key.includes('biometricPreferences'));
+      
+      for (const key of biometricKeys) {
+        try {
+          const prefsData = await AsyncStorage.getItem(key);
+          if (prefsData) {
+            const userPrefs = JSON.parse(prefsData);
+            if (userPrefs && userPrefs.enabled && userPrefs.email) {
+              console.log('📱 Préférences biométriques trouvées pour:', userPrefs.email);
+              // Sauvegarder cette référence pour la prochaine fois
+              await AsyncStorage.setItem('lastBiometricUser', userPrefs.email);
+              return userPrefs;
+            }
+          }
+        } catch (error) {
+          console.error('❌ Erreur lors de la lecture de', key, ':', error);
+        }
+      }
+      
+      console.log('📱 Aucune préférence biométrique trouvée');
       return {
         enabled: false,
         email: null,
@@ -135,6 +189,29 @@ export class BiometricService {
         email: null,
         updatedAt: null
       };
+    }
+  }
+
+  /**
+   * Récupérer les préférences biométriques pour un utilisateur spécifique
+   */
+  static async getBiometricPrefsForUser(email) {
+    try {
+      // Utiliser directement AsyncStorage pour éviter les conflits avec StorageService
+      const allKeys = await AsyncStorage.getAllKeys();
+      const userBiometricKey = allKeys.find(key => key.includes(`user_${email}_biometricPreferences`));
+      
+      if (userBiometricKey) {
+        const prefsData = await AsyncStorage.getItem(userBiometricKey);
+        if (prefsData) {
+          return JSON.parse(prefsData);
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération des préférences pour', email, ':', error);
+      return null;
     }
   }
 
@@ -156,7 +233,7 @@ export class BiometricService {
    */
   static async disableBiometrics() {
     try {
-      await AsyncStorage.removeItem('biometricPreferences');
+      await StorageService.setBiometricPrefs({ enabled: false, type: 'fingerprint' });
       console.log('✅ Biométrie désactivée');
       return true;
     } catch (error) {
@@ -266,19 +343,32 @@ export class BiometricService {
   /**
    * Authentifier avec biométrie et récupérer automatiquement les informations de connexion
    */
-  static async authenticateAndGetCredentials(email) {
+  static async authenticateAndGetCredentials(email = null) {
     try {
       console.log('🔐 Authentification biométrique avec récupération des informations...');
       
+      // Si aucun email fourni, essayer de le récupérer depuis les préférences
+      let targetEmail = email;
+      if (!targetEmail) {
+        const prefs = await this.loadBiometricPreferences();
+        if (prefs && prefs.enabled && prefs.email) {
+          targetEmail = prefs.email;
+          console.log('📧 Email récupéré depuis les préférences:', targetEmail);
+        } else {
+          console.log('❌ Aucun email trouvé dans les préférences biométriques');
+          return { success: false, reason: 'no_email_found' };
+        }
+      }
+      
       // Tenter l'authentification biométrique
-      const authResult = await this.autoAuthenticateWithBiometrics(email);
+      const authResult = await this.autoAuthenticateWithBiometrics(targetEmail);
       
       if (!authResult.success) {
         return { success: false, reason: authResult.reason };
       }
       
       // Récupérer les informations de connexion
-      const credentials = await this.getStoredCredentials(email);
+      const credentials = await this.getStoredCredentials(targetEmail);
       
       if (!credentials) {
         return { success: false, reason: 'no_credentials_found' };
@@ -293,6 +383,51 @@ export class BiometricService {
     } catch (error) {
       console.error('❌ Erreur lors de l\'authentification avec récupération:', error);
       return { success: false, reason: error.message };
+    }
+  }
+
+  /**
+   * Configurer l'authentification biométrique pour un utilisateur
+   */
+  static async setupBiometricAuthentication(email, password) {
+    try {
+      console.log('🔐 Configuration de l\'authentification biométrique pour:', email);
+      
+      // Empêcher l'activation de la biométrie pour le mode visiteur
+      if (email === 'visiteur@accessplus.com') {
+        console.log('🚫 Impossible d\'activer la biométrie pour le mode visiteur');
+        return { success: false, error: 'visitor_not_allowed' };
+      }
+      
+      // Vérifier si la biométrie est disponible
+      const isAvailable = await this.isBiometricAvailable();
+      if (!isAvailable) {
+        console.log('❌ Biométrie non disponible sur cet appareil');
+        return { success: false, error: 'not_available' };
+      }
+      
+      // Tenter l'authentification biométrique pour vérifier
+      const authResult = await this.authenticateWithBiometrics(
+        'Configurez l\'authentification biométrique'
+      );
+      
+      if (!authResult.success) {
+        console.log('❌ Échec de l\'authentification biométrique:', authResult.error);
+        return { success: false, error: authResult.error };
+      }
+      
+      // Sauvegarder les préférences biométriques
+      const saved = await this.saveBiometricPreferences(true, email);
+      if (!saved) {
+        console.log('❌ Impossible de sauvegarder les préférences biométriques');
+        return { success: false, error: 'save_failed' };
+      }
+      
+      console.log('✅ Authentification biométrique configurée avec succès');
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Erreur lors de la configuration biométrie:', error);
+      return { success: false, error: error.message };
     }
   }
 

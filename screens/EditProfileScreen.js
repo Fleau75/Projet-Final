@@ -29,6 +29,7 @@ import { useTextSize } from '../theme/TextSizeContext';
 import { AuthService } from '../services/authService';
 import { useAuth } from '../theme/AuthContext';
 import { VerificationStats } from '../components/VerifiedBadge';
+import StorageService from '../services/storageService';
 
 export default function EditProfileScreen({ navigation, route }) {
   const theme = useTheme();
@@ -162,7 +163,7 @@ export default function EditProfileScreen({ navigation, route }) {
       }
 
       // Sauvegarder dans AsyncStorage
-      await AsyncStorage.setItem('userProfile', JSON.stringify(profile));
+      await StorageService.setUserData('userProfile', profile);
 
       Alert.alert(
         "✅ Succès",
@@ -226,68 +227,27 @@ export default function EditProfileScreen({ navigation, route }) {
         }
       }
       
-      // 2. Supprimer les lieux favoris (marqueurs de la carte)
-      try {
-        console.log('🗑️ Suppression des lieux favoris...');
-        await AsyncStorage.removeItem('mapMarkers');
-        console.log('✅ Lieux favoris supprimés');
-      } catch (error) {
-        console.warn('⚠️ Erreur lors de la suppression des lieux favoris:', error);
-      }
-      
-      // 3. Supprimer toutes les données utilisateur de manière sécurisée
-      const keysToRemove = [
-        'userProfile',
-        'userPassword', 
-        'isAuthenticated',
-        'currentUser',
-        'biometricPreferences'
-      ];
-      
-      // Supprimer les clés principales
-      for (const key of keysToRemove) {
-        try {
-          await AsyncStorage.removeItem(key);
-          console.log(`✅ Clé supprimée: ${key}`);
-        } catch (error) {
-          console.warn(`⚠️ Erreur lors de la suppression de ${key}:`, error);
-        }
-      }
-      
-      // 4. Supprimer les données spécifiques à l'utilisateur
+      // 2. Utiliser la nouvelle fonction deleteUser d'AuthService pour une suppression complète
       if (userEmail) {
-        const userSpecificKeys = [
-          `user_${userEmail}`,
-          `userStats_email_${userEmail}`,
-          `userVerification_email_${userEmail}`,
-          `resetToken_${userEmail}`
-        ];
-        
-        for (const key of userSpecificKeys) {
-          try {
-            await AsyncStorage.removeItem(key);
-            console.log(`✅ Clé utilisateur supprimée: ${key}`);
-          } catch (error) {
-            console.warn(`⚠️ Erreur lors de la suppression de ${key}:`, error);
-          }
+        try {
+          console.log('🗑️ Suppression complète avec AuthService.deleteUser...');
+          await AuthService.deleteUser(userEmail);
+          console.log('✅ Suppression AuthService terminée');
+        } catch (error) {
+          console.warn('⚠️ Erreur lors de la suppression AuthService:', error);
         }
       }
       
-      // 5. Supprimer par UID si différent de l'email
-      if (userId && userId !== userEmail) {
-        const uidKeys = [
-          `userStats_${userId}`,
-          `userVerification_${userId}`
-        ];
-        
-        for (const key of uidKeys) {
-          try {
-            await AsyncStorage.removeItem(key);
-            console.log(`✅ Clé UID supprimée: ${key}`);
-          } catch (error) {
-            console.warn(`⚠️ Erreur lors de la suppression de ${key}:`, error);
-          }
-        }
+      // 3. Nettoyage supplémentaire pour compatibilité
+      try {
+        console.log('🗑️ Nettoyage supplémentaire...');
+        await StorageService.removeUserData('mapMarkers');
+        await StorageService.removeUserData('favorites');
+        await StorageService.removeUserData('accessibilityPrefs');
+        await StorageService.removeUserData('notifications');
+        console.log('✅ Nettoyage supplémentaire terminé');
+      } catch (error) {
+        console.warn('⚠️ Erreur lors du nettoyage supplémentaire:', error);
       }
       
       console.log('✅ Suppression du compte terminée avec succès');

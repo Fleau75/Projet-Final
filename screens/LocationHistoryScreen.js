@@ -19,7 +19,7 @@ import {
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CustomRating from '../components/CustomRating';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import StorageService from '../services/storageService';
 import { useTextSize } from '../theme/TextSizeContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -54,23 +54,18 @@ export default function LocationHistoryScreen({ navigation }) {
     requireAccessibleToilets: false,
   });
 
-  // Charger les lieux de la carte depuis AsyncStorage
+  // Charger les lieux de la carte depuis StorageService
   const loadMapPlaces = async () => {
     try {
       setIsLoading(true);
-      const savedMarkers = await AsyncStorage.getItem('mapMarkers');
-      if (savedMarkers) {
-        const places = JSON.parse(savedMarkers);
-        // Ajouter une date d'ajout si elle n'existe pas
-        const placesWithDate = places.map(place => ({
-          ...place,
-          addedDate: place.addedDate || new Date().toISOString(),
-          category: place.type || place.category || 'culture'
-        }));
-        setMapPlaces(placesWithDate);
-      } else {
-        setMapPlaces([]);
-      }
+      const places = await StorageService.getMapMarkers();
+      // Ajouter une date d'ajout si elle n'existe pas
+      const placesWithDate = places.map(place => ({
+        ...place,
+        addedDate: place.addedDate || new Date().toISOString(),
+        category: place.type || place.category || 'culture'
+      }));
+      setMapPlaces(placesWithDate);
       
       // Charger les préférences d'accessibilité
       const prefs = await AccessibilityService.loadAccessibilityPreferences();
@@ -132,7 +127,7 @@ export default function LocationHistoryScreen({ navigation }) {
     try {
       const updatedPlaces = mapPlaces.filter(place => place.id !== placeId);
       setMapPlaces(updatedPlaces);
-      await AsyncStorage.setItem('mapMarkers', JSON.stringify(updatedPlaces));
+      await StorageService.setMapMarkers(updatedPlaces);
     } catch (error) {
       console.error('Erreur lors de la suppression du lieu:', error);
       Alert.alert('Erreur', 'Impossible de supprimer ce lieu');

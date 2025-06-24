@@ -229,7 +229,9 @@ function AppContent() {
           <Stack.Navigator
             initialRouteName={user ? "MainTabs" : "Login"}
             screenOptions={{
-              headerShown: false
+              headerShown: false,
+              headerBackTitle: '',
+              headerBackTitleVisible: false,
             }}
           >
             {user ? (
@@ -257,7 +259,7 @@ function AppContent() {
                   options={{ 
                     title: 'Éditer le profil',
                     presentation: 'card',
-                    headerShown: false,
+                    headerShown: true,
                     headerBackTitle: '',
                     headerBackTitleVisible: false,
                     headerStyle: getHeaderStyle(theme),
@@ -346,6 +348,21 @@ function AppContent() {
                   component={RegisterScreen}
                   options={{ 
                     title: 'Inscription',
+                    presentation: 'card',
+                    headerShown: true,
+                    headerBackTitle: '',
+                    headerBackTitleVisible: false,
+                    headerStyle: getHeaderStyle(theme),
+                    headerTintColor: '#fff',
+                    headerTitleStyle: getHeaderTitleStyle(),
+                    headerTitleAlign: 'center',
+                  }}
+                />
+                <Stack.Screen 
+                  name="Settings" 
+                  component={SettingsScreen}
+                  options={{ 
+                    title: 'Réglages',
                     presentation: 'card',
                     headerShown: true,
                     headerBackTitle: '',

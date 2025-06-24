@@ -20,7 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '../theme/ThemeContext';
 import { useTextSize } from '../theme/TextSizeContext';
 import { useScreenReader } from '../theme/ScreenReaderContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import StorageService from '../services/storageService';
 import { BiometricService } from '../services/biometricService';
 import { useAuth } from '../theme/AuthContext';
 import NotificationService from '../services/notificationService';
@@ -40,6 +40,8 @@ export default function SettingsScreen({ navigation, route }) {
   
   // Référence pour le ScrollView
   const scrollViewRef = useRef(null);
+  // Référence pour la section notifications
+  const notificationsRef = useRef(null);
   
   // États pour les préférences d'accessibilité
   const [accessibilityPrefs, setAccessibilityPrefs] = useState({
@@ -70,25 +72,25 @@ export default function SettingsScreen({ navigation, route }) {
     const loadSettings = async () => {
       try {
         // Charger les préférences d'accessibilité
-        const savedAccessibilityPrefs = await AsyncStorage.getItem('accessibilityPrefs');
+        const savedAccessibilityPrefs = await StorageService.getAccessibilityPrefs();
         if (savedAccessibilityPrefs !== null) {
-          setAccessibilityPrefs(JSON.parse(savedAccessibilityPrefs));
+          setAccessibilityPrefs(savedAccessibilityPrefs);
         }
 
         // Charger les notifications
-        const savedNotifications = await AsyncStorage.getItem('notifications');
+        const savedNotifications = await StorageService.getNotificationPrefs();
         if (savedNotifications !== null) {
-          setNotifications(JSON.parse(savedNotifications));
+          setNotifications(savedNotifications);
         }
 
         // Charger le rayon de recherche
-        const savedRadius = await AsyncStorage.getItem('searchRadius');
+        const savedRadius = await StorageService.getSearchRadius();
         if (savedRadius !== null) {
           setSearchRadius(parseInt(savedRadius));
         }
 
         // Charger le style de carte
-        const savedMapStyle = await AsyncStorage.getItem('mapStyle');
+        const savedMapStyle = await StorageService.getMapStyle();
         if (savedMapStyle !== null) {
           setMapStyle(savedMapStyle);
         }
@@ -117,13 +119,34 @@ export default function SettingsScreen({ navigation, route }) {
     if (route?.params?.scrollToNotifications) {
       // Délai pour laisser le temps au composant de se rendre
       const timer = setTimeout(() => {
-        // Scroller vers une position approximative de la section notifications
-        // Chaque Card fait environ 200-300px, les notifications sont la 4ème section
-        const approximatePosition = 3 * 280; // Position approximative
-        scrollViewRef.current?.scrollTo({ 
-          y: approximatePosition, 
-          animated: true 
-        });
+        if (notificationsRef.current && scrollViewRef.current) {
+          // Mesurer la position de la section notifications
+          notificationsRef.current.measureLayout(
+            scrollViewRef.current,
+            (x, y) => {
+              // Scroller vers la section notifications avec un offset pour le header
+              scrollViewRef.current?.scrollTo({ 
+                y: Math.max(0, y - 100), // Offset de 100px pour le header
+                animated: true 
+              });
+            },
+            () => {
+              // Fallback si la mesure échoue
+              console.log('Fallback: scroll vers position approximative');
+              scrollViewRef.current?.scrollTo({ 
+                y: 1200, // Position approximative plus basse
+                animated: true 
+              });
+            }
+          );
+        } else {
+          // Fallback si les refs ne sont pas disponibles
+          console.log('Fallback: scroll vers position approximative');
+          scrollViewRef.current?.scrollTo({ 
+            y: 1200, // Position approximative plus basse
+            animated: true 
+          });
+        }
         
         // Nettoyer le paramètre pour éviter les réactualisations multiples
         navigation.setParams({ scrollToNotifications: false });
@@ -138,7 +161,7 @@ export default function SettingsScreen({ navigation, route }) {
     try {
       const roundedValue = Math.round(value);
       setSearchRadius(roundedValue);
-      await AsyncStorage.setItem('searchRadius', roundedValue.toString());
+      await StorageService.setSearchRadius(roundedValue.toString());
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du rayon de recherche:', error);
       Alert.alert(
@@ -156,7 +179,7 @@ export default function SettingsScreen({ navigation, route }) {
         [key]: !accessibilityPrefs[key]
       };
       setAccessibilityPrefs(newPrefs);
-      await AsyncStorage.setItem('accessibilityPrefs', JSON.stringify(newPrefs));
+      await StorageService.setAccessibilityPrefs(newPrefs);
       console.log('🔧 Préférences d\'accessibilité sauvegardées:', newPrefs);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde des préférences d\'accessibilité:', error);
@@ -170,7 +193,7 @@ export default function SettingsScreen({ navigation, route }) {
         [key]: !notifications[key]
       };
       setNotifications(newNotifications);
-      await AsyncStorage.setItem('notifications', JSON.stringify(newNotifications));
+      await StorageService.setNotificationPrefs(newNotifications);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde des notifications:', error);
       Alert.alert(
@@ -184,16 +207,16 @@ export default function SettingsScreen({ navigation, route }) {
   const handleSaveSettings = async () => {
     try {
       // Sauvegarder les préférences d'accessibilité
-      await AsyncStorage.setItem('accessibilityPrefs', JSON.stringify(accessibilityPrefs));
+      await StorageService.setAccessibilityPrefs(accessibilityPrefs);
       
       // Sauvegarder les notifications
-      await AsyncStorage.setItem('notifications', JSON.stringify(notifications));
+      await StorageService.setNotificationPrefs(notifications);
       
       // Sauvegarder le rayon de recherche
-      await AsyncStorage.setItem('searchRadius', searchRadius.toString());
+      await StorageService.setSearchRadius(searchRadius.toString());
       
       // Sauvegarder le style de carte
-      await AsyncStorage.setItem('mapStyle', mapStyle);
+      await StorageService.setMapStyle(mapStyle);
 
       Alert.alert(
         "Succès",
@@ -252,10 +275,10 @@ export default function SettingsScreen({ navigation, route }) {
                 resetTheme(), // Réinitialiser le thème (mode clair)
                 resetTextSize(), // Réinitialiser la taille de texte (normale)
                 // Sauvegarder les paramètres locaux
-                AsyncStorage.setItem('accessibilityPrefs', JSON.stringify(defaultAccessibilityPrefs)),
-                AsyncStorage.setItem('notifications', JSON.stringify(defaultNotifications)),
-                AsyncStorage.setItem('searchRadius', defaultSearchRadius.toString()),
-                AsyncStorage.setItem('mapStyle', defaultMapStyle),
+                StorageService.setAccessibilityPrefs(defaultAccessibilityPrefs),
+                StorageService.setNotificationPrefs(defaultNotifications),
+                StorageService.setSearchRadius(defaultSearchRadius.toString()),
+                StorageService.setMapStyle(defaultMapStyle),
               ]);
 
               Alert.alert(
@@ -659,7 +682,7 @@ export default function SettingsScreen({ navigation, route }) {
         </Card>
 
         {/* Notifications */}
-        <Card style={styles.card}>
+        <Card style={styles.card} ref={notificationsRef}>
           <Card.Content>
             <Title style={[styles.sectionTitle, { fontSize: textSizes.title }]}>🔔 Notifications</Title>
             

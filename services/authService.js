@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CryptoService from './cryptoService';
+import StorageService from './storageService';
+import { BiometricService } from './biometricService';
 
 // Utilisateurs de test pré-créés
 const TEST_USERS = {
@@ -93,15 +95,23 @@ export class AuthService {
         const testUserKey = `user_${email}`;
         const existingTestUser = await AsyncStorage.getItem(testUserKey);
         
-        // Vérifier dans le profil normal
-        const existingProfile = await AsyncStorage.getItem('userProfile');
+        // Vérifier dans le profil normal (utiliser AsyncStorage directement)
+        const existingProfileKey = `user_${email}_userProfile`;
+        const existingProfile = await AsyncStorage.getItem(existingProfileKey);
         
         console.log('🔧 Utilisateur de test existant:', existingTestUser ? 'Oui' : 'Non');
         console.log('🔧 Profil normal existant:', existingProfile ? 'Oui' : 'Non');
         
-        if (existingTestUser || (existingProfile && JSON.parse(existingProfile).email === email)) {
+        if (existingTestUser || existingProfile) {
           throw new Error('Cette adresse email est déjà utilisée');
         }
+        
+        // NETTOYER LE PROFIL VISITEUR SI IL EXISTE
+        console.log('🧹 Nettoyage du profil visiteur pour le nouveau compte...');
+        await AsyncStorage.removeItem('userProfile');
+        await AsyncStorage.removeItem('isAuthenticated');
+        await AsyncStorage.removeItem('currentUser');
+        await AsyncStorage.removeItem('userPassword');
       }
 
       // Simuler la création d'un utilisateur
@@ -126,11 +136,18 @@ export class AuthService {
       };
       console.log('🔧 Profil utilisateur à sauvegarder:', userProfile);
 
-      // Sauvegarder dans le format normal
-      await AsyncStorage.setItem('userProfile', JSON.stringify(userProfile));
-      await AsyncStorage.setItem('userPassword', password);
-      await AsyncStorage.setItem('isAuthenticated', 'true');
-      await AsyncStorage.setItem('currentUser', JSON.stringify(user));
+      // Sauvegarder dans le stockage privé avec StorageService
+      await StorageService.setUserData('userProfile', userProfile, userData.email);
+      await StorageService.setUserData('userPassword', password, userData.email);
+      await StorageService.setUserData('isAuthenticated', 'true', userData.email);
+      await StorageService.setUserData('currentUser', user, userData.email);
+
+      // AUSSI sauvegarder directement avec AsyncStorage pour la compatibilité
+      await AsyncStorage.setItem(`user_${userData.email}_userProfile`, JSON.stringify(userProfile));
+      await AsyncStorage.setItem(`user_${userData.email}_userPassword`, password);
+      await AsyncStorage.setItem(`user_${userData.email}_isAuthenticated`, 'true');
+      await AsyncStorage.setItem(`user_${userData.email}_currentUser`, JSON.stringify(user));
+      console.log('🔧 Données sauvegardées directement avec AsyncStorage');
 
       // AUSSI sauvegarder dans le format des utilisateurs de test pour la compatibilité
       if (!isVisitor) {
@@ -145,7 +162,24 @@ export class AuthService {
         console.log('🔧 Utilisateur sauvegardé aussi au format test:', testUserKey);
       }
 
+      // Pour le visiteur, sauvegarder aussi dans le stockage global
+      if (isVisitor) {
+        await AsyncStorage.setItem('userProfile', JSON.stringify(userProfile));
+        await AsyncStorage.setItem('isAuthenticated', 'true');
+        await AsyncStorage.setItem('userPassword', password);
+        console.log('🔧 Données visiteur sauvegardées dans le stockage global');
+      } else {
+        // Pour les utilisateurs normaux, sauvegarder aussi dans le stockage global
+        // pour que getCurrentUser() puisse les trouver
+        await AsyncStorage.setItem('userProfile', JSON.stringify(userProfile));
+        await AsyncStorage.setItem('isAuthenticated', 'true');
+        await AsyncStorage.setItem('userPassword', password);
+        await AsyncStorage.setItem('currentUser', JSON.stringify(user));
+        console.log('🔧 Données utilisateur sauvegardées dans le stockage global');
+      }
+
       console.log('🔧 Données sauvegardées avec succès');
+      console.log('🔧 Vérification finale - getCurrentUser():', await this.getCurrentUser());
       return { success: true, user };
     } catch (error) {
       // console.error('❌ Erreur lors de l\'inscription:', error); // Commenté pour empêcher le toast d'erreur
@@ -154,82 +188,140 @@ export class AuthService {
   }
 
   /**
-   * Connexion d'un utilisateur
+   * Connexion de l'utilisateur
    */
   static async login(email, password) {
     try {
-      console.log('🔧 AuthService.login - Début avec:', { email, password: '***' });
+      console.log('🔍 Tentative de connexion pour:', email);
       
-      // Vérifier d'abord les utilisateurs de test
+      // Cas spécial pour le visiteur
+      if (email === 'visiteur@accessplus.com') {
+        console.log('🔍 Connexion visiteur détectée');
+        
+        // Vérifier le mot de passe du visiteur (peut être stocké directement ou chiffré)
+        const visitorPasswordKey = `user_${email}_userPassword`;
+        let storedPassword = await AsyncStorage.getItem(visitorPasswordKey);
+        
+        // Si le mot de passe est chiffré, le déchiffrer
+        if (storedPassword && storedPassword.startsWith('U2F')) {
+          const CryptoService = require('./cryptoService').default;
+          storedPassword = CryptoService.decrypt(storedPassword);
+        }
+        
+        if (storedPassword === password) {
+          console.log('✅ Connexion visiteur réussie');
+          
+          // Créer le profil visiteur
+          const userProfile = {
+            uid: `user_${Date.now()}`,
+            name: 'Visiteur AccessPlus',
+            email: 'visiteur@accessplus.com',
+            phone: '',
+            joinDate: new Date().toLocaleDateString('fr-FR', { 
+              year: 'numeric', 
+              month: 'long' 
+            }),
+            isVisitor: true
+          };
+          
+          // Sauvegarder dans le stockage global pour le visiteur
+          await AsyncStorage.setItem('userProfile', JSON.stringify(userProfile));
+          await AsyncStorage.setItem('isAuthenticated', 'true');
+          
+          return { success: true };
+        }
+      }
+      
+      // Vérifier d'abord les utilisateurs de test (stockage direct)
       const testUserKey = `user_${email}`;
       const testUser = await AsyncStorage.getItem(testUserKey);
       
       if (testUser) {
-        console.log('🔧 Utilisateur de test trouvé: Oui');
+        console.log('🔍 Utilisateur de test trouvé');
         const userData = JSON.parse(testUser);
         
-        // Déchiffrer le mot de passe si nécessaire
+        // Vérifier si le mot de passe est chiffré
         let storedPassword = userData.password;
-        console.log('🔍 Mot de passe stocké (brut):', storedPassword ? '***' : 'null');
-        console.log('🔍 Mot de passe stocké est chiffré:', CryptoService.isEncrypted(storedPassword));
-        
-        if (CryptoService.isEncrypted(storedPassword)) {
+        if (storedPassword && storedPassword.startsWith('U2F')) {
+          console.log('🔍 Mot de passe chiffré détecté, déchiffrement...');
+          const CryptoService = require('./cryptoService').default;
           storedPassword = CryptoService.decrypt(storedPassword);
-          console.log('🔓 Mot de passe déchiffré:', storedPassword ? '***' : 'null');
+          console.log('🔍 Mot de passe déchiffré:', storedPassword);
         }
         
-        console.log('🔍 Comparaison des mots de passe:');
-        console.log('  - Mot de passe fourni:', password ? '***' : 'null');
-        console.log('  - Mot de passe stocké:', storedPassword ? '***' : 'null');
-        console.log('  - Correspondance:', storedPassword === password);
-        
-        if (userData.email === email && storedPassword === password) {
-          console.log('✅ Email et mot de passe corrects');
+        if (storedPassword === password) {
+          console.log('✅ Connexion réussie avec utilisateur de test');
           
-          // Sauvegarder les informations de connexion
-          await AsyncStorage.setItem('isAuthenticated', 'true');
-          await AsyncStorage.setItem('currentUser', JSON.stringify({
-            uid: testUserKey,
-            email: userData.email,
-            displayName: userData.name
-          }));
-          
-          // Créer un profil utilisateur pour la compatibilité
+          // Sauvegarder les données d'authentification dans le stockage privé
           const userProfile = {
-            uid: testUserKey,
+            email: userData.email,
             name: userData.name,
-            email: userData.email,
-            phone: '',
-            joinDate: userData.createdAt ? new Date(userData.createdAt).toLocaleDateString('fr-FR', { 
-              year: 'numeric', 
-              month: 'long' 
-            }) : new Date().toLocaleDateString('fr-FR', { 
-              year: 'numeric', 
-              month: 'long' 
-            }),
-            isVisitor: false
+            uid: userData.uid || `test_${Date.now()}`,
+            isVisitor: false,
+            createdAt: new Date().toISOString()
           };
+          
+          // Utiliser StorageService pour tout le stockage privé
+          await StorageService.setUserData('userProfile', userProfile, email);
+          await StorageService.setUserData('isAuthenticated', 'true', email);
+          await StorageService.setUserData('userPassword', password, email);
+          
+          // Sauvegarder aussi dans le stockage global pour compatibilité
           await AsyncStorage.setItem('userProfile', JSON.stringify(userProfile));
+          await AsyncStorage.setItem('isAuthenticated', 'true');
           
-          // Stocker le mot de passe de manière sécurisée
-          await CryptoService.setEncryptedItem('userPassword', password);
-          
-          console.log('🔧 Connexion réussie, utilisateur:', {
-            displayName: userData.name,
-            email: userData.email,
-            uid: testUserKey
-          });
-          
-          return { success: true, user: userData };
+          return { success: true };
         }
       }
       
       // Si pas d'utilisateur de test, vérifier les utilisateurs normaux
-      const storedPassword = await CryptoService.getEncryptedItem('userPassword');
-      const isAuthenticated = await AsyncStorage.getItem('isAuthenticated');
+      // Utiliser le même système de stockage pour les deux
+      const storedPassword = await StorageService.getUserData('userPassword', null, email);
+      const isAuthenticated = await StorageService.getUserData('isAuthenticated', null, email);
+      
+      console.log('🔍 Vérification utilisateur normal:', { email, storedPassword, isAuthenticated });
       
       if (isAuthenticated === 'true' && storedPassword === password) {
         console.log('✅ Connexion réussie avec utilisateur normal');
+        
+        // Récupérer le profil utilisateur
+        const userProfile = await StorageService.getUserData('userProfile', null, email);
+        
+        // Sauvegarder aussi dans le stockage global pour compatibilité
+        if (userProfile) {
+          await AsyncStorage.setItem('userProfile', JSON.stringify(userProfile));
+          await AsyncStorage.setItem('isAuthenticated', 'true');
+        }
+        
+        return { success: true };
+      }
+      
+      // Si on arrive ici, essayer de vérifier avec AsyncStorage directement
+      console.log('🔍 Tentative de vérification directe avec AsyncStorage...');
+      const directPassword = await AsyncStorage.getItem(`user_${email}_userPassword`);
+      const directAuth = await AsyncStorage.getItem(`user_${email}_isAuthenticated`);
+      
+      console.log('🔍 Vérification directe:', { email, directPassword, directAuth });
+      
+      // Vérifier si le mot de passe direct est chiffré
+      let decryptedDirectPassword = directPassword;
+      if (directPassword && directPassword.startsWith('U2F')) {
+        console.log('🔍 Mot de passe direct chiffré détecté, déchiffrement...');
+        const CryptoService = require('./cryptoService').default;
+        decryptedDirectPassword = CryptoService.decrypt(directPassword);
+        console.log('🔍 Mot de passe direct déchiffré:', decryptedDirectPassword);
+      }
+      
+      if (directAuth === 'true' && decryptedDirectPassword === password) {
+        console.log('✅ Connexion réussie avec vérification directe');
+        
+        // Récupérer le profil utilisateur
+        const userProfile = await AsyncStorage.getItem(`user_${email}_userProfile`);
+        if (userProfile) {
+          await AsyncStorage.setItem('userProfile', userProfile);
+          await AsyncStorage.setItem('isAuthenticated', 'true');
+        }
+        
         return { success: true };
       }
       
@@ -250,6 +342,12 @@ export class AuthService {
     try {
       console.log('🔓 Début de la déconnexion...');
       
+      // Récupérer l'utilisateur actuel pour savoir quelles données supprimer
+      const currentUser = await this.getCurrentUser();
+      const currentEmail = currentUser?.email;
+      
+      console.log('🔓 Utilisateur à déconnecter:', currentEmail);
+      
       // Supprimer les clés de session de manière sécurisée
       const keysToRemove = [
         'userProfile',
@@ -258,12 +356,49 @@ export class AuthService {
         'userPassword'
       ];
       
+      // Supprimer avec StorageService
       for (const key of keysToRemove) {
         try {
-          await AsyncStorage.removeItem(key);
-          console.log(`✅ Clé supprimée: ${key}`);
+          await StorageService.removeUserData(key);
+          console.log(`✅ Clé supprimée (StorageService): ${key}`);
         } catch (error) {
           console.warn(`⚠️ Erreur lors de la suppression de ${key}:`, error);
+        }
+      }
+      
+      // Supprimer aussi les données stockées directement avec AsyncStorage
+      if (currentEmail && currentEmail !== 'visiteur@accessplus.com') {
+        const directKeysToRemove = [
+          `user_${currentEmail}_userProfile`,
+          `user_${currentEmail}_userPassword`,
+          `user_${currentEmail}_isAuthenticated`,
+          `user_${currentEmail}_currentUser`
+        ];
+        
+        for (const key of directKeysToRemove) {
+        try {
+          await AsyncStorage.removeItem(key);
+            console.log(`✅ Clé supprimée (AsyncStorage): ${key}`);
+        } catch (error) {
+          console.warn(`⚠️ Erreur lors de la suppression de ${key}:`, error);
+          }
+        }
+      }
+      
+      // Supprimer les clés globales
+      const globalKeysToRemove = [
+        'userProfile',
+        'isAuthenticated',
+        'currentUser',
+        'userPassword'
+      ];
+      
+      for (const key of globalKeysToRemove) {
+        try {
+          await AsyncStorage.removeItem(key);
+          console.log(`✅ Clé globale supprimée: ${key}`);
+        } catch (error) {
+          console.warn(`⚠️ Erreur lors de la suppression de la clé globale ${key}:`, error);
         }
       }
       
@@ -281,16 +416,31 @@ export class AuthService {
    */
   static async isAuthenticated() {
     try {
+      // Essayer de récupérer l'utilisateur depuis les préférences biométriques
+      const biometricPrefs = await BiometricService.loadBiometricPreferences();
+      if (biometricPrefs && biometricPrefs.enabled && biometricPrefs.email) {
+        const isAuth = await StorageService.getUserData('isAuthenticated', null, biometricPrefs.email);
+        if (isAuth === 'true') {
+          console.log('🔧 Utilisateur authentifié via biométrie:', biometricPrefs.email);
+          return true;
+        }
+      }
+      
+      // Fallback : utiliser directement AsyncStorage pour les clés d'authentification
       const isAuth = await AsyncStorage.getItem('isAuthenticated');
       const userProfile = await AsyncStorage.getItem('userProfile');
       
       // Vérifier que l'utilisateur est authentifié ET qu'un profil existe
       if (isAuth === 'true' && userProfile) {
+        try {
         const profile = JSON.parse(userProfile);
         // Vérifier que ce n'est pas un profil vide ou invalide
         if (profile && profile.email && profile.name) {
           console.log('🔧 Utilisateur authentifié:', profile.email);
           return true;
+          }
+        } catch (parseError) {
+          console.error('Erreur lors du parsing du profil:', parseError);
         }
       }
       
@@ -307,13 +457,28 @@ export class AuthService {
    */
   static async getCurrentUser() {
     try {
+      // Essayer de récupérer l'utilisateur depuis les préférences biométriques
+      const biometricPrefs = await BiometricService.loadBiometricPreferences();
+      if (biometricPrefs && biometricPrefs.enabled && biometricPrefs.email) {
+        const userProfile = await StorageService.getUserData('userProfile', null, biometricPrefs.email);
+        if (userProfile && userProfile.email && userProfile.name) {
+          console.log('🔧 Utilisateur récupéré via biométrie:', userProfile.email);
+          return userProfile;
+        }
+      }
+      
+      // Fallback : utiliser directement AsyncStorage pour les clés d'authentification
       const isAuth = await AsyncStorage.getItem('isAuthenticated');
       if (isAuth === 'true') {
         const userProfile = await AsyncStorage.getItem('userProfile');
         if (userProfile) {
+          try {
           const profile = JSON.parse(userProfile);
           if (profile && profile.email && profile.name) {
             return profile;
+            }
+          } catch (parseError) {
+            console.error('Erreur lors du parsing du profil:', parseError);
           }
         }
       }
@@ -329,10 +494,15 @@ export class AuthService {
    */
   static async isCurrentUserVisitor() {
     try {
+      // Utiliser directement AsyncStorage pour les clés d'authentification
       const userProfile = await AsyncStorage.getItem('userProfile');
       if (userProfile) {
+        try {
         const profile = JSON.parse(userProfile);
         return profile && profile.isVisitor === true;
+        } catch (parseError) {
+          console.error('Erreur lors du parsing du profil:', parseError);
+        }
       }
       return false;
     } catch (error) {
@@ -379,7 +549,7 @@ export class AuthService {
   }
 
   /**
-   * Vérifier si un utilisateur existe avec cet email
+   * Vérifier si un utilisateur existe
    */
   static async checkUserExists(email) {
     try {
@@ -394,13 +564,26 @@ export class AuthService {
         return true;
       }
       
-      // Vérifier dans le profil normal
-      const userProfile = await AsyncStorage.getItem('userProfile');
-      if (userProfile) {
-        const profile = JSON.parse(userProfile);
-        if (profile.email === email) {
+      // Vérifier dans le profil normal (utiliser AsyncStorage directement)
+      const existingProfileKey = `user_${email}_userProfile`;
+      const existingProfile = await AsyncStorage.getItem(existingProfileKey);
+      
+      if (existingProfile) {
           console.log('✅ Utilisateur normal trouvé');
           return true;
+      }
+      
+      // Vérifier aussi dans le stockage global (pour les utilisateurs connectés)
+      const globalProfile = await AsyncStorage.getItem('userProfile');
+      if (globalProfile) {
+        try {
+          const profile = JSON.parse(globalProfile);
+          if (profile.email === email) {
+            console.log('✅ Utilisateur trouvé dans le stockage global');
+            return true;
+          }
+        } catch (parseError) {
+          console.log('❌ Erreur parsing profil global:', parseError);
         }
       }
       
@@ -431,7 +614,7 @@ export class AuthService {
         createdAt: new Date().toISOString()
       };
       
-      await AsyncStorage.setItem(`resetToken_${email}`, JSON.stringify(resetData));
+      await StorageService.setUserData(`resetToken_${email}`, resetData);
       
       console.log('✅ Token de réinitialisation créé:', resetToken);
       console.log('📧 Email de réinitialisation "envoyé" (simulé)');
@@ -454,19 +637,19 @@ export class AuthService {
       console.log('🔍 Vérification du token de réinitialisation pour:', email);
       
       const resetDataKey = `resetToken_${email}`;
-      const resetData = await AsyncStorage.getItem(resetDataKey);
+      const resetData = await StorageService.getUserData(resetDataKey);
       
       if (!resetData) {
         console.log('❌ Aucun token de réinitialisation trouvé');
         return false;
       }
       
-      const { token, expiresAt } = JSON.parse(resetData);
+      const { token, expiresAt } = resetData;
       
       // Vérifier si le token a expiré
       if (Date.now() > expiresAt) {
         console.log('❌ Token de réinitialisation expiré');
-        await AsyncStorage.removeItem(resetDataKey);
+        await StorageService.removeUserData(resetDataKey);
         return false;
       }
       
@@ -836,6 +1019,39 @@ export class AuthService {
     } catch (error) {
       console.error('❌ Erreur lors de la récupération du statut:', error);
       return { isVerified: false };
+    }
+  }
+
+  /**
+   * Supprimer complètement un utilisateur et toutes ses données
+   */
+  static async deleteUser(email) {
+    try {
+      console.log('🗑️ Suppression complète de l\'utilisateur:', email);
+      
+      // Supprimer les données de test
+      const testUserKey = `user_${email}`;
+      await AsyncStorage.removeItem(testUserKey);
+      
+      // Supprimer toutes les données privées de l'utilisateur
+      await StorageService.clearUserData(email);
+      
+      // Supprimer les clés AsyncStorage directes
+      const keysToRemove = [
+        `user_${email}_userProfile`,
+        `user_${email}_userPassword`,
+        `user_${email}_isAuthenticated`,
+        `user_${email}_currentUser`,
+        `resetToken_${email}`
+      ];
+      
+      await AsyncStorage.multiRemove(keysToRemove);
+      
+      console.log('✅ Utilisateur supprimé complètement:', email);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Erreur lors de la suppression de l\'utilisateur:', error);
+      throw error;
     }
   }
 } 

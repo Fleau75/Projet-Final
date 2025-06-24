@@ -29,7 +29,9 @@ export default function RegisterScreen({ navigation }) {
 
   // Effet pour détecter quand l'utilisateur est connecté et naviguer
   useEffect(() => {
+    console.log('🔧 RegisterScreen.useEffect - user changé:', user);
     if (user) {
+      console.log('✅ Utilisateur détecté, redirection vers MainTabs...');
       navigation.reset({
         index: 0,
         routes: [{ name: 'MainTabs' }],
@@ -115,26 +117,28 @@ export default function RegisterScreen({ navigation }) {
     setIsLoading(true);
 
     try {
-      console.log('🔍 Tentative d\'inscription avec:', { 
+      console.log('🔧 RegisterScreen.handleRegister - Début avec:', { 
         email: formData.email, 
         firstName: formData.firstName,
         lastName: formData.lastName 
       });
       
       // Inscription avec le contexte d'authentification
-      await register(formData.email, formData.password, {
+      const result = await register(formData.email, formData.password, {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone
       });
 
-      console.log('✅ Inscription réussie !');
+      console.log('✅ Inscription réussie ! Résultat:', result);
+      console.log('🔧 État user après inscription:', user);
       setIsLoading(false);
       
       // La navigation se fait automatiquement via le contexte
       // Pas besoin d'alerte qui peut interférer avec la redirection
     } catch (err) {
+      console.error('❌ Erreur lors de l\'inscription:', err);
       setIsLoading(false);
       Alert.alert(
         "Erreur d'inscription",
