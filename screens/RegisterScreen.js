@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTextSize } from '../theme/TextSizeContext';
 import { useAuth } from '../theme/AuthContext';
 import StorageService from '../services/storageService';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function RegisterScreen({ navigation }) {
   const theme = useTheme();
@@ -27,6 +28,17 @@ export default function RegisterScreen({ navigation }) {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Nouveaux états pour la migration des données visiteur
+  const [hasVisitorData, setHasVisitorData] = useState(false);
+  const [migrateVisitorData, setMigrateVisitorData] = useState(true);
+  const [visitorDataDetails, setVisitorDataDetails] = useState({
+    favorites: 0,
+    mapMarkers: 0,
+    reviews: 0
+  });
+  const [isCheckingVisitorData, setIsCheckingVisitorData] = useState(true);
+  const [visitorDataError, setVisitorDataError] = useState('');
 
   // Effet pour détecter quand l'utilisateur est connecté et naviguer
   useEffect(() => {
@@ -39,6 +51,100 @@ export default function RegisterScreen({ navigation }) {
       });
     }
   }, [user, navigation]);
+
+  // Rafraîchir la détection à chaque focus de l'écran
+  useFocusEffect(
+    React.useCallback(() => {
+      checkVisitorData();
+    }, [])
+  );
+
+  // Fonction pour vérifier les données visiteur disponibles
+  const checkVisitorData = async () => {
+    setIsCheckingVisitorData(true);
+    setVisitorDataError('');
+    try {
+      console.log('🔍 Vérification des données visiteur...');
+      const visitorData = await StorageService.getAllUserData('visitor');
+      console.log('📊 Données visiteur brutes:', visitorData);
+      console.log('📊 Clés visiteur trouvées:', Object.keys(visitorData));
+      
+      if (visitorData && Object.keys(visitorData).length > 0) {
+        console.log('✅ Données visiteur trouvées:', Object.keys(visitorData));
+        
+        // Compter les différents types de données
+        const details = {
+          favorites: visitorData.favorites ? visitorData.favorites.length : 0,
+          mapMarkers: visitorData.mapMarkers ? visitorData.mapMarkers.length : 0,
+          reviews: 0 // Sera mis à jour plus tard si nécessaire
+        };
+        
+        console.log('📊 Détails calculés:', details);
+        
+        // Vérifier les avis Firebase du visiteur
+        try {
+          const { ReviewsService } = await import('../services/firebaseService');
+          const visitorReviews = await ReviewsService.getReviewsByUserId('visiteur@accessplus.com', 'visiteur@accessplus.com');
+          details.reviews = visitorReviews ? visitorReviews.length : 0;
+          console.log(`📝 ${details.reviews} avis Firebase trouvés pour le visiteur`);
+        } catch (firebaseError) {
+          console.log('⚠️ Impossible de récupérer les avis Firebase:', firebaseError.message);
+          details.reviews = 0;
+        }
+        
+        setVisitorDataDetails(details);
+        setHasVisitorData(true);
+        setMigrateVisitorData(true); // Par défaut, proposer la migration
+        
+        console.log('📊 Détails finaux des données visiteur:', details);
+        console.log('✅ État mis à jour: hasVisitorData=true, migrateVisitorData=true');
+      } else {
+        console.log('❌ Aucune donnée visiteur trouvée');
+        setHasVisitorData(false);
+        setMigrateVisitorData(false);
+      }
+    } catch (error) {
+      console.error('❌ Erreur lors de la vérification des données visiteur:', error);
+      setHasVisitorData(false);
+      setMigrateVisitorData(false);
+      setVisitorDataError('Erreur lors de la détection des données visiteur.');
+    } finally {
+      setIsCheckingVisitorData(false);
+    }
+  };
+
+  // Fonction pour gérer le changement de la checkbox de migration
+  const handleMigrationToggle = () => {
+    if (migrateVisitorData) {
+      // L'utilisateur veut désactiver la migration - afficher une alerte de confirmation
+      Alert.alert(
+        "⚠️ Attention",
+        "Si vous désactivez la récupération, toutes vos données du mode visiteur seront définitivement supprimées et vous ne pourrez plus les récupérer.\n\nÊtes-vous sûr de vouloir continuer ?",
+        [
+          {
+            text: "Annuler",
+            style: "cancel",
+            onPress: () => {
+              // Garder la migration activée
+              console.log('✅ Migration maintenue par l\'utilisateur');
+            }
+          },
+          {
+            text: "Supprimer mes données",
+            style: "destructive",
+            onPress: () => {
+              setMigrateVisitorData(false);
+              console.log('❌ Migration désactivée par l\'utilisateur - données seront supprimées');
+            }
+          }
+        ]
+      );
+    } else {
+      // L'utilisateur veut activer la migration - pas de confirmation nécessaire
+      setMigrateVisitorData(true);
+      console.log('✅ Migration activée par l\'utilisateur');
+    }
+  };
 
   // Fonction pour mettre à jour les champs
   const updateField = (field, value) => {
@@ -121,7 +227,9 @@ export default function RegisterScreen({ navigation }) {
       console.log('🔧 RegisterScreen.handleRegister - Début avec:', { 
         email: formData.email, 
         firstName: formData.firstName,
-        lastName: formData.lastName 
+        lastName: formData.lastName,
+        hasVisitorData,
+        migrateVisitorData
       });
       
       // Inscription avec le contexte d'authentification
@@ -129,7 +237,8 @@ export default function RegisterScreen({ navigation }) {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
-        phone: formData.phone
+        phone: formData.phone,
+        migrateVisitorData: hasVisitorData && migrateVisitorData // Passer l'option de migration
       });
 
       console.log('✅ Inscription réussie ! Résultat:', result);
@@ -209,10 +318,10 @@ export default function RegisterScreen({ navigation }) {
               value={formData.email}
               onChangeText={(value) => updateField('email', value)}
               mode="outlined"
-              keyboardType="email-address"
-              autoCapitalize="none"
               style={styles.input}
               left={<TextInput.Icon icon="email" />}
+              keyboardType="email-address"
+              autoCapitalize="none"
               error={!!errors.email}
             />
             {errors.email && (
@@ -227,9 +336,9 @@ export default function RegisterScreen({ navigation }) {
               value={formData.phone}
               onChangeText={(value) => updateField('phone', value)}
               mode="outlined"
-              keyboardType="phone-pad"
               style={styles.input}
               left={<TextInput.Icon icon="phone" />}
+              keyboardType="phone-pad"
               error={!!errors.phone}
             />
             {errors.phone && (
@@ -244,22 +353,11 @@ export default function RegisterScreen({ navigation }) {
               value={formData.password}
               onChangeText={(value) => updateField('password', value)}
               mode="outlined"
-              secureTextEntry={!showPassword}
               style={styles.input}
               left={<TextInput.Icon icon="lock" />}
-              right={
-                <TextInput.Icon 
-                  icon={showPassword ? "eye-off" : "eye"} 
-                  onPress={() => setShowPassword(!showPassword)}
-                  forceTextInputFocus={false}
-                  accessibilityRole="button"
-                  accessibilityLabel={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                />
-              }
+              right={<TextInput.Icon icon={showPassword ? "eye-off" : "eye"} onPress={() => setShowPassword(!showPassword)} />}
+              secureTextEntry={!showPassword}
               error={!!errors.password}
-              accessible={true}
-              accessibilityLabel="Champ mot de passe"
-              accessibilityHint="Entrez votre mot de passe"
             />
             {errors.password && (
               <HelperText type="error" style={{ fontSize: textSizes.caption }}>
@@ -267,28 +365,17 @@ export default function RegisterScreen({ navigation }) {
               </HelperText>
             )}
 
-            {/* Confirmation mot de passe */}
+            {/* Confirmation du mot de passe */}
             <TextInput
               label="Confirmer le mot de passe *"
               value={formData.confirmPassword}
               onChangeText={(value) => updateField('confirmPassword', value)}
               mode="outlined"
-              secureTextEntry={!showConfirmPassword}
               style={styles.input}
-              left={<TextInput.Icon icon="lock" />}
-              right={
-                <TextInput.Icon 
-                  icon={showConfirmPassword ? "eye-off" : "eye"} 
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                  forceTextInputFocus={false}
-                  accessibilityRole="button"
-                  accessibilityLabel={showConfirmPassword ? "Masquer la confirmation" : "Afficher la confirmation"}
-                />
-              }
+              left={<TextInput.Icon icon="lock-check" />}
+              right={<TextInput.Icon icon={showConfirmPassword ? "eye-off" : "eye"} onPress={() => setShowConfirmPassword(!showConfirmPassword)} />}
+              secureTextEntry={!showConfirmPassword}
               error={!!errors.confirmPassword}
-              accessible={true}
-              accessibilityLabel="Champ confirmation mot de passe"
-              accessibilityHint="Confirmez votre mot de passe"
             />
             {errors.confirmPassword && (
               <HelperText type="error" style={{ fontSize: textSizes.caption }}>
@@ -296,24 +383,69 @@ export default function RegisterScreen({ navigation }) {
               </HelperText>
             )}
 
+            {/* Section migration des données visiteur */}
+            {isCheckingVisitorData ? (
+              <View style={{ alignItems: 'center', marginVertical: 16 }}>
+                <Text style={{ color: theme.colors.onSurface }}>Recherche de données visiteur...</Text>
+              </View>
+            ) : visitorDataError ? (
+              <View style={{ alignItems: 'center', marginVertical: 16 }}>
+                <Text style={{ color: theme.colors.error }}>{visitorDataError}</Text>
+              </View>
+            ) : hasVisitorData ? (
+              <View style={[styles.migrationSection, { 
+                borderColor: theme.colors.outline,
+                backgroundColor: theme.colors.surfaceVariant 
+              }]}>
+                <Text style={[styles.migrationTitle, { fontSize: textSizes.title, color: theme.colors.primary }]}>
+                  📱 Récupérer vos données ?
+                </Text>
+                
+                <View style={styles.migrationDetails}>
+                  {visitorDataDetails.favorites > 0 && (
+                    <Text style={[styles.migrationDetail, { fontSize: textSizes.caption, color: theme.colors.onSurface }]}>
+                      ❤️ {visitorDataDetails.favorites} lieu(x) favori(s)
+                    </Text>
+                  )}
+                  {visitorDataDetails.mapMarkers > 0 && (
+                    <Text style={[styles.migrationDetail, { fontSize: textSizes.caption, color: theme.colors.onSurface }]}>
+                      📍 {visitorDataDetails.mapMarkers} marqueur(s) de carte
+                    </Text>
+                  )}
+                  {visitorDataDetails.reviews > 0 && (
+                    <Text style={[styles.migrationDetail, { fontSize: textSizes.caption, color: theme.colors.onSurface }]}>
+                      ⭐ {visitorDataDetails.reviews} avis
+                    </Text>
+                  )}
+                </View>
+
+                <Checkbox.Item
+                  label="Récupérer mes données du mode visiteur"
+                  status={migrateVisitorData ? 'checked' : 'unchecked'}
+                  onPress={handleMigrationToggle}
+                  style={styles.migrationCheckbox}
+                  labelStyle={{ color: theme.colors.onSurface }}
+                />
+                
+                {!migrateVisitorData && (
+                  <Text style={[styles.migrationWarning, { fontSize: textSizes.caption, color: theme.colors.error }]}>
+                    ⚠️ Attention : Vos données seront définitivement supprimées
+                  </Text>
+                )}
+              </View>
+            ) : (
+              <View style={{ alignItems: 'center', marginVertical: 16 }}>
+                <Text style={{ color: theme.colors.onSurfaceVariant, opacity: 0.7 }}>Aucune donnée visiteur détectée.</Text>
+              </View>
+            )}
+
             {/* Conditions d'utilisation */}
-            <View style={styles.termsContainer}>
-              <Checkbox
-                status={acceptTerms ? 'checked' : 'unchecked'}
-                onPress={() => setAcceptTerms(!acceptTerms)}
-                uncheckedColor={errors.terms ? theme.colors.error : undefined}
-              />
-              <Text style={[styles.termsText, { fontSize: textSizes.body }]}>
-                J'accepte les{' '}
-                <Text style={{ color: theme.colors.primary, textDecorationLine: 'underline' }}>
-                  conditions d'utilisation
-                </Text>
-                {' '}et la{' '}
-                <Text style={{ color: theme.colors.primary, textDecorationLine: 'underline' }}>
-                  politique de confidentialité
-                </Text>
-              </Text>
-            </View>
+            <Checkbox.Item
+              label="J'accepte les conditions d'utilisation et la politique de confidentialité"
+              status={acceptTerms ? 'checked' : 'unchecked'}
+              onPress={() => setAcceptTerms(!acceptTerms)}
+              style={styles.termsCheckbox}
+            />
             {errors.terms && (
               <HelperText type="error" style={{ fontSize: textSizes.caption }}>
                 {errors.terms}
@@ -326,50 +458,21 @@ export default function RegisterScreen({ navigation }) {
               onPress={handleRegister}
               loading={isLoading}
               disabled={isLoading}
-              style={styles.button}
-              labelStyle={{ fontSize: textSizes.body }}
+              style={styles.registerButton}
               icon="account-plus"
             >
-              Créer mon compte
+              {isLoading ? 'Création en cours...' : 'Créer mon compte'}
             </Button>
 
             {/* Lien vers la connexion */}
             <View style={styles.loginContainer}>
-              <Text style={{ fontSize: textSizes.body, color: theme.colors.onSurfaceVariant }}>
-                Vous avez déjà un compte ?
+              <Text style={[styles.loginText, { fontSize: textSizes.body, color: theme.colors.onSurfaceVariant }]}>
+                Déjà un compte ?
               </Text>
               <Button
                 mode="text"
-                onPress={async () => {
-                  try {
-                    console.log('🔓 Déconnexion depuis RegisterScreen...');
-                    // Toujours déconnecter pour retourner à l'écran de connexion
-                    await logout();
-                    console.log('✅ Déconnexion réussie');
-                    
-                    // Attendre que la déconnexion soit complètement terminée
-                    // et que l'App.js ait basculé vers le navigateur d'authentification
-                    setTimeout(() => {
-                      console.log('🔄 Redirection vers Login...');
-                      navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'Login' }],
-                      });
-                    }, 100);
-                    
-                  } catch (error) {
-                    console.error('❌ Erreur lors de la déconnexion:', error);
-                    // En cas d'erreur, forcer la redirection quand même
-                    setTimeout(() => {
-                      navigation.reset({
-                        index: 0,
-                        routes: [{ name: 'Login' }],
-                      });
-                    }, 100);
-                  }
-                }}
+                onPress={() => navigation.navigate('Login')}
                 style={styles.loginButton}
-                labelStyle={{ fontSize: textSizes.body }}
               >
                 Se connecter
               </Button>
@@ -447,5 +550,41 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     marginLeft: 4,
+  },
+  migrationSection: {
+    marginTop: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderRadius: 8,
+  },
+  migrationTitle: {
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  migrationSubtitle: {
+    marginBottom: 16,
+  },
+  migrationDetails: {
+    marginBottom: 16,
+  },
+  migrationDetail: {
+    marginBottom: 4,
+  },
+  migrationCheckbox: {
+    marginTop: 8,
+  },
+  termsCheckbox: {
+    marginTop: 8,
+  },
+  registerButton: {
+    marginTop: 16,
+    marginBottom: 16,
+    paddingVertical: 4,
+  },
+  loginText: {
+    marginRight: 8,
+  },
+  migrationWarning: {
+    marginTop: 8,
   },
 }); 

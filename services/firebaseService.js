@@ -391,24 +391,26 @@ export class ReviewsService {
   /**
    * Récupérer tous les avis d'un utilisateur
    */
-  static async getReviewsByUserId(userId = 'anonymous') {
+  static async getReviewsByUserId(userId = 'anonymous', userEmail = null) {
     try {
       console.log('📖 Récupération des avis pour l\'utilisateur:', userId);
       
-      // Si c'est un utilisateur connecté, récupérer son email
-      let userEmail = null;
-      if (userId !== 'anonymous') {
+      // Si un email est fourni directement, l'utiliser
+      let emailToSearch = userEmail;
+      
+      // Sinon, si c'est un utilisateur connecté, récupérer son email
+      if (!emailToSearch && userId !== 'anonymous') {
         const currentUser = await AuthService.getCurrentUser();
-        userEmail = currentUser ? currentUser.email : null;
+        emailToSearch = currentUser ? currentUser.email : null;
       }
       
       const reviewsRef = collection(db, REVIEWS_COLLECTION);
       
       // Si on a un email, chercher par email, sinon par userId
       let q;
-      if (userEmail) {
-        q = query(reviewsRef, where('userEmail', '==', userEmail));
-        console.log(`📖 Recherche par email: ${userEmail}`);
+      if (emailToSearch) {
+        q = query(reviewsRef, where('userEmail', '==', emailToSearch));
+        console.log(`📖 Recherche par email: ${emailToSearch}`);
       } else {
         q = query(reviewsRef, where('userId', '==', userId));
         console.log(`📖 Recherche par userId: ${userId}`);

@@ -107,18 +107,86 @@ export class AuthService {
         }
         
         // MIGRATION DES DONNÉES VISITEUR AVANT LE NETTOYAGE
-        console.log('🔄 Vérification des données visiteur pour migration...');
-        const visitorData = await StorageService.getAllUserData('visitor');
-        if (visitorData && Object.keys(visitorData).length > 0) {
-          console.log('✅ Données visiteur trouvées, migration automatique...');
-          try {
-            const migrationResult = await StorageService.migrateVisitorDataToUser(userData.email);
-            console.log('📊 Résultat migration automatique:', migrationResult);
-          } catch (migrationError) {
-            console.error('❌ Erreur migration automatique:', migrationError);
+        // Vérifier si l'utilisateur veut migrer ses données
+        const shouldMigrate = userData.migrateVisitorData !== false; // Par défaut true, sauf si explicitement false
+        console.log('🔄 Option de migration des données visiteur:', shouldMigrate);
+        
+        if (shouldMigrate) {
+          console.log('🔄 Vérification des données visiteur pour migration...');
+          const visitorData = await StorageService.getAllUserData('visitor');
+          if (visitorData && Object.keys(visitorData).length > 0) {
+            console.log('✅ Données visiteur trouvées, migration automatique...');
+            try {
+              const migrationResult = await StorageService.migrateVisitorDataToUser(userData.email, true);
+              console.log('📊 Résultat migration automatique:', migrationResult);
+              
+              // Afficher un message de confirmation si la migration a réussi
+              if (migrationResult.migrated) {
+                console.log('✅ Migration réussie avec succès');
+              }
+            } catch (migrationError) {
+              console.error('❌ Erreur migration automatique:', migrationError);
+              // Ne pas faire échouer l'inscription si la migration échoue
+            }
+          } else {
+            console.log('❌ Aucune donnée visiteur à migrer');
           }
         } else {
-          console.log('❌ Aucune donnée visiteur à migrer');
+          console.log('❌ Migration des données visiteur désactivée par l\'utilisateur');
+          // Si l'utilisateur ne veut pas migrer, nettoyer quand même les données visiteur
+          try {
+            console.log('🧹 Nettoyage des données visiteur (migration refusée)...');
+            await StorageService.clearUserData('visitor');
+            
+            // Nettoyer aussi les données globales
+            const globalKeysToRemove = [
+              'userProfile',
+              'isAuthenticated', 
+              'currentUser',
+              'userPassword',
+              'favorites',
+              'mapMarkers',
+              'accessibilityPrefs',
+              'notifications',
+              'searchRadius',
+              'mapStyle',
+              'biometricPreferences',
+              'pushToken',
+              'history',
+              'settings'
+            ];
+            
+            for (const key of globalKeysToRemove) {
+              try {
+                await AsyncStorage.removeItem(key);
+                console.log(`🗑️ Clé globale supprimée: ${key}`);
+              } catch (error) {
+                console.warn(`⚠️ Erreur lors de la suppression de ${key}:`, error);
+              }
+            }
+            
+            // Nettoyer aussi les avis Firebase du visiteur
+            try {
+              console.log('🧹 Nettoyage des avis Firebase du visiteur...');
+              const { ReviewsService } = await import('./firebaseService');
+              const visitorReviews = await ReviewsService.getReviewsByUserId('visiteur@accessplus.com', 'visiteur@accessplus.com');
+              console.log(`📝 ${visitorReviews.length} avis visiteur trouvés à supprimer`);
+              
+              if (visitorReviews.length > 0) {
+                for (const review of visitorReviews) {
+                  console.log(`🗑️ Suppression de l'avis: ${review.placeName} (${review.id})`);
+                  await ReviewsService.deleteReview(review.id);
+                }
+                console.log(`✅ ${visitorReviews.length} avis visiteur supprimés`);
+              }
+            } catch (firebaseError) {
+              console.error('❌ Erreur lors du nettoyage des avis Firebase:', firebaseError);
+            }
+            
+            console.log('✅ Nettoyage des données visiteur terminé');
+          } catch (cleanupError) {
+            console.error('❌ Erreur lors du nettoyage:', cleanupError);
+          }
         }
         
         // NETTOYER LE PROFIL VISITEUR SI IL EXISTE

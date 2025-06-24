@@ -376,21 +376,30 @@ export class StorageService {
   /**
    * Migre toutes les données du visiteur vers un nouvel utilisateur
    * @param {string} userEmail - Email du nouvel utilisateur
+   * @param {boolean} shouldCleanup - Si true, nettoie les données visiteur après migration
    */
-  static async migrateVisitorDataToUser(userEmail) {
+  static async migrateVisitorDataToUser(userEmail, shouldCleanup = true) {
     try {
       const visitorId = 'visitor';
       const visitorData = await this.getAllUserData(visitorId);
       let migratedCount = 0;
       let reviewsMigrated = 0;
       
+      console.log('🔄 Début de la migration des données visiteur vers:', userEmail);
+      console.log('📊 Données visiteur trouvées:', Object.keys(visitorData));
+      
       // Migration des données locales
       if (visitorData && Object.keys(visitorData).length > 0) {
         // Copier chaque clé du visiteur vers le nouvel utilisateur
         for (const [key, value] of Object.entries(visitorData)) {
-          await this.setUserData(key, value, userEmail);
-          console.log(`Migré ${key} du visiteur vers ${userEmail}`);
-          migratedCount++;
+          // Ne pas migrer les clés d'authentification
+          if (!['userProfile', 'isAuthenticated', 'userPassword', 'currentUser'].includes(key)) {
+            await this.setUserData(key, value, userEmail);
+            console.log(`✅ Migré ${key} du visiteur vers ${userEmail}`);
+            migratedCount++;
+          } else {
+            console.log(`⏭️ Ignoré ${key} (clé d'authentification)`);
+          }
         }
       }
 
@@ -400,11 +409,11 @@ export class StorageService {
         const { ReviewsService } = await import('./firebaseService');
         console.log('✅ ReviewsService importé avec succès');
         
-        const visitorReviews = await ReviewsService.getReviewsByUserId('visitor');
+        // Chercher les avis avec l'email du visiteur, pas l'ID
+        const visitorReviews = await ReviewsService.getReviewsByUserId('visiteur@accessplus.com', 'visiteur@accessplus.com');
         console.log(`📝 ${visitorReviews.length} avis visiteur trouvés à migrer`);
         
         if (visitorReviews && visitorReviews.length > 0) {
-          console.log(`📝 ${visitorReviews.length} avis visiteur trouvés à migrer`);
           reviewsMigrated = visitorReviews.length;
           
           for (const review of visitorReviews) {
@@ -414,12 +423,8 @@ export class StorageService {
             let migratedImages = [];
             if (review.photos && review.photos.length > 0) {
               console.log(`🖼️ Migration de ${review.photos.length} photos...`);
-              console.log(`🖼️ Photos originales:`, review.photos);
               try {
                 // Recopier chaque image vers le nouveau compte
-                const { ReviewsService } = await import('./firebaseService');
-                
-                // Forcer l'upload des images même en mode développement
                 const uploadPromises = review.photos.map(async (imageUri, index) => {
                   console.log(`🖼️ Upload de la photo ${index + 1}: ${imageUri}`);
                   
@@ -436,13 +441,12 @@ export class StorageService {
                 });
                 
                 migratedImages = await Promise.all(uploadPromises);
-                console.log(`✅ ${migratedImages.length} photos migrées avec succès:`, migratedImages);
+                console.log(`✅ ${migratedImages.length} photos migrées avec succès`);
               } catch (imageError) {
                 console.error('❌ Erreur lors de la migration des photos:', imageError);
-                console.error('❌ Détails de l\'erreur:', imageError.message);
                 // Continuer avec les photos originales si la migration échoue
                 migratedImages = review.photos;
-                console.log(`⚠️ Utilisation des photos originales:`, migratedImages);
+                console.log(`⚠️ Utilisation des photos originales`);
               }
             }
             
@@ -452,15 +456,12 @@ export class StorageService {
               placeName: review.placeName,
               rating: review.rating,
               comment: review.comment,
-              photos: migratedImages, // Utiliser les photos migrées (champ 'photos' pas 'images')
+              photos: migratedImages,
               accessibility: review.accessibility || {},
-              userEmail: userEmail, // Ajouter directement l'email
-              // Ne pas inclure les champs Firebase (id, createdAt, etc.)
+              userEmail: userEmail,
             };
             
-            console.log(`📝 Données du nouvel avis:`, newReviewData);
-            console.log(`📝 Email utilisateur: ${userEmail}`);
-            
+            console.log(`📝 Création du nouvel avis pour ${review.placeName}`);
             const newReviewId = await ReviewsService.addReview(newReviewData, userEmail);
             console.log(`✅ Avis migré pour ${review.placeName} -> ID: ${newReviewId}`);
             
@@ -470,6 +471,23 @@ export class StorageService {
           }
           
           console.log(`✅ ${visitorReviews.length} avis Firebase migrés avec succès`);
+          
+          // NETTOYAGE SUPPLÉMENTAIRE : Supprimer tous les avis restants du visiteur
+          try {
+            console.log('🧹 Nettoyage supplémentaire des avis Firebase du visiteur...');
+            const remainingReviews = await ReviewsService.getReviewsByUserId('visiteur@accessplus.com', 'visiteur@accessplus.com');
+            console.log(`📝 ${remainingReviews.length} avis restants trouvés pour nettoyage`);
+            
+            if (remainingReviews.length > 0) {
+              for (const review of remainingReviews) {
+                console.log(`🗑️ Suppression de l'avis restant: ${review.placeName} (${review.id})`);
+                await ReviewsService.deleteReview(review.id);
+              }
+              console.log(`✅ ${remainingReviews.length} avis restants supprimés`);
+            }
+          } catch (cleanupError) {
+            console.error('❌ Erreur lors du nettoyage supplémentaire des avis:', cleanupError);
+          }
           
           // Mettre à jour les statistiques de l'utilisateur
           try {
@@ -503,18 +521,67 @@ export class StorageService {
       } catch (firebaseError) {
         console.error('❌ Erreur lors de la migration des avis Firebase:', firebaseError);
         console.error('❌ Détails de l\'erreur:', firebaseError.message);
-        console.error('❌ Stack trace:', firebaseError.stack);
         // Ne pas faire échouer toute la migration si Firebase échoue
       }
 
-      return { 
+      // NETTOYAGE DES DONNÉES VISITEUR APRÈS MIGRATION RÉUSSIE
+      if (shouldCleanup && (migratedCount > 0 || reviewsMigrated > 0)) {
+        console.log('🧹 Nettoyage des données visiteur après migration réussie...');
+        try {
+          // Nettoyer toutes les données privées du visiteur
+          await this.clearUserData(visitorId);
+          console.log('✅ Données privées visiteur nettoyées');
+          
+          // Nettoyer aussi les données globales du visiteur
+          const globalKeysToRemove = [
+            'userProfile',
+            'isAuthenticated', 
+            'currentUser',
+            'userPassword',
+            'favorites',
+            'mapMarkers',
+            'accessibilityPrefs',
+            'notifications',
+            'searchRadius',
+            'mapStyle',
+            'biometricPreferences',
+            'pushToken',
+            'history',
+            'settings'
+          ];
+          
+          for (const key of globalKeysToRemove) {
+            try {
+              await AsyncStorage.removeItem(key);
+              console.log(`🗑️ Clé globale supprimée: ${key}`);
+            } catch (error) {
+              console.warn(`⚠️ Erreur lors de la suppression de ${key}:`, error);
+            }
+          }
+          
+          console.log('✅ Nettoyage complet des données visiteur terminé');
+        } catch (cleanupError) {
+          console.error('❌ Erreur lors du nettoyage des données visiteur:', cleanupError);
+          // Ne pas faire échouer la migration si le nettoyage échoue
+        }
+      } else if (!shouldCleanup) {
+        console.log('⏭️ Nettoyage désactivé (utilisateur a choisi de ne pas migrer)');
+      } else {
+        console.log('⏭️ Aucun nettoyage nécessaire (aucune donnée migrée)');
+      }
+
+      const result = { 
         migrated: migratedCount > 0 || reviewsMigrated > 0, 
         count: migratedCount,
         reviewsMigrated: reviewsMigrated
       };
+      
+      console.log('📊 Résultat final de la migration:', result);
+      return result;
+      
     } catch (error) {
-      console.error('Erreur lors de la migration des données visiteur:', error);
-      return { migrated: false, error };
+      console.error('❌ Erreur lors de la migration des données visiteur:', error);
+      return { migrated: false, error: error.message };
     }
   }
 }
