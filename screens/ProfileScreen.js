@@ -525,9 +525,9 @@ export default function ProfileScreen({ navigation, route }) {
             <List.Item
               title="Vider la carte"
               description="Supprimer tous mes marqueurs"
-              left={props => <List.Icon {...props} icon="map-marker-remove" />}
+              left={props => <List.Icon {...props} icon="map-marker-off" />}
               right={props => <List.Icon {...props} icon="chevron-right" />}
-              onPress={() => handleClearMapMarkers()}
+              onPress={handleClearMapMarkers}
               titleStyle={{ fontSize: textSizes.body }}
               descriptionStyle={{ fontSize: textSizes.caption }}
             />

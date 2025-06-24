@@ -211,24 +211,20 @@ export default function ChangePasswordScreen({ navigation }) {
                 mode="outlined"
                 secureTextEntry={!showNewPassword}
                 style={styles.input}
-                left={<TextInput.Icon icon="lock-plus" />}
+                left={<TextInput.Icon icon="lock" />}
                 right={
                   <TextInput.Icon 
                     icon={showNewPassword ? "eye-off" : "eye"} 
                     onPress={() => setShowNewPassword(!showNewPassword)}
+                    forceTextInputFocus={false}
+                    accessibilityRole="button"
+                    accessibilityLabel={showNewPassword ? "Masquer le nouveau mot de passe" : "Afficher le nouveau mot de passe"}
                   />
                 }
                 error={!!errors.newPassword}
-                theme={{ 
-                  fonts: { bodyLarge: { fontSize: textSizes.body } },
-                  colors: {
-                    primary: theme.colors.primary,
-                    background: isDarkMode ? '#2D2D2D' : theme.colors.surface,
-                    surface: isDarkMode ? '#2D2D2D' : theme.colors.surface,
-                    text: isDarkMode ? '#FFFFFF' : theme.colors.onSurface,
-                    placeholder: isDarkMode ? '#888888' : theme.colors.onSurfaceVariant,
-                  }
-                }}
+                accessible={true}
+                accessibilityLabel="Champ nouveau mot de passe"
+                accessibilityHint="Entrez votre nouveau mot de passe"
               />
               {errors.newPassword && (
                 <HelperText type="error" style={{ fontSize: textSizes.caption }}>
@@ -244,7 +240,7 @@ export default function ChangePasswordScreen({ navigation }) {
                 mode="outlined"
                 secureTextEntry={!showConfirmPassword}
                 style={styles.input}
-                left={<TextInput.Icon icon="lock-check" />}
+                left={<TextInput.Icon icon="lock" />}
                 right={
                   <TextInput.Icon 
                     icon={showConfirmPassword ? "eye-off" : "eye"} 

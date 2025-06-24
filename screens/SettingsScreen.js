@@ -695,7 +695,7 @@ export default function SettingsScreen({ navigation, route }) {
               description="Être notifié des nouveaux lieux accessibles"
               titleStyle={{ fontSize: textSizes.subtitle }}
               descriptionStyle={{ fontSize: textSizes.caption }}
-              left={props => <List.Icon {...props} icon="map-marker-plus" />}
+              left={props => <List.Icon {...props} icon="map-marker" />}
               right={() => (
                 <Switch
                   value={notifications.newPlaces}
@@ -709,7 +709,7 @@ export default function SettingsScreen({ navigation, route }) {
               description="Être notifié des avis sur mes lieux favoris"
               titleStyle={{ fontSize: textSizes.subtitle }}
               descriptionStyle={{ fontSize: textSizes.caption }}
-              left={props => <List.Icon {...props} icon="star-plus" />}
+              left={props => <List.Icon {...props} icon="star" />}
               right={() => (
                 <Switch
                   value={notifications.reviews}
@@ -750,7 +750,7 @@ export default function SettingsScreen({ navigation, route }) {
                     onPress={() => testNotification('newPlace')}
                     style={[styles.testButton, { flex: 1, marginRight: 8 }]}
                     labelStyle={{ fontSize: textSizes.caption }}
-                    icon="map-marker-plus"
+                    icon="map-marker"
                     compact
                     buttonColor={theme.colors.surface}
                     textColor={theme.colors.primary}
@@ -763,7 +763,7 @@ export default function SettingsScreen({ navigation, route }) {
                     onPress={() => testNotification('newReview')}
                     style={[styles.testButton, { flex: 1, marginLeft: 8 }]}
                     labelStyle={{ fontSize: textSizes.caption }}
-                    icon="star-plus"
+                    icon="star"
                     compact
                     buttonColor={theme.colors.surface}
                     textColor={theme.colors.primary}

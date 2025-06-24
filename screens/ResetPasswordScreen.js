@@ -164,14 +164,20 @@ export default function ResetPasswordScreen({ navigation, route }) {
             mode="outlined"
             secureTextEntry={!showConfirmPassword}
             style={styles.input}
-            left={<TextInput.Icon icon="lock-check" />}
+            left={<TextInput.Icon icon="lock" />}
             right={
               <TextInput.Icon 
                 icon={showConfirmPassword ? "eye-off" : "eye"} 
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                forceTextInputFocus={false}
+                accessibilityRole="button"
+                accessibilityLabel={showConfirmPassword ? "Masquer la confirmation" : "Afficher la confirmation"}
               />
             }
             error={!!errors.confirmPassword}
+            accessible={true}
+            accessibilityLabel="Champ confirmation mot de passe"
+            accessibilityHint="Confirmez votre nouveau mot de passe"
           />
           {errors.confirmPassword && (
             <HelperText type="error" style={{ fontSize: textSizes.caption }}>

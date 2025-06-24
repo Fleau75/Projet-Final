@@ -275,7 +275,7 @@ export default function RegisterScreen({ navigation }) {
               mode="outlined"
               secureTextEntry={!showConfirmPassword}
               style={styles.input}
-              left={<TextInput.Icon icon="lock-check" />}
+              left={<TextInput.Icon icon="lock" />}
               right={
                 <TextInput.Icon 
                   icon={showConfirmPassword ? "eye-off" : "eye"} 
