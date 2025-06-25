@@ -81,13 +81,10 @@ export class StorageService {
       const currentUserId = userId || await this.getCurrentUserId();
       const storageKey = this.getUserStorageKey(currentUserId, key);
       const serializedValue = typeof value === 'string' ? value : JSON.stringify(value);
-      
-      console.log(`💾 setUserData: ${key} -> ${storageKey} (userId: ${currentUserId})`);
       await AsyncStorage.setItem(storageKey, serializedValue);
-      console.log(`💾 Donnée sauvegardée pour ${currentUserId}: ${key}`);
+      return { success: true };
     } catch (error) {
-      console.error(`❌ Erreur lors de la sauvegarde de ${key}:`, error);
-      throw error;
+      return { success: false, error: error.message || error.toString() };
     }
   }
 
@@ -135,12 +132,10 @@ export class StorageService {
     try {
       const currentUserId = userId || await this.getCurrentUserId();
       const storageKey = this.getUserStorageKey(currentUserId, key);
-      
       await AsyncStorage.removeItem(storageKey);
-      console.log(`🗑️ Donnée supprimée pour ${currentUserId}: ${key}`);
+      return { success: true };
     } catch (error) {
-      console.error(`❌ Erreur lors de la suppression de ${key}:`, error);
-      throw error;
+      return { success: false, error: error.message || error.toString() };
     }
   }
 
@@ -153,7 +148,6 @@ export class StorageService {
     try {
       const allKeys = await AsyncStorage.getAllKeys();
       const userKeys = allKeys.filter(key => key.startsWith(`user_${userId}_`));
-      
       const userData = {};
       for (const key of userKeys) {
         const dataKey = key.replace(`user_${userId}_`, '');
@@ -164,11 +158,9 @@ export class StorageService {
           userData[dataKey] = value;
         }
       }
-      
-      return userData;
+      return { success: true, data: userData };
     } catch (error) {
-      console.error(`❌ Erreur lors de la récupération des données de ${userId}:`, error);
-      return {};
+      return { success: false, error: error.message || error.toString() };
     }
   }
 
@@ -180,14 +172,12 @@ export class StorageService {
     try {
       const allKeys = await AsyncStorage.getAllKeys();
       const userKeys = allKeys.filter(key => key.startsWith(`user_${userId}_`));
-      
       if (userKeys.length > 0) {
         await AsyncStorage.multiRemove(userKeys);
-        console.log(`🗑️ Toutes les données supprimées pour ${userId} (${userKeys.length} clés)`);
       }
+      return { success: true };
     } catch (error) {
-      console.error(`❌ Erreur lors de la suppression des données de ${userId}:`, error);
-      throw error;
+      return { success: false, error: error.message || error.toString() };
     }
   }
 
@@ -198,20 +188,15 @@ export class StorageService {
   static async migrateGlobalToUserData(keys) {
     try {
       const currentUserId = await this.getCurrentUserId();
-      console.log(`🔄 Migration des données globales vers ${currentUserId}...`);
-      
       for (const key of keys) {
         const globalValue = await AsyncStorage.getItem(key);
         if (globalValue !== null) {
           await this.setUserData(key, globalValue, currentUserId);
-          console.log(`✅ Migré: ${key}`);
         }
       }
-      
-      console.log(`✅ Migration terminée pour ${currentUserId}`);
+      return { success: true };
     } catch (error) {
-      console.error('❌ Erreur lors de la migration:', error);
-      throw error;
+      return { success: false, error: error.message || error.toString() };
     }
   }
 
