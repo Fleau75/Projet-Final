@@ -2,7 +2,7 @@ module.exports = {
   preset: 'react-native',
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   transformIgnorePatterns: [
-    'node_modules/(?!(jest-)?react-native|@react-native|@react-navigation|expo|@expo|@unimodules|@react-native-community|@react-native-async-storage)',
+    'node_modules/(?!(react-native|@react-native|expo|@expo|@react-navigation|react-native-vector-icons|react-native-gesture-handler|react-native-reanimated|react-native-screens|react-native-safe-area-context|@react-native-async-storage|react-native-svg|react-native-linear-gradient|react-native-paper|react-native-elements|react-native-ratings|react-native-image-picker|react-native-permissions|react-native-biometrics|react-native-keychain|react-native-device-info|react-native-netinfo|react-native-splash-screen|react-native-status-bar-height|react-native-vector-icons|react-native-ratings|react-native-image-picker|react-native-permissions|react-native-biometrics|react-native-keychain|react-native-device-info|react-native-netinfo|react-native-splash-screen|react-native-status-bar-height)/)',
   ],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testEnvironment: 'jsdom',
@@ -19,4 +19,5 @@ module.exports = {
   setupFiles: [
     '<rootDir>/node_modules/react-native-gesture-handler/jestSetup.js',
   ],
+  silent: true,
 }; 

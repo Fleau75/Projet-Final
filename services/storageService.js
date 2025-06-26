@@ -391,7 +391,13 @@ export class StorageService {
       // Migration des avis Firebase (import dynamique pour éviter les conflits)
       try {
         console.log('🔄 Migration des avis Firebase du visiteur...');
-        const { ReviewsService } = await import('./firebaseService');
+        let ReviewsService, AuthService;
+        if (process.env.NODE_ENV === 'test') {
+          ({ ReviewsService, AuthService } = require('./firebaseService'));
+        } else {
+          ({ ReviewsService } = await import('./firebaseService'));
+          ({ AuthService } = await import('./firebaseService'));
+        }
         console.log('✅ ReviewsService importé avec succès');
         
         // Chercher les avis avec l'email du visiteur, pas l'ID
@@ -477,7 +483,6 @@ export class StorageService {
           // Mettre à jour les statistiques de l'utilisateur
           try {
             console.log('📊 Mise à jour des statistiques...');
-            const { AuthService } = await import('./authService');
             const currentStats = await AuthService.getUserStatsByEmail(userEmail);
             console.log('📊 Statistiques actuelles:', currentStats);
             

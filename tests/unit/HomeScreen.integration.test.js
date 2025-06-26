@@ -1,11 +1,13 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 
-// Mock services
+// Mock services with correct structure
 jest.mock('../../services/firebaseService', () => ({
-  getAllPlaces: jest.fn(),
-  getPlacesByCategory: jest.fn(),
+  ReviewsService: {
+    getAllPlaces: jest.fn(),
+    getPlacesByCategory: jest.fn(),
+  },
 }));
 
 jest.mock('../../services/placesApi', () => ({
@@ -44,6 +46,17 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   removeItem: jest.fn(),
 }));
 
+// Mock the theme context
+jest.mock('../../theme/AuthContext', () => ({
+  useAuth: () => ({
+    user: null,
+    isAuthenticated: false,
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn(),
+  }),
+}));
+
 // Use the real HomeScreen
 import HomeScreen from '../../screens/HomeScreen';
 
@@ -79,7 +92,8 @@ describe('HomeScreen (integration)', () => {
 
   it('should render successfully with mocked services', async () => {
     // Mock services to return some data
-    require('../../services/firebaseService').getAllPlaces.mockResolvedValueOnce([]);
+    const { ReviewsService } = require('../../services/firebaseService');
+    ReviewsService.getAllPlaces.mockResolvedValueOnce([]);
     require('../../services/placesApi').searchNearbyPlaces.mockResolvedValueOnce([]);
 
     const { findByTestId } = render(
@@ -88,19 +102,26 @@ describe('HomeScreen (integration)', () => {
       </NavigationContainer>
     );
     
-    // Just verify the component renders without crashing
-    expect(await findByTestId('home-screen')).toBeTruthy();
+    // Wait for the component to finish loading
+    await waitFor(() => {
+      expect(findByTestId('home-screen')).toBeTruthy();
+    });
   });
 
   it('should fallback to staticPlaces if both services fail', async () => {
-    require('../../services/firebaseService').getAllPlaces.mockRejectedValueOnce(new Error('Firebase error'));
+    const { ReviewsService } = require('../../services/firebaseService');
+    ReviewsService.getAllPlaces.mockRejectedValueOnce(new Error('Firebase error'));
     require('../../services/placesApi').searchNearbyPlaces.mockRejectedValueOnce(new Error('Google error'));
-    // Assert on a real staticPlaces value (e.g., 'Restaurant Le Marais')
+    
     const { findByText } = render(
       <NavigationContainer>
         <HomeScreen navigation={mockNavigation} />
       </NavigationContainer>
     );
-    expect(await findByText('Restaurant Le Marais')).toBeTruthy();
+    
+    // Wait for the fallback to staticPlaces
+    await waitFor(() => {
+      expect(findByText('Restaurant Le Marais')).toBeTruthy();
+    });
   });
 }); 
