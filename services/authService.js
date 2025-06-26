@@ -113,25 +113,32 @@ export class AuthService {
         
         if (shouldMigrate) {
           console.log('🔄 Vérification des données visiteur pour migration...');
-          const visitorDataResult = await StorageService.getAllUserData('visitor');
-          
-          // Vérifier si la récupération des données a réussi
-          if (visitorDataResult.success && visitorDataResult.data && Object.keys(visitorDataResult.data).length > 0) {
-            console.log('✅ Données visiteur trouvées, migration automatique...');
-            try {
-              const migrationResult = await StorageService.migrateVisitorDataToUser(userData.email, true);
-              console.log('📊 Résultat migration automatique:', migrationResult);
-              
-              // Afficher un message de confirmation si la migration a réussi
-              if (migrationResult.migrated) {
-                console.log('✅ Migration réussie avec succès');
+          try {
+            const visitorDataResult = await StorageService.getAllUserData('visitor');
+            
+            // Vérifier si la récupération des données a réussi
+            if (visitorDataResult.success && visitorDataResult.data && Object.keys(visitorDataResult.data).length > 0) {
+              console.log('✅ Données visiteur trouvées, migration automatique...');
+              try {
+                const migrationResult = await StorageService.migrateVisitorDataToUser(userData.email, true);
+                console.log('📊 Résultat migration automatique:', migrationResult);
+                
+                // Afficher un message de confirmation si la migration a réussi
+                if (migrationResult && migrationResult.migrated) {
+                  console.log('✅ Migration réussie avec succès');
+                } else if (migrationResult && migrationResult.error) {
+                  console.warn('⚠️ Migration partiellement échouée:', migrationResult.error);
+                }
+              } catch (migrationError) {
+                console.warn('⚠️ Erreur migration automatique (non critique):', migrationError);
+                // Ne pas faire échouer l'inscription si la migration échoue
               }
-            } catch (migrationError) {
-              console.error('❌ Erreur migration automatique:', migrationError);
-              // Ne pas faire échouer l'inscription si la migration échoue
+            } else {
+              console.log('❌ Aucune donnée visiteur à migrer');
             }
-          } else {
-            console.log('❌ Aucune donnée visiteur à migrer');
+          } catch (visitorDataError) {
+            console.warn('⚠️ Erreur lors de la vérification des données visiteur (non critique):', visitorDataError);
+            // Ne pas faire échouer l'inscription si la vérification échoue
           }
         } else {
           console.log('❌ Migration des données visiteur désactivée par l\'utilisateur');
@@ -163,7 +170,7 @@ export class AuthService {
                 await AsyncStorage.removeItem(key);
                 console.log(`🗑️ Clé globale supprimée: ${key}`);
               } catch (error) {
-                console.warn(`⚠️ Erreur lors de la suppression de ${key}:`, error);
+                console.warn(`⚠️ Erreur lors de la suppression de ${key} (non critique):`, error);
               }
             }
             
@@ -176,27 +183,36 @@ export class AuthService {
               
               if (visitorReviews.length > 0) {
                 for (const review of visitorReviews) {
-                  console.log(`🗑️ Suppression de l'avis: ${review.placeName} (${review.id})`);
-                  await ReviewsService.deleteReview(review.id);
+                  try {
+                    console.log(`🗑️ Suppression de l'avis: ${review.placeName} (${review.id})`);
+                    await ReviewsService.deleteReview(review.id);
+                  } catch (reviewError) {
+                    console.warn(`⚠️ Erreur lors de la suppression de l'avis ${review.id} (non critique):`, reviewError);
+                  }
                 }
                 console.log(`✅ ${visitorReviews.length} avis visiteur supprimés`);
               }
             } catch (firebaseError) {
-              console.error('❌ Erreur lors du nettoyage des avis Firebase:', firebaseError);
+              console.warn('⚠️ Erreur lors du nettoyage des avis Firebase (non critique):', firebaseError);
             }
             
             console.log('✅ Nettoyage des données visiteur terminé');
           } catch (cleanupError) {
-            console.error('❌ Erreur lors du nettoyage:', cleanupError);
+            console.warn('⚠️ Erreur lors du nettoyage (non critique):', cleanupError);
           }
         }
         
         // NETTOYER LE PROFIL VISITEUR SI IL EXISTE
         console.log('🧹 Nettoyage du profil visiteur pour le nouveau compte...');
-        await AsyncStorage.removeItem('userProfile');
-        await AsyncStorage.removeItem('isAuthenticated');
-        await AsyncStorage.removeItem('currentUser');
-        await AsyncStorage.removeItem('userPassword');
+        try {
+          await AsyncStorage.removeItem('userProfile');
+          await AsyncStorage.removeItem('isAuthenticated');
+          await AsyncStorage.removeItem('currentUser');
+          await AsyncStorage.removeItem('userPassword');
+          console.log('✅ Profil visiteur nettoyé');
+        } catch (profileCleanupError) {
+          console.warn('⚠️ Erreur lors du nettoyage du profil visiteur (non critique):', profileCleanupError);
+        }
       }
 
       // Simuler la création d'un utilisateur
