@@ -81,6 +81,7 @@ export default function PlaceCard({ place, onPress }) {
       accessible={true}
       accessibilityRole="button"
       accessibilityLabel={getAccessibilityDescription()}
+      testID="place-card"
     >
       <Surface style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         {/* Container de l'image - maintenant en haut */}

@@ -255,7 +255,7 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#F1F5F9' }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#F1F5F9' }]} testID="login-screen">
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -281,6 +281,7 @@ export default function LoginScreen({ navigation }) {
           borderWidth: isDarkMode ? 1 : 0
         }]}>
           <TextInput
+            testID="email-input"
             label="Email"
             value={email}
             onChangeText={setEmail}
@@ -302,6 +303,7 @@ export default function LoginScreen({ navigation }) {
           />
 
           <TextInput
+            testID="password-input"
             label="Mot de passe"
             value={password}
             onChangeText={setPassword}
@@ -323,6 +325,7 @@ export default function LoginScreen({ navigation }) {
 
           {/* Bouton mot de passe oublié */}
           <Button
+            testID="forgot-password-button"
             mode="text"
             onPress={() => navigation.navigate('ForgotPassword')}
             style={styles.forgotPasswordButton}
@@ -336,7 +339,7 @@ export default function LoginScreen({ navigation }) {
           </Button>
 
           {error ? (
-            <Text style={[styles.error, { 
+            <Text testID="error-message" style={[styles.error, { 
               color: isDarkMode ? '#CF6679' : theme.colors.error, 
               fontSize: textSizes.body 
             }]}>
@@ -345,6 +348,7 @@ export default function LoginScreen({ navigation }) {
           ) : null}
 
           <Button
+            testID="login-button"
             mode="contained"
             onPress={handleLogin}
             loading={isLoading}
@@ -360,6 +364,7 @@ export default function LoginScreen({ navigation }) {
           {/* Bouton d'authentification biométrique */}
           {biometricAvailable && biometricEnabled && lastEmail !== 'visiteur@accessplus.com' && lastEmail !== '' && (
             <Button
+              testID="biometric-login-button"
               mode="outlined"
               onPress={handleBiometricLogin}
               loading={isLoading}
@@ -378,6 +383,7 @@ export default function LoginScreen({ navigation }) {
           )}
 
           <Button
+            testID="continue-without-account-button"
             mode="outlined"
             onPress={handleContinueWithoutAccount}
             loading={isLoading}
@@ -401,6 +407,7 @@ export default function LoginScreen({ navigation }) {
               Vous n'avez pas de compte ?
             </Text>
             <Button
+              testID="register-button"
               mode="text"
               onPress={() => navigation.navigate('Register')}
               style={styles.registerButton}

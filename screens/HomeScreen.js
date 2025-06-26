@@ -407,13 +407,12 @@ export default function HomeScreen({ navigation }) {
         }
       });
       
-      // Ajouter les lieux statiques comme fallback si besoin
+      // Ajouter les lieux statiques comme fallback SEULEMENT si aucun lieu n'a été trouvé
       if (allPlaces.length === 0) {
         console.log('📦 Fallback sur les données statiques');
+        setError('Erreur de chargement - utilisation des données locales');
         staticPlaces.forEach(staticPlace => {
-          if (!existingNames.has(staticPlace.name.toLowerCase())) {
-            allPlaces.push(staticPlace);
-          }
+          allPlaces.push(staticPlace);
         });
       }
       
@@ -619,12 +618,12 @@ export default function HomeScreen({ navigation }) {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]} testID="home-screen">
       <View style={[styles.header, { backgroundColor: theme.colors.surface, paddingTop: 40 }]}>
         {locationError && (
           <View style={[styles.errorContainer, { backgroundColor: theme.colors.errorContainer }]}>
             <Text style={[styles.errorText, { color: theme.colors.error }]}>⚠️ {locationError}</Text>
-            <Button onPress={async () => {
+            <Button testID="retry-location-button" onPress={async () => {
               setLocationError(null);
               setIsLoadingLocation(true);
               setIsLoadingPlaces(true);
@@ -682,8 +681,6 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
 
-
-
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -693,6 +690,7 @@ export default function HomeScreen({ navigation }) {
           {categories.map(category => (
             <Chip
               key={category.id}
+              testID={`category-${category.id}`}
               selected={selectedCategory === category.id}
               onPress={() => setSelectedCategory(category.id)}
               style={styles.categoryChip}
@@ -710,6 +708,7 @@ export default function HomeScreen({ navigation }) {
           contentContainerStyle={styles.categories}
         >
           <Chip
+            testID="accessibility-all"
             selected={accessibilityFilter === 'all'}
             onPress={() => setAccessibilityFilter('all')}
             style={styles.categoryChip}
@@ -719,6 +718,7 @@ export default function HomeScreen({ navigation }) {
             🔍 Tous
           </Chip>
           <Chip
+            testID="accessibility-full"
             selected={accessibilityFilter === 'full'}
             onPress={() => setAccessibilityFilter('full')}
             style={styles.categoryChip}
@@ -728,6 +728,7 @@ export default function HomeScreen({ navigation }) {
             ♿ Totalement accessible
           </Chip>
           <Chip
+            testID="accessibility-partial"
             selected={accessibilityFilter === 'partial'}
             onPress={() => setAccessibilityFilter('partial')}
             style={styles.categoryChip}
@@ -739,6 +740,7 @@ export default function HomeScreen({ navigation }) {
         </ScrollView>
 
         <SegmentedButtons
+          testID="sort-buttons"
           value={sortValue}
           onValueChange={setSortValue}
           buttons={[
@@ -749,6 +751,12 @@ export default function HomeScreen({ navigation }) {
           style={styles.sortButtons}
         />
       </View>
+
+      {error && (
+        <View style={[styles.errorContainer, { backgroundColor: theme.colors.errorContainer }]}> 
+          <Text style={[styles.errorText, { color: theme.colors.error }]}>⚠️ {error}</Text>
+        </View>
+      )}
 
       {/* Affichage simple de TOUS les lieux */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -780,6 +788,7 @@ export default function HomeScreen({ navigation }) {
               sortedAndFilteredPlaces.map((place, index) => (
                 <PlaceCard
                   key={`${place.id}-${index}`}
+                  testID={`place-card-${place.id}`}
                   place={place}
                   onPress={() => navigation.getParent()?.navigate('PlaceDetail', { place })}
                 />

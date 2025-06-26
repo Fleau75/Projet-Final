@@ -454,7 +454,7 @@ export default function SettingsScreen({ navigation, route }) {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]} testID="settings-screen">
       <ScrollView ref={scrollViewRef} style={styles.scrollView}>
         
         {/* Préférences d'accessibilité */}
@@ -472,6 +472,7 @@ export default function SettingsScreen({ navigation, route }) {
               descriptionStyle={{ fontSize: textSizes.caption }}
               right={() => (
                 <Switch
+                  testID="ramp-switch"
                   value={accessibilityPrefs.requireRamp}
                   onValueChange={() => toggleAccessibilityPref('requireRamp')}
                 />
@@ -485,6 +486,7 @@ export default function SettingsScreen({ navigation, route }) {
               descriptionStyle={{ fontSize: textSizes.caption }}
               right={() => (
                 <Switch
+                  testID="elevator-switch"
                   value={accessibilityPrefs.requireElevator}
                   onValueChange={() => toggleAccessibilityPref('requireElevator')}
                 />
@@ -498,6 +500,7 @@ export default function SettingsScreen({ navigation, route }) {
               descriptionStyle={{ fontSize: textSizes.caption }}
               right={() => (
                 <Switch
+                  testID="parking-switch"
                   value={accessibilityPrefs.requireAccessibleParking}
                   onValueChange={() => toggleAccessibilityPref('requireAccessibleParking')}
                 />
@@ -511,6 +514,7 @@ export default function SettingsScreen({ navigation, route }) {
               descriptionStyle={{ fontSize: textSizes.caption }}
               right={() => (
                 <Switch
+                  testID="toilets-switch"
                   value={accessibilityPrefs.requireAccessibleToilets}
                   onValueChange={() => toggleAccessibilityPref('requireAccessibleToilets')}
                 />
@@ -532,6 +536,7 @@ export default function SettingsScreen({ navigation, route }) {
               left={props => <List.Icon {...props} icon={isDarkMode ? "weather-night" : "weather-sunny"} />}
               right={() => (
                 <Switch
+                  testID="dark-mode-switch"
                   value={isDarkMode}
                   onValueChange={toggleTheme}
                 />
@@ -548,6 +553,7 @@ export default function SettingsScreen({ navigation, route }) {
               left={props => <List.Icon {...props} icon={isLargeText ? "format-size" : "format-text"} />}
               right={() => (
                 <Switch
+                  testID="large-text-switch"
                   value={isLargeText}
                   onValueChange={toggleTextSize}
                 />
@@ -572,6 +578,7 @@ export default function SettingsScreen({ navigation, route }) {
               left={props => <List.Icon {...props} icon={isScreenReaderEnabled ? "text-to-speech" : "text-to-speech-off"} />}
               right={() => (
                 <Switch
+                  testID="screen-reader-switch"
                   value={isScreenReaderEnabled}
                   disabled={true}  // Désactivé car géré par le système
                 />
@@ -583,6 +590,7 @@ export default function SettingsScreen({ navigation, route }) {
             </Text>
 
             <Button
+              testID="accessibility-settings-button"
               mode="outlined"
               onPress={openAccessibilitySettings}
               style={styles.settingsButton}
@@ -617,6 +625,7 @@ export default function SettingsScreen({ navigation, route }) {
                 left={props => <List.Icon {...props} icon="fingerprint" />}
                 right={() => (
                   <Switch
+                    testID="biometric-switch"
                     value={biometricEnabled}
                     onValueChange={handleBiometricToggle}
                   />
@@ -655,6 +664,7 @@ export default function SettingsScreen({ navigation, route }) {
               </Text>
               
               <Slider
+                testID="search-radius-slider"
                 style={styles.slider}
                 value={searchRadius}
                 onValueChange={handleSearchRadiusChange}
@@ -698,6 +708,7 @@ export default function SettingsScreen({ navigation, route }) {
               left={props => <List.Icon {...props} icon="map-marker" />}
               right={() => (
                 <Switch
+                  testID="notifications-switch"
                   value={notifications.newPlaces}
                   onValueChange={() => toggleNotification('newPlaces')}
                 />
@@ -712,6 +723,7 @@ export default function SettingsScreen({ navigation, route }) {
               left={props => <List.Icon {...props} icon="star" />}
               right={() => (
                 <Switch
+                  testID="reviews-notifications-switch"
                   value={notifications.reviews}
                   onValueChange={() => toggleNotification('reviews')}
                 />
@@ -726,6 +738,7 @@ export default function SettingsScreen({ navigation, route }) {
               left={props => <List.Icon {...props} icon="update" />}
               right={() => (
                 <Switch
+                  testID="updates-notifications-switch"
                   value={notifications.updates}
                   onValueChange={() => toggleNotification('updates')}
                 />
@@ -746,6 +759,7 @@ export default function SettingsScreen({ navigation, route }) {
               <View style={styles.testButtonsGrid}>
                 <View style={styles.testButtonRow}>
                   <Button
+                    testID="test-new-place-button"
                     mode="outlined"
                     onPress={() => testNotification('newPlace')}
                     style={[styles.testButton, { flex: 1, marginRight: 8 }]}
@@ -759,6 +773,7 @@ export default function SettingsScreen({ navigation, route }) {
                   </Button>
                   
                   <Button
+                    testID="test-new-review-button"
                     mode="outlined"
                     onPress={() => testNotification('newReview')}
                     style={[styles.testButton, { flex: 1, marginLeft: 8 }]}
@@ -774,6 +789,7 @@ export default function SettingsScreen({ navigation, route }) {
                 
                 <View style={styles.testButtonRow}>
                   <Button
+                    testID="test-app-update-button"
                     mode="outlined"
                     onPress={() => testNotification('appUpdate')}
                     style={[styles.testButton, { flex: 1, marginRight: 8 }]}
@@ -787,6 +803,7 @@ export default function SettingsScreen({ navigation, route }) {
                   </Button>
                   
                   <Button
+                    testID="test-nearby-place-button"
                     mode="outlined"
                     onPress={() => testNotification('nearbyPlace')}
                     style={[styles.testButton, { flex: 1, marginLeft: 8 }]}
@@ -802,6 +819,7 @@ export default function SettingsScreen({ navigation, route }) {
               </View>
               
               <Button
+                testID="check-notification-status-button"
                 mode="text"
                 onPress={checkNotificationStatus}
                 style={styles.statusButton}
@@ -818,6 +836,7 @@ export default function SettingsScreen({ navigation, route }) {
         {/* Actions */}
         <View style={styles.actionsSection}>
           <Button 
+            testID="save-settings-button"
             mode="contained" 
             onPress={handleSaveSettings}
             style={styles.saveButton}
@@ -826,6 +845,7 @@ export default function SettingsScreen({ navigation, route }) {
           </Button>
           
           <Button 
+            testID="reset-settings-button"
             mode="contained" 
             onPress={handleResetSettings}
             style={[styles.resetButton, { backgroundColor: '#ff4444' }]}

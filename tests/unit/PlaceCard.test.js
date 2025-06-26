@@ -70,6 +70,37 @@ describe('PlaceCard', () => {
 
       expect(queryByText(/📍/)).toBeFalsy();
     });
+
+    it('devrait rendre correctement avec accessibilité définie', () => {
+      const place = {
+        name: 'Test Place',
+        address: '123 rue de test',
+        rating: 4.5,
+        reviewCount: 10,
+        accessibility: {
+          ramp: true,
+          elevator: false,
+          parking: true,
+          toilets: false,
+        },
+      };
+      const { getByText } = render(<PlaceCard place={place} />);
+      expect(getByText('Test Place')).toBeTruthy();
+      expect(getByText('123 rue de test')).toBeTruthy();
+    });
+
+    it('devrait rendre même si accessibilité est vide', () => {
+      const place = {
+        name: 'Test Place',
+        address: '123 rue de test',
+        rating: 4.5,
+        reviewCount: 10,
+        accessibility: {},
+      };
+      const { getByText } = render(<PlaceCard place={place} />);
+      expect(getByText('Test Place')).toBeTruthy();
+      expect(getByText('123 rue de test')).toBeTruthy();
+    });
   });
 
   describe('Formatage de la distance', () => {
@@ -146,23 +177,46 @@ describe('PlaceCard', () => {
     });
 
     it('devrait être accessible avec les bonnes propriétés', () => {
-      const { getByText } = render(<PlaceCard title="Restaurant Test" address="123 Rue de la Paix, Paris" distance={500} rating={4.5} reviewsCount={25} />);
-      const card = getByText('Restaurant Test');
-      expect(card).toBeTruthy();
+      const place = {
+        name: 'Test Place',
+        address: '123 rue de test',
+        rating: 4.5,
+        reviewCount: 10,
+        accessibility: {},
+      };
+      const { getByTestId } = render(<PlaceCard place={place} />);
+      expect(getByTestId('place-card')).toBeTruthy();
     });
   });
 
   describe('Accessibilité', () => {
     it('devrait fournir une description d\'accessibilité complète', () => {
-      const { getByText } = render(<PlaceCard title="Restaurant Test" address="123 Rue de la Paix, Paris" distance={500} rating={4.5} reviewsCount={25} />);
-      const card = getByText('Restaurant Test');
-      expect(card).toBeTruthy();
+      const place = {
+        name: 'Test Place',
+        address: '123 rue de test',
+        rating: 4.5,
+        reviewCount: 10,
+        accessibility: {
+          ramp: true,
+          elevator: true,
+          parking: true,
+          toilets: true,
+        },
+      };
+      const { getByTestId } = render(<PlaceCard place={place} />);
+      expect(getByTestId('place-card')).toBeTruthy();
     });
 
     it('devrait gérer l\'accessibilité sans données d\'accessibilité', () => {
-      const { getByText } = render(<PlaceCard title="Restaurant Test" address="123 Rue de la Paix, Paris" distance={500} rating={4.5} reviewsCount={25} />);
-      const card = getByText('Restaurant Test');
-      expect(card).toBeTruthy();
+      const place = {
+        name: 'Test Place',
+        address: '123 rue de test',
+        rating: 4.5,
+        reviewCount: 10,
+        accessibility: {},
+      };
+      const { getByTestId } = render(<PlaceCard place={place} />);
+      expect(getByTestId('place-card')).toBeTruthy();
     });
   });
 

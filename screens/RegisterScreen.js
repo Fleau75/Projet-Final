@@ -261,7 +261,7 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} testID="register-screen">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -282,6 +282,7 @@ export default function RegisterScreen({ navigation }) {
           <Surface style={[styles.surface, { backgroundColor: theme.colors.surface }]}>
             {/* Prénom */}
             <TextInput
+              testID="name-input"
               label="Prénom *"
               value={formData.firstName}
               onChangeText={(value) => updateField('firstName', value)}
@@ -298,6 +299,7 @@ export default function RegisterScreen({ navigation }) {
 
             {/* Nom */}
             <TextInput
+              testID="lastname-input"
               label="Nom *"
               value={formData.lastName}
               onChangeText={(value) => updateField('lastName', value)}
@@ -314,6 +316,7 @@ export default function RegisterScreen({ navigation }) {
 
             {/* Email */}
             <TextInput
+              testID="email-input"
               label="Email *"
               value={formData.email}
               onChangeText={(value) => updateField('email', value)}
@@ -332,6 +335,7 @@ export default function RegisterScreen({ navigation }) {
 
             {/* Téléphone */}
             <TextInput
+              testID="phone-input"
               label="Téléphone (optionnel)"
               value={formData.phone}
               onChangeText={(value) => updateField('phone', value)}
@@ -349,6 +353,7 @@ export default function RegisterScreen({ navigation }) {
 
             {/* Mot de passe */}
             <TextInput
+              testID="password-input"
               label="Mot de passe *"
               value={formData.password}
               onChangeText={(value) => updateField('password', value)}
@@ -367,6 +372,7 @@ export default function RegisterScreen({ navigation }) {
 
             {/* Confirmation du mot de passe */}
             <TextInput
+              testID="confirm-password-input"
               label="Confirmer le mot de passe *"
               value={formData.confirmPassword}
               onChangeText={(value) => updateField('confirmPassword', value)}
@@ -420,6 +426,7 @@ export default function RegisterScreen({ navigation }) {
                 </View>
 
                 <Checkbox.Item
+                  testID="migrate-data-checkbox"
                   label="Récupérer mes données du mode visiteur"
                   status={migrateVisitorData ? 'checked' : 'unchecked'}
                   onPress={handleMigrationToggle}
@@ -441,6 +448,7 @@ export default function RegisterScreen({ navigation }) {
 
             {/* Conditions d'utilisation */}
             <Checkbox.Item
+              testID="terms-checkbox"
               label="J'accepte les conditions d'utilisation et la politique de confidentialité"
               status={acceptTerms ? 'checked' : 'unchecked'}
               onPress={() => setAcceptTerms(!acceptTerms)}
@@ -454,6 +462,7 @@ export default function RegisterScreen({ navigation }) {
 
             {/* Bouton d'inscription */}
             <Button
+              testID="submit-button"
               mode="contained"
               onPress={handleRegister}
               loading={isLoading}
