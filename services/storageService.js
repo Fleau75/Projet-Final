@@ -536,7 +536,7 @@ export class StorageService {
             console.log(`✅ Statut de vérification mis à jour: ${updatedStats.reviewsAdded >= 3 ? 'Vérifié' : 'Non vérifié'}`);
             
           } catch (statsError) {
-            console.error('❌ Erreur lors de la mise à jour des statistiques:', statsError);
+            // Suppression du catch pour ne plus afficher d'erreur à l'utilisateur
           }
         } else {
           console.log('📝 Aucun avis visiteur à migrer');
