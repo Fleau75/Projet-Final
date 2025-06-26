@@ -1,0 +1,114 @@
+{
+  "timestamp": "2025-06-26T10:20:35.903Z",
+  "action": "restore_visitor_data",
+  "data": {
+    "userProfile": {
+      "uid": "visitor_001",
+      "name": "Visiteur AccessPlus",
+      "email": "visiteur@accessplus.com",
+      "phone": "",
+      "joinDate": "juin 2025",
+      "isVisitor": true
+    },
+    "favorites": [
+      {
+        "id": "place-1",
+        "name": "Restaurant Le Marais",
+        "address": "35 rue des Archives, 75003 Paris",
+        "type": "restaurant",
+        "rating": 4.5,
+        "reviewCount": 42,
+        "image": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop",
+        "coordinates": {
+          "latitude": 48.8627,
+          "longitude": 2.3578
+        },
+        "accessibility": {
+          "ramp": true,
+          "elevator": true,
+          "parking": true,
+          "toilets": true
+        }
+      },
+      {
+        "id": "place-2",
+        "name": "Musée Carnavalet",
+        "address": "23 Rue de Sévigné, 75003 Paris",
+        "type": "culture",
+        "rating": 4.8,
+        "reviewCount": 89,
+        "image": "https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=400&h=300&fit=crop",
+        "coordinates": {
+          "latitude": 48.8578,
+          "longitude": 2.3622
+        },
+        "accessibility": {
+          "ramp": true,
+          "elevator": true,
+          "parking": true,
+          "toilets": true
+        }
+      }
+    ],
+    "mapMarkers": [
+      {
+        "id": "marker-1",
+        "title": "Restaurant Test",
+        "description": "Un excellent restaurant accessible",
+        "coordinate": {
+          "latitude": 48.8627,
+          "longitude": 2.3578
+        },
+        "type": "restaurant"
+      },
+      {
+        "id": "marker-2",
+        "title": "Musée Test",
+        "description": "Un musée avec accès adapté",
+        "coordinate": {
+          "latitude": 48.8578,
+          "longitude": 2.3622
+        },
+        "type": "culture"
+      }
+    ],
+    "accessibilityPrefs": {
+      "requireRamp": true,
+      "requireElevator": false,
+      "requireAccessibleParking": true,
+      "requireAccessibleToilets": true
+    },
+    "searchRadius": 800,
+    "mapStyle": "standard",
+    "notifications": {
+      "newPlaces": true,
+      "reviews": true,
+      "updates": false
+    },
+    "history": [
+      {
+        "id": "place-1",
+        "name": "Restaurant Le Marais",
+        "address": "35 rue des Archives, 75003 Paris",
+        "visitedAt": "2025-06-26T10:20:13.605Z"
+      },
+      {
+        "id": "place-2",
+        "name": "Musée Carnavalet",
+        "address": "23 Rue de Sévigné, 75003 Paris",
+        "visitedAt": "2025-06-26T10:20:13.606Z"
+      }
+    ],
+    "settings": {
+      "theme": "dark",
+      "textSize": "medium",
+      "screenReader": false,
+      "biometricEnabled": false
+    }
+  },
+  "instructions": [
+    "1. Se connecter en mode visiteur (visiteur@accessplus.com)",
+    "2. Appliquer les données de restauration",
+    "3. Tester la migration vers un compte permanent"
+  ]
+}

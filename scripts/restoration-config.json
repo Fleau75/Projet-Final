@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-06-26T10:28:35.584Z",
+  "action": "restore_visitor_data",
+  "instructions": [
+    "1. L'application va automatiquement restaurer les données visiteur au démarrage",
+    "2. Se connecter en mode visiteur (visiteur@accessplus.com)",
+    "3. Les données seront disponibles immédiatement",
+    "4. Tester la migration vers un compte permanent"
+  ],
+  "expectedData": {
+    "favorites": 2,
+    "history": 2,
+    "mapMarkers": 2,
+    "accessibilityPrefs": 5
+  }
+}

@@ -65,16 +65,17 @@ export default function RegisterScreen({ navigation }) {
     setVisitorDataError('');
     try {
       console.log('🔍 Vérification des données visiteur...');
-      const visitorData = await StorageService.getAllUserData('visitor');
-      console.log('📊 Données visiteur brutes:', visitorData);
-      console.log('📊 Clés visiteur trouvées:', Object.keys(visitorData));
+      const visitorDataResult = await StorageService.getAllUserData('visitor');
+      console.log('📊 Données visiteur brutes:', visitorDataResult);
       
-      if (visitorData && Object.keys(visitorData).length > 0) {
+      // Vérifier si la récupération des données a réussi
+      if (visitorDataResult.success && visitorDataResult.data && Object.keys(visitorDataResult.data).length > 0) {
+        const visitorData = visitorDataResult.data;
+        console.log('📊 Clés visiteur trouvées:', Object.keys(visitorData));
         console.log('✅ Données visiteur trouvées:', Object.keys(visitorData));
         
         // Compter les différents types de données
         const details = {
-          favorites: visitorData.favorites ? visitorData.favorites.length : 0,
           mapMarkers: visitorData.mapMarkers ? visitorData.mapMarkers.length : 0,
           reviews: 0 // Sera mis à jour plus tard si nécessaire
         };
@@ -93,11 +94,20 @@ export default function RegisterScreen({ navigation }) {
         }
         
         setVisitorDataDetails(details);
-        setHasVisitorData(true);
-        setMigrateVisitorData(true); // Par défaut, proposer la migration
         
-        console.log('📊 Détails finaux des données visiteur:', details);
-        console.log('✅ État mis à jour: hasVisitorData=true, migrateVisitorData=true');
+        // Vérifier s'il y a des données à migrer (marqueurs ou avis)
+        const hasDataToMigrate = details.mapMarkers > 0 || details.reviews > 0;
+        
+        if (hasDataToMigrate) {
+          setHasVisitorData(true);
+          setMigrateVisitorData(true); // Par défaut, proposer la migration
+          console.log('📊 Détails finaux des données visiteur:', details);
+          console.log('✅ État mis à jour: hasVisitorData=true, migrateVisitorData=true');
+        } else {
+          setHasVisitorData(false);
+          setMigrateVisitorData(false);
+          console.log('❌ Aucune donnée visiteur à migrer (pas de marqueurs ni d\'avis)');
+        }
       } else {
         console.log('❌ Aucune donnée visiteur trouvée');
         setHasVisitorData(false);
@@ -408,11 +418,6 @@ export default function RegisterScreen({ navigation }) {
                 </Text>
                 
                 <View style={styles.migrationDetails}>
-                  {visitorDataDetails.favorites > 0 && (
-                    <Text style={[styles.migrationDetail, { fontSize: textSizes.caption, color: theme.colors.onSurface }]}>
-                      ❤️ {visitorDataDetails.favorites} lieu(x) favori(s)
-                    </Text>
-                  )}
                   {visitorDataDetails.mapMarkers > 0 && (
                     <Text style={[styles.migrationDetail, { fontSize: textSizes.caption, color: theme.colors.onSurface }]}>
                       📍 {visitorDataDetails.mapMarkers} marqueur(s) de carte

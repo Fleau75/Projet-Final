@@ -354,6 +354,15 @@ describe('StorageService', () => {
     });
 
     it('should migrate visitor data to user', async () => {
+      // Mock getAllUserData to return visitor data
+      jest.spyOn(StorageService, 'getAllUserData').mockResolvedValue({ 
+        success: true, 
+        data: { 
+          favorites: ['place1'], 
+          mapMarkers: ['marker1'] 
+        } 
+      });
+      
       const result = await StorageService.migrateVisitorDataToUser('test@example.com');
       
       expect(result.migrated).toBe(true);
@@ -361,6 +370,15 @@ describe('StorageService', () => {
     });
 
     it('should handle cleanup when requested', async () => {
+      // Mock getAllUserData to return visitor data
+      jest.spyOn(StorageService, 'getAllUserData').mockResolvedValue({ 
+        success: true, 
+        data: { 
+          favorites: ['place1'], 
+          mapMarkers: ['marker1'] 
+        } 
+      });
+      
       const result = await StorageService.migrateVisitorDataToUser('test@example.com', true);
       
       expect(result.migrated).toBe(true);
@@ -368,8 +386,8 @@ describe('StorageService', () => {
     });
 
     it('should handle case when no visitor data exists', async () => {
-      // Mock getAllUserData to return empty object
-      jest.spyOn(StorageService, 'getAllUserData').mockResolvedValue({});
+      // Mock getAllUserData to return empty object with new format
+      jest.spyOn(StorageService, 'getAllUserData').mockResolvedValue({ success: true, data: {} });
       
       const result = await StorageService.migrateVisitorDataToUser('test@example.com');
       
@@ -378,8 +396,8 @@ describe('StorageService', () => {
     });
 
     it('should handle errors', async () => {
-      // Mock getAllUserData to throw an error
-      jest.spyOn(StorageService, 'getAllUserData').mockRejectedValue(new Error('Migration error'));
+      // Mock getAllUserData to return error with new format
+      jest.spyOn(StorageService, 'getAllUserData').mockResolvedValue({ success: false, error: 'Migration error' });
       
       const result = await StorageService.migrateVisitorDataToUser('test@example.com');
       

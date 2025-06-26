@@ -113,8 +113,10 @@ export class AuthService {
         
         if (shouldMigrate) {
           console.log('🔄 Vérification des données visiteur pour migration...');
-          const visitorData = await StorageService.getAllUserData('visitor');
-          if (visitorData && Object.keys(visitorData).length > 0) {
+          const visitorDataResult = await StorageService.getAllUserData('visitor');
+          
+          // Vérifier si la récupération des données a réussi
+          if (visitorDataResult.success && visitorDataResult.data && Object.keys(visitorDataResult.data).length > 0) {
             console.log('✅ Données visiteur trouvées, migration automatique...');
             try {
               const migrationResult = await StorageService.migrateVisitorDataToUser(userData.email, true);

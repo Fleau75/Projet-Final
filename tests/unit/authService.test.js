@@ -8,7 +8,7 @@ jest.mock('../../services/cryptoService', () => ({
 }));
 
 jest.mock('../../services/storageService', () => ({
-  getAllUserData: jest.fn(),
+  getAllUserData: jest.fn(() => Promise.resolve({ success: true, data: {} })),
   migrateVisitorDataToUser: jest.fn(),
   clearUserData: jest.fn(),
   setUserData: jest.fn(),
@@ -70,6 +70,10 @@ describe('AuthService', () => {
   describe('register', () => {
     it('should register a new user successfully', async () => {
       const userData = { email: 'test@example.com', name: 'Test User' };
+      
+      // Mock getAllUserData to return empty visitor data
+      const { getAllUserData } = require('../../services/storageService');
+      getAllUserData.mockResolvedValue({ success: true, data: {} });
 
       const result = await AuthService.register('test@example.com', 'password123', userData);
 

@@ -248,16 +248,41 @@ export class StorageService {
 
   // Paramètres d'accessibilité
   static async getAccessibilityPrefs() {
-    return await this.getUserData('accessibilityPrefs', {
+    const prefs = await this.getUserData('accessibilityPrefs', {
       requireRamp: false,
       requireElevator: false,
       requireAccessibleParking: false,
       requireAccessibleToilets: false,
     });
+    
+    // Convertir l'ancien format vers le nouveau si nécessaire
+    return this.convertAccessibilityPrefs(prefs);
   }
 
   static async setAccessibilityPrefs(prefs) {
     return await this.setUserData('accessibilityPrefs', prefs);
+  }
+
+  /**
+   * Convertit les anciens formats de préférences d'accessibilité vers le nouveau format
+   */
+  static convertAccessibilityPrefs(prefs) {
+    // Si c'est déjà le bon format, retourner tel quel
+    if (prefs.requireRamp !== undefined) {
+      return prefs;
+    }
+    
+    // Convertir l'ancien format (cognitive, hearing, mobility, visual, wheelchair)
+    // vers le nouveau format (requireRamp, requireElevator, requireAccessibleParking, requireAccessibleToilets)
+    const convertedPrefs = {
+      requireRamp: prefs.wheelchair || prefs.mobility || false,
+      requireElevator: prefs.mobility || false,
+      requireAccessibleParking: prefs.wheelchair || prefs.mobility || false,
+      requireAccessibleToilets: prefs.wheelchair || prefs.mobility || false,
+    };
+    
+    console.log('🔄 Conversion des préférences d\'accessibilité:', { old: prefs, new: convertedPrefs });
+    return convertedPrefs;
   }
 
   // Paramètres de notification
@@ -366,11 +391,19 @@ export class StorageService {
   static async migrateVisitorDataToUser(userEmail, shouldCleanup = true) {
     try {
       const visitorId = 'visitor';
-      const visitorData = await this.getAllUserData(visitorId);
+      const visitorDataResult = await this.getAllUserData(visitorId);
       let migratedCount = 0;
       let reviewsMigrated = 0;
       
       console.log('🔄 Début de la migration des données visiteur vers:', userEmail);
+      
+      // Vérifier si la récupération des données a réussi
+      if (!visitorDataResult.success) {
+        console.error('❌ Erreur lors de la récupération des données visiteur:', visitorDataResult.error);
+        return { migrated: false, error: visitorDataResult.error };
+      }
+      
+      const visitorData = visitorDataResult.data;
       console.log('📊 Données visiteur trouvées:', Object.keys(visitorData));
       
       // Migration des données locales
