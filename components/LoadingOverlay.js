@@ -6,7 +6,7 @@ const LoadingOverlay = () => {
   return (
     <View style={styles.container}>
       <BlurView intensity={50} style={styles.blurContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#007AFF" testID="loading-indicator" />
       </BlurView>
     </View>
   );
