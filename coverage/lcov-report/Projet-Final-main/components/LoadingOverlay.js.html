@@ -3,15 +3,15 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for Projet-Final-main/firebase.config.js</title>
+    <title>Code coverage report for Projet-Final-main/components/LoadingOverlay.js</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="../prettify.css" />
-    <link rel="stylesheet" href="../base.css" />
-    <link rel="shortcut icon" type="image/x-icon" href="../favicon.png" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type='text/css'>
         .coverage-summary .sorter {
-            background-image: url(../sort-arrow-sprite.png);
+            background-image: url(../../sort-arrow-sprite.png);
         }
     </style>
 </head>
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../index.html">All files</a> / <a href="index.html">Projet-Final-main</a> firebase.config.js</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">Projet-Final-main/components</a> LoadingOverlay.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/2</span>
-            </div>
-        
-            
-            <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
-                <span class="quiet">Branches</span>
-                <span class='fraction'>7/14</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
-                <span class="quiet">Functions</span>
+                <span class="quiet">Branches</span>
                 <span class='fraction'>0/0</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>1/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>3/3</span>
             </div>
         
             
@@ -91,9 +91,17 @@
 <a name='L26'></a><a href='#L26'>26</a>
 <a name='L27'></a><a href='#L27'>27</a>
 <a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a>
-<a name='L30'></a><a href='#L30'>30</a>
-<a name='L31'></a><a href='#L31'>31</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L29'></a><a href='#L29'>29</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -108,52 +116,38 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// Configuration Firebase pour AccessPlus
-// Ces valeurs sont utilisées en mode développement
-// En production, utilisez les variables d'environnement
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import React from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { BlurView } from 'expo-blur';
 &nbsp;
-export const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY || <span class="branch-1 cbranch-no" title="branch not covered" >"AIzaSyDf5RU9u0v6zBLabWGsxex-BIIdfe0jdHA",</span>
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN || <span class="branch-1 cbranch-no" title="branch not covered" >"accessplus-demo.firebaseapp.com",</span>
-  projectId: process.env.FIREBASE_PROJECT_ID || <span class="branch-1 cbranch-no" title="branch not covered" >"accessplus-demo",</span>
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || <span class="branch-1 cbranch-no" title="branch not covered" >"accessplus-demo.appspot.com",</span>
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || <span class="branch-1 cbranch-no" title="branch not covered" >"123456789",</span>
-  appId: process.env.FIREBASE_APP_ID || <span class="branch-1 cbranch-no" title="branch not covered" >"1:123456789:web:abcdef123456",</span>
-  measurementId: process.env.FIREBASE_MEASUREMENT_ID || <span class="branch-1 cbranch-no" title="branch not covered" >"G-XXXXXXXXXX"</span>
+const LoadingOverlay = () =&gt; {
+  return (
+    &lt;View style={styles.container}&gt;
+      &lt;BlurView intensity={50} style={styles.blurContainer}&gt;
+        &lt;ActivityIndicator size="large" color="#007AFF" testID="loading-indicator" /&gt;
+      &lt;/BlurView&gt;
+    &lt;/View&gt;
+  );
 };
 &nbsp;
-// Configuration pour le mode développement
-export const devConfig = {
-  // Utiliser des valeurs factices pour le développement
-  useMockStorage: true,
-  mockImageUrl: "https://via.placeholder.com/400x300/cccccc/666666?text=Image+Demo",
-  enableOfflineMode: true
-};
+const styles = StyleSheet.create({
+  container: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  blurContainer: {
+    padding: 20,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+});
 &nbsp;
-// Instructions pour la configuration en production:
-// 1. Allez sur https://console.firebase.google.com/
-// 2. Créez un nouveau projet ou sélectionnez un projet existant
-// 3. Allez dans "Paramètres du projet" &gt; "Général" &gt; "Vos applications"
-// 4. Ajoutez une application web et copiez la configuration
-// 5. Activez Firestore Database dans la section "Database"
-// 6. Activez Storage dans la section "Storage"
-// 7. Configurez les règles de sécurité selon vos besoins
-// 8. Remplacez les valeurs ci-dessus par vos vraies clés Firebase </pre></td></tr></table></pre>
+export default LoadingOverlay; </pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
@@ -162,14 +156,14 @@ export const devConfig = {
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
                 at 2025-06-28T16:46:10.996Z
             </div>
-        <script src="../prettify.js"></script>
+        <script src="../../prettify.js"></script>
         <script>
             window.onload = function () {
                 prettyPrint();
             };
         </script>
-        <script src="../sorter.js"></script>
-        <script src="../block-navigation.js"></script>
+        <script src="../../sorter.js"></script>
+        <script src="../../block-navigation.js"></script>
     </body>
 </html>
     
