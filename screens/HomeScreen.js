@@ -3,7 +3,7 @@
  * Affiche la liste des lieux accessibles avec des options de filtrage et de tri
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet, ScrollView, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Chip, Text, SegmentedButtons, useTheme, Button } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
@@ -357,6 +357,12 @@ export default function HomeScreen({ navigation }) {
   
   // État combiné pour le chargement des lieux
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
+  
+  // État pour le bouton "Retour en haut"
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+  
+  // Référence pour le ScrollView
+  const scrollViewRef = useRef(null);
   
   /**
    * Fonction pour charger le rayon de recherche
@@ -1003,6 +1009,22 @@ export default function HomeScreen({ navigation }) {
     </Text>
   );
 
+  /**
+   * Fonction pour gérer le scroll et afficher/masquer le bouton "Retour en haut"
+   */
+  const handleScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    // Afficher le bouton après avoir scrollé de 300 pixels
+    setShowScrollToTop(offsetY > 300);
+  };
+
+  /**
+   * Fonction pour remonter en haut de la liste
+   */
+  const scrollToTop = () => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]} testID="home-screen">
       <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
@@ -1091,7 +1113,7 @@ export default function HomeScreen({ navigation }) {
       )}
 
       {/* Affichage simple de TOUS les lieux */}
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} ref={scrollViewRef} onScroll={handleScroll}>
         {loading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color={theme.colors.primary} />
@@ -1141,6 +1163,19 @@ export default function HomeScreen({ navigation }) {
           </>
         )}
       </ScrollView>
+
+      {/* Bouton "Retour en haut" */}
+      {showScrollToTop && (
+        <TouchableOpacity
+          style={[styles.scrollToTopButton, { backgroundColor: theme.colors.primary }]}
+          onPress={scrollToTop}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.scrollToTopText, { color: theme.colors.onPrimary }]}>
+            ↑
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Menu des catégories (affiché conditionnellement) */}
       {isCategoriesMenuOpen && (
@@ -1599,5 +1634,27 @@ const styles = StyleSheet.create({
   accessibilityGrid: {
     flexDirection: 'row',
     gap: 3,
+  },
+  scrollToTopButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  scrollToTopText: {
+    fontSize: 20,
+    fontWeight: 'bold',
   },
 });

@@ -549,7 +549,18 @@ export default function ProfileScreen({ navigation, route }) {
             <Button 
               mode="contained" 
               onPress={handleLogout}
-              style={styles.logoutButton}
+              style={[
+                styles.logoutButton,
+                {
+                  shadowColor: userInfo.isVisitor ? theme.colors.primary : '#ff4444',
+                  shadowOffset: {
+                    width: 0,
+                    height: 2,
+                  },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+                }
+              ]}
               labelStyle={[styles.logoutLabel, { fontSize: textSizes.body }]}
               icon={userInfo.isVisitor ? "home" : "logout"}
               buttonColor={userInfo.isVisitor ? theme.colors.primary : "#ff4444"}
@@ -661,13 +672,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 12,
     elevation: 4,
-    shadowColor: '#ff4444',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
   logoutLabel: {
     fontWeight: 'bold',
