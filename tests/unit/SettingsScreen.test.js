@@ -191,5 +191,80 @@ describe('SettingsScreen - Signalement de problème', () => {
       
       mockAlert.mockRestore();
     });
+
+    it('devrait afficher le bouton d\'aide et support', async () => {
+      const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
+      
+      await waitFor(() => {
+        expect(getByTestId('settings-screen')).toBeTruthy();
+      });
+      
+      const helpButton = getByTestId('help-support-button');
+      expect(helpButton).toBeTruthy();
+    });
+
+    it('devrait ouvrir la boîte de dialogue d\'aide au clic', async () => {
+      const mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      
+      const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
+      
+      await waitFor(() => {
+        expect(getByTestId('settings-screen')).toBeTruthy();
+      });
+      
+      const helpButton = getByTestId('help-support-button');
+      fireEvent.press(helpButton);
+      
+      expect(mockAlert).toHaveBeenCalledWith(
+        'Aide et Support',
+        'Que souhaitez-vous faire ?',
+        expect.any(Array)
+      );
+      
+      mockAlert.mockRestore();
+    });
+
+    it('devrait avoir 2 options dans la boîte de dialogue d\'aide', async () => {
+      const mockAlert = jest.spyOn(Alert, 'alert').mockImplementation((title, message, buttons) => {
+        expect(buttons).toHaveLength(2);
+      });
+      
+      const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
+      
+      await waitFor(() => {
+        expect(getByTestId('settings-screen')).toBeTruthy();
+      });
+      
+      const helpButton = getByTestId('help-support-button');
+      fireEvent.press(helpButton);
+      
+      mockAlert.mockRestore();
+    });
+
+    it('devrait avoir les bonnes options dans la boîte de dialogue d\'aide', async () => {
+      const mockAlert = jest.spyOn(Alert, 'alert').mockImplementation((title, message, buttons) => {
+        const expectedOptions = ['Annuler', 'Guide d\'utilisation', 'FAQ'];
+        
+        buttons.forEach((button, index) => {
+          expect(button.text).toBe(expectedOptions[index]);
+          if (index === 0) {
+            expect(button.style).toBe('cancel');
+          } else {
+            expect(typeof button.onPress).toBe('function');
+          }
+        });
+      });
+      
+      const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
+      
+      await waitFor(() => {
+        expect(getByTestId('settings-screen')).toBeTruthy();
+      });
+      
+      const helpButton = getByTestId('help-support-button');
+      fireEvent.press(helpButton);
+      
+      mockAlert.mockRestore();
+    });
   });
 }); 

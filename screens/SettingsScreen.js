@@ -380,6 +380,7 @@ export default function SettingsScreen({ navigation, route }) {
               `Description du problème :\n\n` +
               `Merci de votre aide !`
             );
+            
             const mailtoUrl = `mailto:support@accessplus.com?subject=${subject}&body=${body}`;
             
             Linking.canOpenURL(mailtoUrl).then(supported => {
@@ -393,6 +394,68 @@ export default function SettingsScreen({ navigation, route }) {
                 );
               }
             });
+          }
+        }
+      ]
+    );
+  };
+
+  const handleHelpAndSupport = () => {
+    Alert.alert(
+      "Aide et Support",
+      "Que souhaitez-vous faire ?",
+      [
+        {
+          text: "Annuler",
+          style: "cancel"
+        },
+        {
+          text: "Guide d'utilisation",
+          onPress: () => {
+            Alert.alert(
+              "📖 Guide d'utilisation",
+              "Fonctionnalités principales :\n\n" +
+              "🔍 Recherche de lieux accessibles\n" +
+              "📍 Géolocalisation automatique\n" +
+              "⭐ Système d'avis et notes\n" +
+              "🔔 Notifications personnalisées\n" +
+              "♿ Filtres d'accessibilité\n" +
+              "🗺️ Cartographie interactive\n\n" +
+              "Pour plus d'informations, consultez notre site web.",
+              [
+                { 
+                  text: "👍 Compris !", 
+                  style: "default"
+                }
+              ]
+            );
+          }
+        },
+        {
+          text: "FAQ",
+          onPress: () => {
+            Alert.alert(
+              "❓ Questions fréquentes",
+              "FAQ AccessPlus :\n\n" +
+              "⚙️ Q: Comment filtrer les lieux selon mes besoins ?\n" +
+              "   R: Réglages > Accessibilité\n\n" +
+              "➕ Q: Comment ajouter un nouveau lieu ?\n" +
+              "   R: Bouton + sur la carte\n\n" +
+              "🔔 Q: Comment activer les notifications ?\n" +
+              "   R: Réglages > Notifications\n\n" +
+              "📱 Q: Fonctionne-t-elle hors ligne ?\n" +
+              "   R: Oui, favoris et historique\n\n" +
+              "🔒 Q: Mes données sont-elles privées ?\n" +
+              "   R: Oui, protégées et anonymisées\n\n" +
+              "🤝 Q: Comment contribuer ?\n" +
+              "   R: Ajoutez des avis et signalez les problèmes",
+              [
+                { 
+                  text: "✨ Merci !", 
+                  style: "default"
+                }
+              ]
+            );
           }
         }
       ]
@@ -735,6 +798,8 @@ export default function SettingsScreen({ navigation, route }) {
               description="Besoin d'aide ?"
               left={props => <List.Icon {...props} icon="help-circle" />}
               right={props => <List.Icon {...props} icon="chevron-right" />}
+              onPress={handleHelpAndSupport}
+              testID="help-support-button"
             />
             <List.Item
               title="Signaler un problème"
