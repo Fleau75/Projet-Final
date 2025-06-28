@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Platform, FlatList, TouchableOpacity, StatusBar } from 'react-native';
 import { Text, FAB, ActivityIndicator, Searchbar, useTheme, Surface, Card } from 'react-native-paper';
 import { useAppTheme } from '../theme/ThemeContext';
+import { useTextSize } from '../theme/TextSizeContext';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -40,6 +41,7 @@ const darkMapStyle = [
 export default function MapScreen({ navigation, route }) {
   const theme = useTheme();
   const { isDarkMode } = useAppTheme(); // Récupérer l'état du thème sombre
+  const { isLargeText } = useTextSize(); // Récupérer l'état de la taille de texte
   const mapRef = useRef(null); // Référence pour contrôler la carte
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -622,12 +624,19 @@ export default function MapScreen({ navigation, route }) {
       <View style={styles.fabContainer}>
         <FAB
           icon="comment-plus"
-          style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+          style={[
+            styles.fab, 
+            { 
+              backgroundColor: isLargeText ? theme.colors.primary : 'transparent',
+              borderWidth: isLargeText ? 0 : 1.5,
+              borderColor: theme.colors.primary,
+            }
+          ]}
           onPress={() => navigation.getParent()?.navigate('AddReview')}
           label="Ajouter avis"
           mode="extended"
           size="medium"
-          color="white"
+          color={isLargeText ? 'white' : theme.colors.primary}
         />
       </View>
 
@@ -842,16 +851,17 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   fab: {
-    elevation: 12,
+    elevation: 6,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 6,
+      height: 3,
     },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 8,
+    backgroundColor: 'transparent',
   },
 });
