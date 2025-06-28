@@ -62,7 +62,7 @@ const GoogleReviewCard = ({ review }) => {
               {review.author_name.charAt(0)}
             </Text>
           </View>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={[styles.userName, { fontSize: textSizes.body, color: theme.colors.onSurface }]}>
               {review.author_name}
             </Text>
@@ -71,11 +71,13 @@ const GoogleReviewCard = ({ review }) => {
             </Text>
           </View>
         </View>
-        <CustomRating
-          rating={review.rating}
-          readonly={true}
-          size={16}
-        />
+        <View style={{ flexShrink: 0 }}>
+          <CustomRating
+            rating={review.rating}
+            readonly={true}
+            size={16}
+          />
+        </View>
       </View>
       
       <Text style={[styles.reviewText, { fontSize: textSizes.body, color: theme.colors.onSurface }]}>
@@ -203,9 +205,43 @@ export default function PlaceDetailScreen({ navigation, route }) {
     }
   };
 
-  const formatPriceLevel = (level) => {
-    const prices = ['Gratuit', '€', '€€', '€€€', '€€€€'];
-    return prices[level] || 'Non renseigné';
+  const formatPriceLevel = (level, placeType) => {
+    if (level === undefined || level === null) {
+      return 'Prix non renseigné';
+    }
+    
+    const prices = ['Gratuit', 'Prix bas', 'Prix moyen', 'Prix élevé', 'Prix très élevé'];
+    const priceSymbols = ['', '€', '€€', '€€€', '€€€€'];
+    
+    const priceText = prices[level] || 'Prix non renseigné';
+    const priceSymbol = priceSymbols[level] || '';
+    
+    // Adapter le texte selon le type de lieu
+    let contextText = '';
+    switch (placeType) {
+      case 'restaurant':
+        contextText = `Repas ${priceText.toLowerCase()}`;
+        break;
+      case 'hotel':
+        contextText = `Nuitée ${priceText.toLowerCase()}`;
+        break;
+      case 'shopping':
+        contextText = `Produits ${priceText.toLowerCase()}`;
+        break;
+      case 'culture':
+        contextText = `Entrée ${priceText.toLowerCase()}`;
+        break;
+      case 'sport':
+        contextText = `Séance ${priceText.toLowerCase()}`;
+        break;
+      case 'health':
+        contextText = `Consultation ${priceText.toLowerCase()}`;
+        break;
+      default:
+        contextText = priceText;
+    }
+    
+    return `${contextText} ${priceSymbol}`.trim();
   };
 
   const formatOpeningHours = (openingHours) => {
@@ -268,7 +304,7 @@ export default function PlaceDetailScreen({ navigation, route }) {
         {place.priceLevel !== undefined && (
           <View style={styles.priceContainer}>
             <Text style={{ fontSize: textSizes.body, color: theme.colors.onSurface }}>
-              Prix : {formatPriceLevel(place.priceLevel)}
+              Prix : {formatPriceLevel(place.priceLevel, place.type)}
             </Text>
           </View>
         )}
@@ -450,13 +486,15 @@ const styles = StyleSheet.create({
   reviewHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
   reviewUser: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    flex: 1,
+    marginRight: 8,
   },
   userAvatar: {
     width: 40,
@@ -465,6 +503,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E3F2FD',
     justifyContent: 'center',
     alignItems: 'center',
+    flexShrink: 0,
   },
   userInitial: {
     fontSize: 18,
@@ -472,9 +511,11 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontWeight: '600',
+    flexShrink: 1,
   },
   reviewDate: {
     opacity: 0.7,
+    flexShrink: 1,
   },
   reviewText: {
     lineHeight: 20,

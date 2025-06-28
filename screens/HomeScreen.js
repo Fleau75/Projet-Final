@@ -405,12 +405,12 @@ export default function HomeScreen({ navigation }) {
    */
   const mapGooglePlaceTypeToCategory = (googleTypes) => {
     if (!googleTypes || !Array.isArray(googleTypes)) {
-      return 'restaurant'; // Fallback par défaut
+      return 'shopping'; // Fallback vers shopping au lieu de restaurant
     }
 
     // Mapping des types Google Places vers nos catégories
     const typeMapping = {
-      // Restaurants
+      // Restaurants - Plus spécifique
       'restaurant': 'restaurant',
       'food': 'restaurant',
       'cafe': 'restaurant',
@@ -424,6 +424,16 @@ export default function HomeScreen({ navigation }) {
       'coffee_shop': 'restaurant',
       'night_club': 'restaurant',
       'liquor_store': 'restaurant',
+      
+      // Hôtels - Priorité haute pour éviter la confusion
+      'lodging': 'hotel',
+      'hotel': 'hotel',
+      'motel': 'hotel',
+      'resort': 'hotel',
+      'guest_house': 'hotel',
+      'bed_and_breakfast': 'hotel',
+      'inn': 'hotel',
+      'hostel': 'hotel',
       
       // Culture
       'museum': 'culture',
@@ -486,16 +496,7 @@ export default function HomeScreen({ navigation }) {
       // Éducation
       'school': 'education',
       'university': 'education',
-      'library': 'education',
       'training': 'education',
-      
-      // Hôtels
-      'lodging': 'hotel',
-      'hotel': 'hotel',
-      'motel': 'hotel',
-      'resort': 'hotel',
-      'guest_house': 'hotel',
-      'bed_and_breakfast': 'hotel',
       
       // Parcs & Nature
       'park': 'nature',
@@ -507,6 +508,14 @@ export default function HomeScreen({ navigation }) {
     };
 
     // Chercher le premier type qui correspond
+    // PRIORITÉ ABSOLUE aux hôtels - vérifier d'abord si lodging est présent
+    if (googleTypes.includes('lodging') || googleTypes.includes('hotel') || googleTypes.includes('motel') || 
+        googleTypes.includes('resort') || googleTypes.includes('guest_house') || googleTypes.includes('bed_and_breakfast') ||
+        googleTypes.includes('inn') || googleTypes.includes('hostel')) {
+      return 'hotel';
+    }
+    
+    // Puis chercher les autres types dans l'ordre
     for (const googleType of googleTypes) {
       if (typeMapping[googleType]) {
         return typeMapping[googleType];
@@ -515,10 +524,19 @@ export default function HomeScreen({ navigation }) {
 
     // Si aucun type ne correspond, essayer de deviner par le nom
     const name = googleTypes.join(' ').toLowerCase();
-    if (name.includes('hotel') || name.includes('hôtel') || name.includes('lodging') || name.includes('motel') || name.includes('resort')) {
+    
+    // PRIORITÉ ABSOLUE aux hôtels - même dans le fallback
+    if (name.includes('hotel') || name.includes('hôtel') || name.includes('lodging') || 
+        name.includes('motel') || name.includes('resort') || name.includes('inn') || 
+        name.includes('hostel') || name.includes('guesthouse') || name.includes('b&b') ||
+        name.includes('bed and breakfast') || name.includes('pension') || name.includes('auberge')) {
       return 'hotel';
     }
-    if (name.includes('restaurant') || name.includes('café') || name.includes('cafe') || name.includes('bar') || name.includes('pizzeria') || name.includes('boulangerie')) {
+    
+    // Puis les restaurants
+    if (name.includes('restaurant') || name.includes('café') || name.includes('cafe') || 
+        name.includes('bar') || name.includes('pizzeria') || name.includes('boulangerie') ||
+        name.includes('brasserie') || name.includes('bistrot') || name.includes('brasserie')) {
       return 'restaurant';
     }
 
@@ -533,6 +551,11 @@ export default function HomeScreen({ navigation }) {
       // Déterminer la catégorie basée sur les types Google Places
       const category = mapGooglePlaceTypeToCategory(place.types);
       
+      // Log de débogage pour voir la catégorisation
+      if (category === 'restaurant' || category === 'hotel') {
+        console.log(`🏷️ Catégorisation: "${place.name}" (types: ${place.types?.join(', ')}) → ${category}`);
+      }
+      
       return {
         id: place.place_id,
         name: place.name,
@@ -544,6 +567,10 @@ export default function HomeScreen({ navigation }) {
         },
         rating: place.rating || 4.0,
         reviewCount: place.user_ratings_total || 0,
+        phone: place.formatted_phone_number || null,
+        website: place.website || null,
+        priceLevel: place.price_level,
+        openingHours: place.opening_hours,
         image: place.photos && place.photos.length > 0 
           ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${place.photos[0].photo_reference}&key=${ConfigService.getGooglePlacesApiKey()}`
           : null,
@@ -575,7 +602,23 @@ export default function HomeScreen({ navigation }) {
       console.log(`🎯 Rayon de recherche: ${radius}m (configuré dans les réglages)`);
       
       // Rechercher différents types de lieux pour avoir plus de variété
-      const searchTypes = ['restaurant', 'store', 'museum', 'hospital', 'gym', 'school', 'park', 'stadium', 'fitness_center'];
+      const searchTypes = [
+        'restaurant', 
+        'lodging', // Ajout des hôtels
+        'store', 
+        'museum', 
+        'hospital', 
+        'gym', 
+        'school', 
+        'park', 
+        'stadium', 
+        'fitness_center',
+        'cafe', // Ajout des cafés séparément
+        'bar', // Ajout des bars
+        'shopping_mall', // Ajout des centres commerciaux
+        'library', // Ajout des bibliothèques
+        'pharmacy' // Ajout des pharmacies
+      ];
       let allPlaces = [];
       
       for (const type of searchTypes) {
@@ -606,7 +649,36 @@ export default function HomeScreen({ navigation }) {
       
       console.log(`✅ Total: ${uniquePlaces.length} lieux uniques trouvés (${allPlaces.length} avant déduplication)`);
       
-      return transformGooglePlacesData(uniquePlaces);
+      // Récupérer les détails complets pour les premiers lieux (pour éviter trop d'appels API)
+      const placesWithDetails = [];
+      const maxDetailsToFetch = 20; // Limiter pour éviter trop d'appels API
+      
+      for (let i = 0; i < Math.min(uniquePlaces.length, maxDetailsToFetch); i++) {
+        try {
+          const place = uniquePlaces[i];
+          console.log(`🔍 Récupération des détails pour: ${place.name}`);
+          const details = await PlacesApiService.getPlaceDetails(place.place_id);
+          
+          // Fusionner les données de base avec les détails
+          const placeWithDetails = {
+            ...place,
+            ...details
+          };
+          
+          placesWithDetails.push(placeWithDetails);
+        } catch (error) {
+          console.warn(`⚠️ Erreur pour les détails de ${uniquePlaces[i].name}:`, error.message);
+          // Ajouter le lieu sans détails
+          placesWithDetails.push(uniquePlaces[i]);
+        }
+      }
+      
+      // Ajouter les lieux restants sans détails
+      for (let i = maxDetailsToFetch; i < uniquePlaces.length; i++) {
+        placesWithDetails.push(uniquePlaces[i]);
+      }
+      
+      return transformGooglePlacesData(placesWithDetails);
     } catch (error) {
       console.warn('⚠️ Google Places erreur:', error.message);
       return [];
@@ -725,21 +797,6 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     loadPlacesFromFirestore();
   }, [loadPlacesFromFirestore]);
-
-  /**
-   * Effet pour recharger les lieux quand l'écran devient focus
-   * Utile si des lieux ont été ajoutés/modifiés dans d'autres écrans
-   */
-  useFocusEffect(
-    useCallback(() => {
-      // Attendre un peu que les autres données soient chargées
-      const timer = setTimeout(() => {
-        reloadPlaces();
-      }, 100);
-      
-      return () => clearTimeout(timer);
-    }, [reloadPlaces])
-  );
 
   /**
    * Effet pour gérer la géolocalisation au chargement
@@ -1045,7 +1102,6 @@ export default function HomeScreen({ navigation }) {
         {!loading && (
           <>
             <View style={styles.resultsHeader}>
-              <View style={styles.headerLeft}></View>
               <Text style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
                 {selectedCategory === 'all' ? 'Tous les lieux' : categories.find(c => c.id === selectedCategory)?.label || 'Lieux'}
               </Text>
@@ -1303,11 +1359,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontWeight: 'bold',
     fontSize: 18,
-    textAlign: 'center',
+    textAlign: 'left',
     marginBottom: 0,
     paddingHorizontal: 0,
     paddingVertical: 0,
-    marginLeft: -8,
+    marginLeft: 0,
   },
   list: {
     padding: 16,
@@ -1397,15 +1453,16 @@ const styles = StyleSheet.create({
   resultsHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     paddingHorizontal: 16,
     paddingVertical: 8,
     backgroundColor: 'rgba(0, 0, 0, 0.05)',
     borderRadius: 12,
     marginBottom: 12,
+    gap: 12,
   },
   headerLeft: {
-    width: 50, // Réduit pour équilibrer avec le bouton Liste
+    width: 0,
   },
   listButton: {
     paddingHorizontal: 10,
