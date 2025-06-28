@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ScrollView, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Chip, Text, SegmentedButtons, useTheme, Button } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import PlaceCard from '../components/PlaceCard';
@@ -22,12 +22,12 @@ import StorageService from '../services/storageService';
  */
 const categories = [
   { id: 'all', label: 'Tous' },
-  { id: 'restaurant', label: '🍽️ Restaurants' },
-  { id: 'culture', label: '🎭 Culture' },
-  { id: 'shopping', label: '🛍️ Shopping' },
-  { id: 'health', label: '🏥 Santé' },
-  { id: 'sport', label: '🏃 Sport' },
-  { id: 'education', label: '📚 Éducation' },
+  { id: 'restaurant', label: 'Restaurants' },
+  { id: 'culture', label: 'Culture' },
+  { id: 'shopping', label: 'Shopping' },
+  { id: 'health', label: 'Santé' },
+  { id: 'sport', label: 'Sport' },
+  { id: 'education', label: 'Éducation' },
 ];
 
 /**
@@ -277,38 +277,26 @@ const getAccessibilityLabel = (level) => {
  * Composant principal de l'écran d'accueil
  */
 export default function HomeScreen({ navigation }) {
-  // États pour gérer les filtres et la recherche
   const theme = useTheme();
   const { textSizes } = useTextSize();
-
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortValue, setSortValue] = useState('photo');
   const [accessibilityFilter, setAccessibilityFilter] = useState('all');
-  
-  // États pour les données depuis Firestore
+  const [sortValue, setSortValue] = useState('photo');
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const [searchRadius, setSearchRadius] = useState(1000);
+  const [isCategoriesMenuOpen, setIsCategoriesMenuOpen] = useState(false);
+  const [accessibilityPrefs, setAccessibilityPrefs] = useState({});
   
   // États pour la géolocalisation
-  const [userLocation, setUserLocation] = useState(null);
   const [locationError, setLocationError] = useState(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(true);
   
   // État combiné pour le chargement des lieux
   const [isLoadingPlaces, setIsLoadingPlaces] = useState(false);
   
-  // État pour le rayon de recherche
-  const [searchRadius, setSearchRadius] = useState(1000); // valeur par défaut 1000m
-  
-  // État pour les préférences d'accessibilité depuis les réglages
-  const [accessibilityPrefs, setAccessibilityPrefs] = useState({
-    requireRamp: false,
-    requireElevator: false,
-    requireAccessibleParking: false,
-    requireAccessibleToilets: false,
-  });
-
   /**
    * Fonction pour charger le rayon de recherche
    */
@@ -329,7 +317,6 @@ export default function HomeScreen({ navigation }) {
   const loadAccessibilityPrefs = useCallback(async () => {
     try {
       const prefs = await AccessibilityService.loadAccessibilityPreferences();
-      setAccessibilityPrefs(prefs);
       console.log('🔧 Préférences d\'accessibilité chargées:', prefs);
     } catch (error) {
       console.error('Erreur lors du chargement des préférences d\'accessibilité:', error);
@@ -619,134 +606,46 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]} testID="home-screen">
-      <View style={[styles.header, { backgroundColor: theme.colors.surface, paddingTop: 40 }]}>
-        {locationError && (
-          <View style={[styles.errorContainer, { backgroundColor: theme.colors.errorContainer }]}>
-            <Text style={[styles.errorText, { color: theme.colors.error }]}>⚠️ {locationError}</Text>
-            <Button testID="retry-location-button" onPress={async () => {
-              setLocationError(null);
-              setIsLoadingLocation(true);
-              setIsLoadingPlaces(true);
-              try {
-                const { status } = await Location.requestForegroundPermissionsAsync();
-                if (status === 'granted') {
-                  const location = await Location.getCurrentPositionAsync({
-                    accuracy: Location.Accuracy.Balanced,
-                  });
-                  setUserLocation(location.coords);
-                  const nearbyPlaces = await PlacesApiService.searchNearbyPlaces(
-                    { lat: location.coords.latitude, lng: location.coords.longitude },
-                    1500
-                  );
-                  setPlaces(nearbyPlaces);
-                  setLocationError(null);
-                } else {
-                  throw new Error('Permission refusée');
-                }
-              } catch (error) {
-                setLocationError('Impossible d\'obtenir votre position');
-              } finally {
-                setIsLoadingLocation(false);
-                setIsLoadingPlaces(false);
-              }
-            }} mode="text" compact>
-              Réessayer
-            </Button>
-          </View>
-        )}
-
-        {isLoadingLocation && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={theme.colors.primary} />
-            <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>
-              Recherche de votre position...
-            </Text>
-          </View>
-        )}
-
+      <View style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+        {/* Rayon de recherche en haut */}
         {userLocation && (
           <View style={[styles.locationInfo, { backgroundColor: theme.colors.surfaceVariant }]}>
-            <Text style={[styles.locationText, { color: theme.colors.onSurface }]}>
-              🔍 Rayon de recherche: {searchRadius >= 1000 ? (searchRadius/1000).toFixed(1) + ' km' : searchRadius + ' m'}
-            </Text>
+            <View style={styles.locationInfoContent}>
+              <View style={[styles.locationIcon, { backgroundColor: theme.colors.primary }]}>
+                <Text style={[styles.locationIconText, { color: theme.colors.onPrimary }]}>
+                  📍
+                </Text>
+              </View>
+              <View style={styles.locationTextContainer}>
+                <Text style={[styles.locationLabel, { color: theme.colors.onSurfaceVariant, fontSize: textSizes.caption }]}>
+                  Rayon de recherche
+                </Text>
+                <Text style={[styles.locationValue, { color: theme.colors.onSurface, fontSize: textSizes.body }]}>
+                  {searchRadius >= 1000 ? (searchRadius/1000).toFixed(1) + ' km' : searchRadius + ' m'}
+                </Text>
+              </View>
+            </View>
           </View>
         )}
 
         {/* Indicateur des préférences d'accessibilité actives */}
         {AccessibilityService.hasActivePreferences(accessibilityPrefs) && (
           <View style={[styles.preferencesInfo, { backgroundColor: theme.colors.primaryContainer }]}>
-            <Text style={[styles.preferencesText, { color: theme.colors.onPrimaryContainer }]}>
+            <Text style={[styles.preferencesText, { color: theme.colors.onPrimaryContainer, fontSize: textSizes.caption }]}>
               🔧 Filtres d'accessibilité actifs: {AccessibilityService.getActivePreferencesText(accessibilityPrefs)}
             </Text>
           </View>
         )}
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoriesContainer}
-          contentContainerStyle={styles.categories}
-        >
-          {categories.map(category => (
-            <Chip
-              key={category.id}
-              testID={`category-${category.id}`}
-              selected={selectedCategory === category.id}
-              onPress={() => setSelectedCategory(category.id)}
-              style={styles.categoryChip}
-              textStyle={{ fontSize: textSizes.body }}
-            >
-              {category.label}
-            </Chip>
-          ))}
-        </ScrollView>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.accessibilityContainer}
-          contentContainerStyle={styles.categories}
-        >
-          <Chip
-            testID="accessibility-all"
-            selected={accessibilityFilter === 'all'}
-            onPress={() => setAccessibilityFilter('all')}
-            style={styles.categoryChip}
-            selectedColor={theme.colors.primary}
-            textStyle={{ fontSize: textSizes.body }}
-          >
-            🔍 Tous
-          </Chip>
-          <Chip
-            testID="accessibility-full"
-            selected={accessibilityFilter === 'full'}
-            onPress={() => setAccessibilityFilter('full')}
-            style={styles.categoryChip}
-            selectedColor={theme.colors.primary}
-            textStyle={{ fontSize: textSizes.body }}
-          >
-            ♿ Totalement accessible
-          </Chip>
-          <Chip
-            testID="accessibility-partial"
-            selected={accessibilityFilter === 'partial'}
-            onPress={() => setAccessibilityFilter('partial')}
-            style={styles.categoryChip}
-            selectedColor={theme.colors.primary}
-            textStyle={{ fontSize: textSizes.body }}
-          >
-            ⚡ Partiellement accessible
-          </Chip>
-        </ScrollView>
-
+        {/* Boutons de tri en haut */}
         <SegmentedButtons
           testID="sort-buttons"
           value={sortValue}
           onValueChange={setSortValue}
           buttons={[
-            { value: 'photo', label: '📸 Photo', labelStyle: { fontSize: textSizes.body } },
-            { value: 'rating', label: '⭐ Note', labelStyle: { fontSize: textSizes.body } },
-            { value: 'reviews', label: '💬 Avis', labelStyle: { fontSize: textSizes.body } },
+            { value: 'photo', label: 'Photo', labelStyle: { fontSize: textSizes.body } },
+            { value: 'rating', label: 'Note', labelStyle: { fontSize: textSizes.body } },
+            { value: 'reviews', label: 'Avis', labelStyle: { fontSize: textSizes.body } },
           ]}
           style={styles.sortButtons}
         />
@@ -763,7 +662,7 @@ export default function HomeScreen({ navigation }) {
         {loading && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color={theme.colors.primary} />
-            <Text style={styles.loadingText}>Chargement...</Text>
+            <Text style={[styles.loadingText, { fontSize: textSizes.body }]}>Chargement...</Text>
           </View>
         )}
         
@@ -771,18 +670,31 @@ export default function HomeScreen({ navigation }) {
           <>
             <View style={styles.resultsHeader}>
               <View style={styles.headerLeft}></View>
-              <Text style={styles.sectionTitle}>
-                📍 {selectedCategory === 'all' ? 'Tous les lieux' : categories.find(c => c.id === selectedCategory)?.label || 'Lieux'}
+              <Text style={[styles.sectionTitle, { fontSize: textSizes.title }]}>
+                {selectedCategory === 'all' ? 'Tous les lieux' : categories.find(c => c.id === selectedCategory)?.label || 'Lieux'}
               </Text>
-              <View style={styles.countBadge}>
-                <Text style={styles.countText}>{sortedAndFilteredPlaces.length}</Text>
-              </View>
+              <TouchableOpacity
+                testID="list-button"
+                style={[
+                  styles.listButton,
+                  {
+                    backgroundColor: 'transparent',
+                    borderWidth: 1.5,
+                    borderColor: theme.colors.primary,
+                  }
+                ]}
+                onPress={() => setIsCategoriesMenuOpen(!isCategoriesMenuOpen)}
+              >
+                <Text style={[styles.listButtonText, { color: theme.colors.primary }]}>
+                  📋
+                </Text>
+              </TouchableOpacity>
             </View>
             
             {sortedAndFilteredPlaces.length === 0 ? (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyStateText}>😔 Aucun lieu trouvé</Text>
-                <Text style={styles.emptyStateSubtext}>Essayez de modifier vos filtres</Text>
+                <Text style={[styles.emptyStateText, { fontSize: textSizes.title }]}>😔 Aucun lieu trouvé</Text>
+                <Text style={[styles.emptyStateSubtext, { fontSize: textSizes.body }]}>Essayez de modifier vos filtres</Text>
               </View>
             ) : (
               sortedAndFilteredPlaces.map((place, index) => (
@@ -797,6 +709,99 @@ export default function HomeScreen({ navigation }) {
           </>
         )}
       </ScrollView>
+
+      {/* Menu des catégories (affiché conditionnellement) */}
+      {isCategoriesMenuOpen && (
+        <View style={[styles.categoriesMenu, { backgroundColor: theme.colors.surface }]}>
+          {/* Bouton de fermeture */}
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setIsCategoriesMenuOpen(false)}
+          >
+            <Text style={[styles.closeButtonText, { color: theme.colors.onSurface, fontSize: textSizes.body }]}>
+              ✕ Fermer
+            </Text>
+          </TouchableOpacity>
+          
+          {/* Catégories */}
+          <View style={styles.menuSection}>
+            <Text style={[styles.menuSectionTitle, { color: theme.colors.onSurface, fontSize: textSizes.label }]}>
+              Catégories
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.categoriesContainer}
+              contentContainerStyle={styles.categories}
+            >
+              {categories.map(category => (
+                <Chip
+                  key={category.id}
+                  testID={`category-${category.id}`}
+                  selected={selectedCategory === category.id}
+                  onPress={() => {
+                    setSelectedCategory(category.id);
+                  }}
+                  style={styles.categoryChip}
+                  textStyle={{ fontSize: textSizes.body }}
+                >
+                  {category.label}
+                </Chip>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Filtres d'accessibilité */}
+          <View style={styles.menuSection}>
+            <Text style={[styles.menuSectionTitle, { color: theme.colors.onSurface, fontSize: textSizes.label }]}>
+              Accessibilité
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.accessibilityContainer}
+              contentContainerStyle={styles.categories}
+            >
+              <Chip
+                testID="accessibility-all"
+                selected={accessibilityFilter === 'all'}
+                onPress={() => {
+                  setAccessibilityFilter('all');
+                }}
+                style={styles.categoryChip}
+                selectedColor={theme.colors.primary}
+                textStyle={{ fontSize: textSizes.body }}
+              >
+                Tous
+              </Chip>
+              <Chip
+                testID="accessibility-full"
+                selected={accessibilityFilter === 'full'}
+                onPress={() => {
+                  setAccessibilityFilter('full');
+                }}
+                style={styles.categoryChip}
+                selectedColor={theme.colors.primary}
+                textStyle={{ fontSize: textSizes.body }}
+              >
+                Totalement accessible
+              </Chip>
+              <Chip
+                testID="accessibility-partial"
+                selected={accessibilityFilter === 'partial'}
+                onPress={() => {
+                  setAccessibilityFilter('partial');
+                }}
+                style={styles.categoryChip}
+                selectedColor={theme.colors.primary}
+                textStyle={{ fontSize: textSizes.body }}
+              >
+                Partiellement accessible
+              </Chip>
+            </ScrollView>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -806,55 +811,59 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 5,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     paddingBottom: 6,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
-    elevation: 4,
+    marginBottom: 12,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    elevation: 2,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   categoriesContainer: {
-    marginBottom: 8,
+    marginBottom: 2,
   },
   accessibilityContainer: {
-    marginBottom: 8,
+    marginBottom: 0,
   },
   categories: {
-    paddingRight: 20,
-    gap: 12,
+    paddingRight: 8,
+    gap: 3,
   },
   categoryChip: {
-    marginRight: 12,
-    elevation: 2,
+    marginRight: 3,
+    elevation: 1,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 1,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 1,
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   sortButtons: {
-    marginBottom: 6,
-    elevation: 2,
+    marginBottom: 8,
+    elevation: 1,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 1,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 1,
   },
   content: {
     flex: 1,
-    marginTop: 2,
+    marginTop: 0,
     paddingHorizontal: 10,
   },
   section: {
@@ -896,15 +905,50 @@ const styles = StyleSheet.create({
   },
   locationInfo: {
     padding: 8,
-    marginBottom: 16,
-    borderRadius: 8,
+    marginBottom: 12,
+    borderRadius: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  locationText: {
-    
+  locationInfoContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  locationIcon: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  locationIconText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  locationTextContainer: {
+    marginLeft: 8,
+    alignItems: 'center',
+  },
+  locationLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  locationValue: {
+    fontSize: 14,
+    fontWeight: '400',
+    textAlign: 'center',
   },
   preferencesInfo: {
-    padding: 8,
-    marginBottom: 16,
+    padding: 6,
+    marginBottom: 12,
     borderRadius: 8,
   },
   preferencesText: {
@@ -931,20 +975,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headerLeft: {
-    width: 60, // Même largeur que le countBadge pour équilibrer
+    width: 50, // Réduit pour équilibrer avec le bouton Liste
   },
-  countBadge: {
-    backgroundColor: '#4CAF50',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    width: 60,
+  listButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    minWidth: 40,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  countText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
+  listButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   emptyState: {
     alignItems: 'center',
@@ -966,5 +1009,91 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     paddingHorizontal: 16,
   },
-
+  bottomCategories: {
+    padding: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.08)',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  categoriesButton: {
+    padding: 12,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  categoriesButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  categoriesButtonIcon: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  categoriesMenu: {
+    padding: 8,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    marginBottom: 4,
+  },
+  accessibilityButton: {
+    padding: 12,
+    borderRadius: 8,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 1,
+  },
+  accessibilityButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  accessibilityMenu: {
+    padding: 12,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    marginBottom: 8,
+  },
+  menuSection: {
+    marginBottom: 6,
+  },
+  menuSectionTitle: {
+    fontWeight: 'bold',
+    marginBottom: 4,
+    paddingHorizontal: 8,
+    fontSize: 12,
+  },
+  closeButton: {
+    padding: 6,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
 });

@@ -660,7 +660,7 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 30,
+    top: Platform.OS === 'ios' ? 20 : 15,
     left: 16,
     right: 16,
     zIndex: 1001, // Augmenté pour être au-dessus des résultats
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
   },
   resultsContainer: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 110 : 90,
+    top: Platform.OS === 'ios' ? 80 : 70,
     left: 16,
     right: 16,
     bottom: 80, // Utiliser bottom au lieu de maxHeight pour un meilleur contrôle

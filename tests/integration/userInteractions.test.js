@@ -37,8 +37,24 @@ jest.mock('../../services/storageService', () => ({
 }));
 
 jest.mock('../../services/placesApi', () => ({
-  searchNearbyPlaces: jest.fn(),
+  searchNearbyPlaces: jest.fn(() => Promise.resolve([])),
   getPlaceDetails: jest.fn(),
+}));
+
+jest.mock('../../services/firebaseService', () => ({
+  getAllPlaces: jest.fn(() => Promise.resolve([
+    {
+      id: 'mock-1',
+      name: 'Mock Place',
+      address: '123 Rue Mock',
+      type: 'restaurant',
+      rating: 4.5,
+      reviewCount: 10,
+      image: null,
+      coordinates: { latitude: 48.8566, longitude: 2.3522 },
+      accessibility: { ramp: true, elevator: false, parking: true, toilets: true },
+    },
+  ])),
 }));
 
 // Mock des contextes
@@ -155,6 +171,12 @@ describe('Tests d\'intégration - Interactions utilisateur', () => {
   });
 
   describe('Écran de connexion', () => {
+    it('devrait afficher le logo AccessPlus', async () => {
+      const { getByTestId } = render(<LoginScreen navigation={{ navigate: jest.fn() }} />);
+      const logo = getByTestId('login-logo');
+      expect(logo).toBeTruthy();
+    });
+
     it('devrait permettre la saisie d\'email et mot de passe', async () => {
       const { getByTestId } = render(<LoginScreen navigation={{ navigate: jest.fn() }} />);
       await waitFor(() => {
@@ -235,30 +257,48 @@ describe('Tests d\'intégration - Interactions utilisateur', () => {
 
   describe('Écran d\'accueil', () => {
     it('devrait permettre de filtrer par catégorie', async () => {
-      const { getByTestId } = render(<HomeScreen navigation={{ navigate: jest.fn() }} />);
+      const { getByTestId, queryByText } = render(<HomeScreen navigation={{ navigate: jest.fn() }} />);
       await waitFor(() => {
         expect(getByTestId('home-screen')).toBeTruthy();
       });
-      
-      // Tester les filtres de catégorie
-      const categoryAll = getByTestId('category-all');
-      expect(categoryAll).toBeTruthy();
-      
+      // Attendre la fin du chargement (apparition du header)
+      await waitFor(() => {
+        expect(queryByText('Tous les lieux')).toBeTruthy();
+      });
+      // Attendre que le bouton list soit rendu
+      const listButton = getByTestId('list-button');
+      expect(listButton).toBeTruthy();
+      fireEvent.press(listButton);
+      // Attendre que le menu s'ouvre et tester les filtres de catégorie
+      await waitFor(() => {
+        const categoryAll = getByTestId('category-all');
+        expect(categoryAll).toBeTruthy();
+      });
       // Tester qu'on peut cliquer sur une catégorie
+      const categoryAll = getByTestId('category-all');
       fireEvent.press(categoryAll);
     });
 
     it('devrait permettre de filtrer par accessibilité', async () => {
-      const { getByTestId } = render(<HomeScreen navigation={{ navigate: jest.fn() }} />);
+      const { getByTestId, queryByText } = render(<HomeScreen navigation={{ navigate: jest.fn() }} />);
       await waitFor(() => {
         expect(getByTestId('home-screen')).toBeTruthy();
       });
-      
-      // Tester les filtres d'accessibilité
-      const accessibilityAll = getByTestId('accessibility-all');
-      expect(accessibilityAll).toBeTruthy();
-      
+      // Attendre la fin du chargement (apparition du header)
+      await waitFor(() => {
+        expect(queryByText('Tous les lieux')).toBeTruthy();
+      });
+      // Attendre que le bouton list soit rendu
+      const listButton = getByTestId('list-button');
+      expect(listButton).toBeTruthy();
+      fireEvent.press(listButton);
+      // Attendre que le menu s'ouvre et tester les filtres d'accessibilité
+      await waitFor(() => {
+        const accessibilityAll = getByTestId('accessibility-all');
+        expect(accessibilityAll).toBeTruthy();
+      });
       // Tester qu'on peut cliquer sur un filtre d'accessibilité
+      const accessibilityAll = getByTestId('accessibility-all');
       fireEvent.press(accessibilityAll);
     });
 

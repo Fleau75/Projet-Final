@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for Projet-Final-main/components/PlaceCard.js</title>
+    <title>Code coverage report for Projet-Final-main/services/placesSearch.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -19,34 +19,34 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../index.html">All files</a> / <a href="index.html">Projet-Final-main/components</a> PlaceCard.js</h1>
+        <h1><a href="../../index.html">All files</a> / <a href="index.html">Projet-Final-main/services</a> placesSearch.js</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">96.15% </span>
+                <span class="strong">65.82% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>25/26</span>
+                <span class='fraction'>52/79</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">97.22% </span>
+                <span class="strong">20.4% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>35/36</span>
+                <span class='fraction'>20/98</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">60% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>9/15</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">66.23% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>21/21</span>
+                <span class='fraction'>51/77</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -328,7 +328,224 @@
 <a name='L263'></a><a href='#L263'>263</a>
 <a name='L264'></a><a href='#L264'>264</a>
 <a name='L265'></a><a href='#L265'>265</a>
-<a name='L266'></a><a href='#L266'>266</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -348,11 +565,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">180x</span>
-<span class="cline-any cline-yes">180x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -361,6 +580,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -370,68 +591,76 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">45x</span>
-<span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">45x</span>
-<span class="cline-any cline-yes">114x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">114x</span>
-<span class="cline-any cline-yes">87x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">27x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">45x</span>
-<span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">45x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
-<span class="cline-any cline-yes">43x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -440,6 +669,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -448,6 +679,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -456,6 +689,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -466,399 +700,339 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
- * Composant PlaceCard
- * Affiche les informations d'un lieu sous forme de carte
- * avec image, nom, adresse, note et icônes d'accessibilité
- */
-&nbsp;
-import React from 'react';
-import { View, StyleSheet, Image, Pressable } from 'react-native';
-import { Surface, Text, useTheme } from 'react-native-paper';
-import CustomRating from './CustomRating';
-import { useScreenReader } from '../theme/ScreenReaderContext';
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { GOOGLE_PLACES_API_KEY } from '@env';
+import PlacesApiService from './placesApi';
 &nbsp;
 /**
- * Composant pour afficher une icône d'accessibilité
- * @param {Object} props - Les propriétés du composant
- * @param {boolean} props.available - Si la fonctionnalité est disponible
- * @param {string} props.icon - L'emoji à afficher
- * @param {string} props.label - Le libellé de la fonctionnalité
+ * Recherche des lieux avec l'API Google Places
+ * @param {string} query - Le texte de recherche
+ * @returns {Promise&lt;Array&gt;} - Liste des lieux trouvés
  */
-const AccessibilityIcon = ({ available, icon, label }) =&gt; {
-  const theme = useTheme();
-  return (
-    &lt;View 
-      style={[
-        styles.accessibilityIcon,
-        { backgroundColor: available ? '#DCF7E3' : '#FEE2E2' }
-      ]}
-      accessible={true}
-      accessibilityLabel={`${label} ${available ? 'disponible' : 'non disponible'}`}
-    &gt;
-      &lt;Text&gt;{icon}&lt;/Text&gt;
-    &lt;/View&gt;
-  );
+export const searchPlaces = async (query) =&gt; {
+  try {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
+        query
+      )}&amp;key=${GOOGLE_PLACES_API_KEY}&amp;region=FR&amp;language=fr`
+    );
+&nbsp;
+    const data = await response.json();
+&nbsp;
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (data.status === 'OK') {
+      // Récupérer les détails complets pour chaque lieu
+          const placesWithDetails = <span class="cstat-no" title="statement not covered" >await Promise.all(</span>
+      data.results.slice(0, 15).map(<span class="fstat-no" title="function not covered" >as</span>ync (place) =&gt; {
+<span class="cstat-no" title="statement not covered" >          try {</span>
+            const details = <span class="cstat-no" title="statement not covered" >await PlacesApiService.getPlaceDetails(place.place_id);</span>
+<span class="cstat-no" title="statement not covered" >            return {</span>
+              id: place.place_id,
+              name: place.name,
+              address: place.formatted_address,
+              location: place.geometry.location,
+              // Vraies données complètes
+              rating: place.rating || 0,
+              reviewCount: place.user_ratings_total || 0,
+              phone: details.formatted_phone_number || null,
+              website: details.website || null,
+              openingHours: details.opening_hours || null,
+              priceLevel: details.price_level || 0,
+              reviews: details.reviews || [],
+              accessibility: extractAccessibilityFromReviews(details.reviews, place.types),
+              fullDetails: details
+            };
+          } catch (error) {
+<span class="cstat-no" title="statement not covered" >            console.warn(`Détails non récupérés pour ${place.name}:`, error);</span>
+<span class="cstat-no" title="statement not covered" >            return {</span>
+              id: place.place_id,
+              name: place.name,
+              address: place.formatted_address,
+              location: place.geometry.location,
+              rating: place.rating || 0,
+              reviewCount: place.user_ratings_total || 0,
+              phone: null,
+              website: null,
+              openingHours: null,
+              priceLevel: 0,
+              reviews: [],
+              accessibility: getDefaultAccessibility(place.types)
+            };
+          }
+        })
+      );
+      
+<span class="cstat-no" title="statement not covered" >      return placesWithDetails;</span>
+    } else {
+      console.error('Erreur Google Places:', data.status);
+      return [];
+    }
+  } catch (error) {
+    console.error('Erreur lors de la recherche:', error);
+    return [];
+  }
 };
 &nbsp;
 /**
- * Composant principal PlaceCard
- * @param {Object} props - Les propriétés du composant
- * @param {Object} props.place - Les données du lieu à afficher
- * @param {Function} props.onPress - Fonction appelée lors du clic sur la carte
+ * Recherche des lieux par texte dans une zone géographique spécifique
+ * @param {string} query - Le texte de recherche
+ * @param {Object} location - Coordonnées du centre de recherche
+ * @param {number} maxResults - Nombre maximum de résultats (défaut: 100)
+ * @returns {Promise&lt;Array&gt;} - Liste des lieux trouvés avec informations complètes
  */
-export default function PlaceCard({ place, onPress }) {
-  const theme = useTheme();
-  const { isScreenReaderEnabled } = useScreenReader();
-&nbsp;
-  // Fonction pour formater la distance
-  const formatDistance = (distance) =&gt; {
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (!distance &amp;&amp; distance !== 0) <span class="cstat-no" title="statement not covered" >return '';</span>
+export const searchPlacesByText = async (query, location = null, maxResults = 20) =&gt; {
+  try {
+    // Construction de l'URL de base
+    let url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}`;
     
-    if (distance &lt; 1) {
-      return `${Math.round(distance * 1000)}m`;
+    // Si une localisation est fournie, ajouter les paramètres de géolocalisation
+    if (location) {
+      url += `&amp;location=${location.latitude},${location.longitude}`;
+      if (location.radius) {
+        url += `&amp;radius=${location.radius}`;
+      }
     } else {
-      return `${distance.toFixed(1)}km`;
+      // Par défaut, rechercher dans Paris
+      url += `&amp;location=48.8566,2.3522&amp;radius=20000`;
     }
-  };
 &nbsp;
-  // Prépare la description d'accessibilité
-  const getAccessibilityDescription = () =&gt; {
-    const features = [];
-    
-    // Vérifier si place.accessibility existe
-    if (place.accessibility) {
-      if (place.accessibility.ramp) features.push('rampe d\'accès');
-      if (place.accessibility.elevator) features.push('ascenseur');
-      if (place.accessibility.parking) features.push('parking accessible');
-      if (place.accessibility.toilets) features.push('toilettes adaptées');
+    // Ajouter la région et la langue
+    url += `&amp;region=FR&amp;language=fr&amp;key=${GOOGLE_PLACES_API_KEY}`;
+&nbsp;
+    const response = await fetch(url);
+    const data = await response.json();
+&nbsp;
+    if (data.status === 'OK') {
+      // Limiter les résultats au nombre demandé
+      const limitedResults = data.results.slice(0, maxResults);
+      
+      // Récupérer les détails complets pour chaque lieu
+      const placesWithDetails = await Promise.all(
+        limitedResults.map(async (place) =&gt; {
+          try {
+            console.log(`🔍 Récupération des détails pour: ${place.name} (${place.place_id})`);
+            const details = await PlacesApiService.getPlaceDetails(place.place_id);
+            
+            // Debug: Vérifier les avis récupérés
+<span class="cstat-no" title="statement not covered" >            console.log(`🔍 Lieu "${place.name}" - Avis récupérés:`, {</span>
+              hasDetails: !!details,
+              hasReviews: !!details?.reviews,
+              reviewsCount: details?.reviews?.length || 0,
+              firstReviewAuthor: details?.reviews?.[0]?.author_name || 'Aucun',
+              // Debug complet
+              detailsKeys: details ? Object.keys(details) : 'Pas de détails',
+              placeId: place.place_id
+            });
+            
+<span class="cstat-no" title="statement not covered" >            return {</span>
+              id: place.place_id,
+              name: place.name,
+              address: place.formatted_address || place.vicinity || 'Paris, France',
+              type: getPlaceType(place.types || []),
+              rating: place.rating || 0,
+              reviewCount: place.user_ratings_total || 0,
+              image: place.photos &amp;&amp; place.photos.length &gt; 0 
+                ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&amp;photoreference=${place.photos[0].photo_reference}&amp;key=${GOOGLE_PLACES_API_KEY}`
+                : null,
+              coordinates: {
+                latitude: place.geometry.location.lat,
+                longitude: place.geometry.location.lng
+              },
+              // Vraies données complètes
+              phone: details.formatted_phone_number || null,
+              website: details.website || null,
+              openingHours: details.opening_hours || null,
+              priceLevel: details.price_level || 0,
+              // Vrais avis Google
+              reviews: details.reviews || [],
+              // Informations d'accessibilité basées sur les vrais avis
+              accessibility: extractAccessibilityFromReviews(details.reviews, place.types),
+              isOpenNow: place.opening_hours ? place.opening_hours.open_now : null,
+              fullDetails: details
+            };
+          } catch (error) {
+            console.warn(`❌ Détails non récupérés pour ${place.name}:`, error);
+            // Fallback avec données basiques
+            return {
+              id: place.place_id,
+              name: place.name,
+              address: place.formatted_address || <span class="branch-1 cbranch-no" title="branch not covered" >place.vicinity </span>|| <span class="branch-2 cbranch-no" title="branch not covered" >'Paris, France',</span>
+              type: getPlaceType(place.types || <span class="branch-1 cbranch-no" title="branch not covered" >[])</span>,
+              rating: place.rating || <span class="branch-1 cbranch-no" title="branch not covered" >0,</span>
+              reviewCount: place.user_ratings_total || <span class="branch-1 cbranch-no" title="branch not covered" >0,</span>
+              image: place.photos &amp;&amp; <span class="branch-1 cbranch-no" title="branch not covered" >place.photos.length &gt; 0 </span>
+                ? <span class="branch-0 cbranch-no" title="branch not covered" >`https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&amp;photoreference=${place.photos[0].photo_reference}&amp;key=${GOOGLE_PLACES_API_KEY}`</span>
+                : null,
+              coordinates: {
+                latitude: place.geometry.location.lat,
+                longitude: place.geometry.location.lng
+              },
+              phone: null,
+              website: null,
+              openingHours: null,
+              priceLevel: 0,
+              reviews: [],
+              accessibility: getDefaultAccessibility(place.types),
+              isOpenNow: place.opening_hours ? <span class="branch-0 cbranch-no" title="branch not covered" >place.opening_hours.open_now </span>: null,
+              fullDetails: null
+            };
+          }
+        })
+      );
+      
+      return placesWithDetails;
+    } else {
+      console.error('Erreur Google Places:', data.status, data.error_message);
+      return [];
     }
-    
-    const distanceText = place.distance !== undefined ? ` Distance: ${formatDistance(place.distance)}.` : '';
-    
-    return `${place.name}. ${place.address}.${distanceText} Note: ${place.rating} sur 5, ${place.reviewCount} avis. ${
-      features.length &gt; 0 
-        ? `Équipements accessibles: ${features.join(', ')}.` 
-        : 'Aucun équipement d\'accessibilité signalé.'
-    }`;
-  };
-&nbsp;
-  return (
-    &lt;Pressable 
-      onPress={onPress}
-      accessible={true}
-      accessibilityRole="button"
-      accessibilityLabel={getAccessibilityDescription()}
-      testID="place-card"
-    &gt;
-      &lt;Surface style={[styles.card, { backgroundColor: theme.colors.surface }]}&gt;
-        {/* Container de l'image - maintenant en haut */}
-        &lt;View style={styles.imageContainer}&gt;
-          {place.image ? (
-            &lt;Image 
-              source={{ uri: place.image }} 
-              style={styles.image}
-              accessible={true}
-              accessibilityLabel={`Photo de ${place.name}`}
-            /&gt;
-          ) : (
-            &lt;View 
-              style={[styles.placeholderImage, { backgroundColor: theme.colors.surfaceVariant }]}
-              accessible={true}
-              accessibilityLabel="Pas de photo disponible"
-            &gt;
-              &lt;Text variant="headlineMedium" style={{ color: theme.colors.onSurfaceVariant }}&gt;
-                {place.name[0]}
-              &lt;/Text&gt;
-            &lt;/View&gt;
-          )}
-        &lt;/View&gt;
-&nbsp;
-        {/* Contenu textuel et informations - maintenant en dessous */}
-        &lt;View style={styles.content}&gt;
-          &lt;Text 
-            variant="titleMedium" 
-            style={[styles.title, { color: theme.colors.onSurface }]}
-            accessible={true}
-            accessibilityRole="header"
-          &gt;
-            {place.name}
-          &lt;/Text&gt;
-          
-          &lt;Text 
-            variant="bodySmall" 
-            style={styles.address}
-            accessible={true}
-            accessibilityLabel={`Adresse: ${place.address}`}
-          &gt;
-            {place.address}
-          &lt;/Text&gt;
-&nbsp;
-          {/* Note et nombre d'avis */}
-          &lt;View 
-            style={styles.ratingContainer}
-            accessible={true}
-            accessibilityLabel={`Note: ${place.rating} sur 5, ${place.reviewCount} avis`}
-          &gt;
-            &lt;CustomRating
-              rating={place.rating}
-              readonly={true}
-              size={16}
-              style={styles.rating}
-            /&gt;
-            &lt;Text variant="bodySmall" style={styles.reviewCount}&gt;
-              ({place.reviewCount})
-            &lt;/Text&gt;
-          &lt;/View&gt;
-&nbsp;
-          {/* Distance */}
-          {place.distance !== undefined &amp;&amp; (
-            &lt;View 
-              style={styles.distanceContainer}
-              accessible={true}
-              accessibilityLabel={`Distance: ${formatDistance(place.distance)}`}
-            &gt;
-              &lt;Text style={[styles.distanceText, { color: theme.colors.primary }]}&gt;
-                📍 {formatDistance(place.distance)}
-              &lt;/Text&gt;
-            &lt;/View&gt;
-          )}
-&nbsp;
-          {/* Icônes d'accessibilité */}
-          &lt;View style={styles.accessibilityContainer}&gt;
-            &lt;AccessibilityIcon
-              available={place.accessibility?.ramp || false}
-              icon="♿️"
-              label="Rampe d'accès"
-            /&gt;
-            &lt;AccessibilityIcon
-              available={place.accessibility?.elevator || false}
-              icon="🛗"
-              label="Ascenseur"
-            /&gt;
-            &lt;AccessibilityIcon
-              available={place.accessibility?.parking || false}
-              icon="🅿️"
-              label="Parking accessible"
-            /&gt;
-            &lt;AccessibilityIcon
-              available={place.accessibility?.toilets || false}
-              icon="🚻"
-              label="Toilettes adaptées"
-            /&gt;
-          &lt;/View&gt;
-        &lt;/View&gt;
-      &lt;/Surface&gt;
-    &lt;/Pressable&gt;
-  );
-}
+  } catch (error) {
+    console.error('Erreur lors de la recherche par texte:', error);
+    return [];
+  }
+};
 &nbsp;
 /**
- * Styles du composant
+ * Détermine le type de lieu basé sur les types Google Places
+ * @param {Array} types - Types Google Places
+ * @returns {string} - Type de lieu standardisé
  */
-const styles = StyleSheet.create({
-  card: {
-    marginBottom: 16,
-    borderRadius: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-  },
-  imageContainer: {
-    width: '100%',
-    height: 180, // Hauteur plus importante pour l'image
-    overflow: 'hidden', // Déplacé ici pour éviter le warning Surface
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  placeholderImage: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  content: {
-    padding: 16,
-  },
-  title: {
-    marginBottom: 6,
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  address: {
-    marginBottom: 10,
-    opacity: 0.7,
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  rating: {
-    marginRight: 4,
-  },
-  reviewCount: {
-    opacity: 0.7,
-  },
-  accessibilityContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  accessibilityIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  distanceContainer: {
-    marginBottom: 12,
-  },
-  distanceText: {
-    fontSize: 13,
-    opacity: 0.7,
-  },
-}); </pre></td></tr></table></pre>
+const getPlaceType = (types) =&gt; {
+  const typeMapping = {
+    restaurant: ['restaurant', 'cafe', 'bar', 'food', 'bakery', 'meal_takeaway', 'meal_delivery'],
+    culture: ['museum', 'art_gallery', 'library', 'tourist_attraction', 'park', 'church', 'place_of_worship', 'zoo', 'amusement_park'],
+    shopping: ['shopping_mall', 'store', 'supermarket', 'clothing_store', 'department_store', 'electronics_store', 'book_store'],
+    health: ['hospital', 'doctor', 'pharmacy', 'physiotherapist', 'dentist', 'medical_clinic', 'health'],
+    sport: ['gym', 'stadium', 'sports_complex', 'fitness_center', 'bowling_alley'],
+    education: ['school', 'university', 'library', 'secondary_school', 'primary_school'],
+    transport: ['subway_station', 'train_station', 'bus_station', 'airport'],
+    hotel: ['lodging', 'hotel', 'hostel']
+  };
+&nbsp;
+  for (const [category, googleTypes] of Object.entries(typeMapping)) {
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (types.some(type =&gt; googleTypes.includes(type))) {
+      return category;
+    }
+  }
+  
+<span class="cstat-no" title="statement not covered" >  return 'other';</span>
+};
+&nbsp;
+/**
+ * Extrait les informations d'accessibilité des vrais avis Google
+ */
+const extractAccessibilityFromReviews = <span class="fstat-no" title="function not covered" >(r</span>eviews, types) =&gt; {
+<span class="cstat-no" title="statement not covered" >  if (!reviews || reviews.length === 0) {</span>
+<span class="cstat-no" title="statement not covered" >    return getDefaultAccessibility(types);</span>
+  }
+&nbsp;
+  // Mots-clés d'accessibilité dans les avis
+  const accessibilityKeywords = <span class="cstat-no" title="statement not covered" >{</span>
+    ramp: ['rampe', 'ramp', 'accès fauteuil', 'wheelchair', 'handicapé', 'pmr', 'accessible'],
+    elevator: ['ascenseur', 'elevator', 'lift', 'étage', 'accessibilité étage'],
+    parking: ['parking', 'stationnement', 'place handicapé', 'parking pmr'],
+    toilets: ['toilettes', 'wc', 'sanitaires', 'toilet', 'bathroom', 'accessible toilet']
+  };
+&nbsp;
+  const accessibility = <span class="cstat-no" title="statement not covered" >{</span>
+    ramp: false,
+    elevator: false,
+    parking: false,
+    toilets: false
+  };
+&nbsp;
+  // Analyser les avis pour détecter les mentions d'accessibilité
+<span class="cstat-no" title="statement not covered" >  reviews.forEach(<span class="fstat-no" title="function not covered" >re</span>view =&gt; {</span>
+    const text = <span class="cstat-no" title="statement not covered" >review.text.toLowerCase();</span>
+    
+<span class="cstat-no" title="statement not covered" >    Object.keys(accessibilityKeywords).forEach(<span class="fstat-no" title="function not covered" >fe</span>ature =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      if (accessibilityKeywords[feature].some(<span class="fstat-no" title="function not covered" >ke</span>yword =&gt; <span class="cstat-no" title="statement not covered" >text.includes(keyword))</span>) {</span>
+        // Si mention positive (pas de "pas de", "aucun", etc.)
+<span class="cstat-no" title="statement not covered" >        if (!text.match(/(pas de|aucun|sans|no|not|manque)/)) {</span>
+<span class="cstat-no" title="statement not covered" >          accessibility[feature] = true;</span>
+        }
+      }
+    });
+  });
+&nbsp;
+  // Compléter avec des probabilités basées sur le type de lieu
+<span class="cstat-no" title="statement not covered" >  return enhanceAccessibilityWithDefaults(accessibility, types);</span>
+};
+&nbsp;
+/**
+ * Accessibilité par défaut basée sur le type de lieu
+ */
+const getDefaultAccessibility = (types) =&gt; {
+  const isPublicBuilding = types?.some(type =&gt; 
+    ['hospital', 'school', 'university', 'library', 'government', 'city_hall', 'post_office'].includes(type)
+  );
+  
+  const isLargeCommercial = types?.some(type =&gt; 
+    ['shopping_mall', 'department_store', 'supermarket', 'hotel'].includes(type)
+  );
+  
+  const isTransport = types?.some(type =&gt; 
+    ['subway_station', 'train_station', 'bus_station', 'airport'].includes(type)
+  );
+&nbsp;
+  // Bâtiments publics = meilleure accessibilité
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (isPublicBuilding) {
+<span class="cstat-no" title="statement not covered" >    return {</span>
+      ramp: true,
+      elevator: Math.random() &gt; 0.3,
+      parking: true,
+      toilets: true
+    };
+  }
+  
+  // Grandes surfaces commerciales
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (isLargeCommercial) {
+<span class="cstat-no" title="statement not covered" >    return {</span>
+      ramp: true,
+      elevator: Math.random() &gt; 0.4,
+      parking: true,
+      toilets: true
+    };
+  }
+  
+  // Transports
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (isTransport) {
+<span class="cstat-no" title="statement not covered" >    return {</span>
+      ramp: Math.random() &gt; 0.4,
+      elevator: Math.random() &gt; 0.5,
+      parking: false,
+      toilets: Math.random() &gt; 0.6
+    };
+  }
+  
+  // Autres lieux
+  return {
+    ramp: Math.random() &gt; 0.6,
+    elevator: false,
+    parking: Math.random() &gt; 0.7,
+    toilets: Math.random() &gt; 0.7
+  };
+};
+&nbsp;
+/**
+ * Améliore l'accessibilité détectée avec des valeurs par défaut
+ */
+const enhanceAccessibilityWithDefaults = <span class="fstat-no" title="function not covered" >(d</span>etectedAccessibility, types) =&gt; {
+  const defaultAccessibility = <span class="cstat-no" title="statement not covered" >getDefaultAccessibility(types);</span>
+  
+<span class="cstat-no" title="statement not covered" >  return {</span>
+    ramp: detectedAccessibility.ramp || defaultAccessibility.ramp,
+    elevator: detectedAccessibility.elevator || defaultAccessibility.elevator,
+    parking: detectedAccessibility.parking || defaultAccessibility.parking,
+    toilets: detectedAccessibility.toilets || defaultAccessibility.toilets
+  };
+}; </pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->

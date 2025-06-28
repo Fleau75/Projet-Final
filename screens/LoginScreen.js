@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, Alert, Image } from 'react-native';
 import { Text, Button, TextInput, Surface, useTheme, Switch } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -261,6 +261,14 @@ export default function LoginScreen({ navigation }) {
         style={styles.keyboardView}
       >
         <View style={styles.headerContainer}>
+          <Image
+            source={require('../assets/logo-new.png')}
+            style={styles.logo}
+            resizeMode="contain"
+            accessible
+            accessibilityLabel="Logo AccessPlus"
+            testID="login-logo"
+          />
           <Text style={[styles.title, { 
             color: isDarkMode ? '#FFFFFF' : theme.colors.primary, 
             fontSize: 42 
@@ -437,6 +445,13 @@ const styles = StyleSheet.create({
   headerContainer: {
     alignItems: 'center',
     marginBottom: 40,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    alignSelf: 'center',
+    marginBottom: 8,
+    marginTop: 8,
   },
   title: {
     fontWeight: 'bold',
