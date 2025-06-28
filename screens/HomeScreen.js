@@ -318,6 +318,7 @@ export default function HomeScreen({ navigation }) {
     try {
       const prefs = await AccessibilityService.loadAccessibilityPreferences();
       console.log('🔧 Préférences d\'accessibilité chargées:', prefs);
+      setAccessibilityPrefs(prefs);
     } catch (error) {
       console.error('Erreur lors du chargement des préférences d\'accessibilité:', error);
     }
