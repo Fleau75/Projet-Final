@@ -359,4 +359,87 @@ describe('RegisterScreen', () => {
     expect(passwordInput.props.secureTextEntry).toBe(true);
     expect(confirmPasswordInput.props.secureTextEntry).toBe(true);
   });
+
+  it('devrait afficher le message de recherche de données visiteur au chargement', async () => {
+    const { getByText } = render(<RegisterScreen navigation={mockNavigation} />);
+    
+    await waitFor(() => {
+      expect(getByText('Recherche de données visiteur...')).toBeTruthy();
+    });
+  });
+
+  it('devrait valider la longueur minimale des noms', async () => {
+    const { getByTestId, getByText } = render(<RegisterScreen navigation={mockNavigation} />);
+    
+    await waitFor(() => {
+      expect(getByTestId('name-input')).toBeTruthy();
+    });
+    
+    const nameInput = getByTestId('name-input');
+    const lastnameInput = getByTestId('lastname-input');
+    const submitButton = getByTestId('submit-button');
+    
+    // Tester avec des noms trop courts
+    fireEvent.changeText(nameInput, 'J');
+    fireEvent.changeText(lastnameInput, 'D');
+    
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+    
+    await waitFor(() => {
+      expect(getByText('Le prénom doit contenir au moins 2 caractères')).toBeTruthy();
+      expect(getByText('Le nom doit contenir au moins 2 caractères')).toBeTruthy();
+    });
+  });
+
+  it('devrait nettoyer les erreurs lors de la saisie dans n\'importe quel champ', async () => {
+    const { getByTestId, getByText, queryByText } = render(<RegisterScreen navigation={mockNavigation} />);
+    
+    await waitFor(() => {
+      expect(getByTestId('submit-button')).toBeTruthy();
+    });
+    
+    const submitButton = getByTestId('submit-button');
+    
+    // Soumettre avec des champs vides pour créer des erreurs
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
+    
+    await waitFor(() => {
+      expect(getByText('Le prénom est obligatoire')).toBeTruthy();
+      expect(getByText('Le nom est obligatoire')).toBeTruthy();
+      expect(getByText('L\'email est obligatoire')).toBeTruthy();
+    });
+    
+    // Saisir dans les champs pour nettoyer les erreurs
+    fireEvent.changeText(getByTestId('name-input'), 'John');
+    fireEvent.changeText(getByTestId('lastname-input'), 'Doe');
+    fireEvent.changeText(getByTestId('email-input'), 'john@example.com');
+    
+    await waitFor(() => {
+      expect(queryByText('Le prénom est obligatoire')).toBeNull();
+      expect(queryByText('Le nom est obligatoire')).toBeNull();
+      expect(queryByText('L\'email est obligatoire')).toBeNull();
+    });
+  });
+
+  it('devrait valider que les champs ont les bons types de clavier', async () => {
+    const { getByTestId } = render(<RegisterScreen navigation={mockNavigation} />);
+    
+    await waitFor(() => {
+      expect(getByTestId('email-input')).toBeTruthy();
+    });
+    
+    const emailInput = getByTestId('email-input');
+    const phoneInput = getByTestId('phone-input');
+    
+    // Vérifier que l'email a le bon type de clavier
+    expect(emailInput.props.keyboardType).toBe('email-address');
+    expect(emailInput.props.autoCapitalize).toBe('none');
+    
+    // Vérifier que le téléphone a le bon type de clavier
+    expect(phoneInput.props.keyboardType).toBe('phone-pad');
+  });
 }); 
