@@ -204,35 +204,6 @@ export default function SettingsScreen({ navigation, route }) {
     }
   }, [notifications]);
 
-  const handleSaveSettings = async () => {
-    try {
-      // Sauvegarder les préférences d'accessibilité
-      await StorageService.setAccessibilityPrefs(accessibilityPrefs);
-      
-      // Sauvegarder les notifications
-      await StorageService.setNotificationPrefs(notifications);
-      
-      // Sauvegarder le rayon de recherche
-      await StorageService.setSearchRadius(searchRadius.toString());
-      
-      // Sauvegarder le style de carte
-      await StorageService.setMapStyle(mapStyle);
-
-      Alert.alert(
-        "Succès",
-        "Vos paramètres ont été sauvegardés avec succès",
-        [{ text: "OK" }]
-      );
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde des paramètres:', error);
-      Alert.alert(
-        "Erreur",
-        "Une erreur est survenue lors de la sauvegarde des paramètres",
-        [{ text: "OK" }]
-      );
-    }
-  };
-
   const handleResetSettings = useCallback(async () => {
     Alert.alert(
       "Réinitialiser tous les paramètres",
@@ -374,82 +345,17 @@ export default function SettingsScreen({ navigation, route }) {
   const openAccessibilitySettings = async () => {
     try {
       if (Platform.OS === 'ios') {
-        // Sur iOS 13+, on ne peut plus ouvrir directement les paramètres d'accessibilité
-        await Linking.openSettings();
-        // On affiche un message d'aide
-        Alert.alert(
-          "Paramètres d'accessibilité",
-          "Pour activer la lecture d'écran :\n1. Dans Réglages\n2. Allez dans Accessibilité\n3. Sélectionnez VoiceOver",
-          [{ text: "OK", style: "default" }]
-        );
+        await Linking.openURL('App-Prefs:ACCESSIBILITY');
       } else {
-        await Linking.openSettings();
+        await Linking.openURL('android.settings.ACCESSIBILITY_SETTINGS');
       }
     } catch (error) {
-      console.error('Erreur lors de l\'ouverture des paramètres:', error);
-    }
-  };
-
-  // Fonctions de test pour les notifications
-  const testNotification = async (type) => {
-    try {
-      let success = false;
-      
-      switch (type) {
-        case 'newPlace':
-          success = await NotificationService.notifyNewPlace('Restaurant Le Petit Bistrot', '150');
-          break;
-        case 'newReview':
-          success = await NotificationService.notifyNewReview('Musée du Louvre', 4);
-          break;
-        case 'appUpdate':
-          success = await NotificationService.notifyAppUpdate('1.1.0', ['Nouvelles fonctionnalités', 'Améliorations de performance']);
-          break;
-        case 'nearbyPlace':
-          success = await NotificationService.notifyNearbyPlace('Café Central', '200', ['Rampe', 'Ascenseur']);
-          break;
-        default:
-          success = await NotificationService.sendLocalNotification('Test', 'Ceci est une notification de test');
-      }
-      
-      if (success) {
-        Alert.alert(
-          "✅ Test réussi",
-          `Notification ${type} envoyée avec succès !`,
-          [{ text: "OK" }]
-        );
-      } else {
-        Alert.alert(
-          "❌ Test échoué",
-          "La notification n'a pas pu être envoyée. Vérifiez vos préférences.",
-          [{ text: "OK" }]
-        );
-      }
-    } catch (error) {
-      console.error('Erreur lors du test de notification:', error);
+      console.error('Erreur lors de l\'ouverture des paramètres d\'accessibilité:', error);
       Alert.alert(
-        "❌ Erreur",
-        "Une erreur est survenue lors du test de notification",
+        "Erreur",
+        "Impossible d'ouvrir les paramètres d'accessibilité",
         [{ text: "OK" }]
       );
-    }
-  };
-
-  const checkNotificationStatus = async () => {
-    try {
-      const isEnabled = await NotificationService.isEnabled();
-      const prefs = await NotificationService.getNotificationPreferences();
-      
-      Alert.alert(
-        "🔔 Statut des notifications",
-        `Permissions: ${isEnabled ? '✅ Accordées' : '❌ Refusées'}\n\n` +
-        `Nouveaux lieux: ${prefs.newPlaces ? '✅ Activé' : '❌ Désactivé'}\n` +
-        `Nouveaux avis: ${prefs.reviews ? '✅ Activé' : '❌ Désactivé'}\n` +
-        `Mises à jour: ${prefs.updates ? '✅ Activé' : '❌ Désactivé'}`,
-        [{ text: "OK" }]
-      );
-    } catch (error) {
-      console.error('Erreur lors de la vérification du statut:', error);
     }
   };
 
@@ -744,117 +650,33 @@ export default function SettingsScreen({ navigation, route }) {
                 />
               )}
             />
-
-            <Divider style={styles.divider} />
-            
-            {/* Section de test des notifications - Design amélioré */}
-            <View style={styles.testSection}>
-              <Text style={[styles.testSectionTitle, { fontSize: textSizes.subtitle, color: theme.colors.primary }]}>
-                🧪 Tests de notifications
-              </Text>
-              <Text style={[styles.testSectionDescription, { fontSize: textSizes.caption, color: theme.colors.onSurfaceVariant }]}>
-                Vérifiez que vos notifications fonctionnent correctement
-              </Text>
-              
-              <View style={styles.testButtonsGrid}>
-                <View style={styles.testButtonRow}>
-                  <Button
-                    testID="test-new-place-button"
-                    mode="outlined"
-                    onPress={() => testNotification('newPlace')}
-                    style={[styles.testButton, { flex: 1, marginRight: 8 }]}
-                    labelStyle={{ fontSize: textSizes.caption }}
-                    icon="map-marker"
-                    compact
-                    buttonColor={theme.colors.surface}
-                    textColor={theme.colors.primary}
-                  >
-                    Nouveau lieu
-                  </Button>
-                  
-                  <Button
-                    testID="test-new-review-button"
-                    mode="outlined"
-                    onPress={() => testNotification('newReview')}
-                    style={[styles.testButton, { flex: 1, marginLeft: 8 }]}
-                    labelStyle={{ fontSize: textSizes.caption }}
-                    icon="star"
-                    compact
-                    buttonColor={theme.colors.surface}
-                    textColor={theme.colors.primary}
-                  >
-                    Nouvel avis
-                  </Button>
-                </View>
-                
-                <View style={styles.testButtonRow}>
-                  <Button
-                    testID="test-app-update-button"
-                    mode="outlined"
-                    onPress={() => testNotification('appUpdate')}
-                    style={[styles.testButton, { flex: 1, marginRight: 8 }]}
-                    labelStyle={{ fontSize: textSizes.caption }}
-                    icon="update"
-                    compact
-                    buttonColor={theme.colors.surface}
-                    textColor={theme.colors.primary}
-                  >
-                    Mise à jour
-                  </Button>
-                  
-                  <Button
-                    testID="test-nearby-place-button"
-                    mode="outlined"
-                    onPress={() => testNotification('nearbyPlace')}
-                    style={[styles.testButton, { flex: 1, marginLeft: 8 }]}
-                    labelStyle={{ fontSize: textSizes.caption }}
-                    icon="map-marker"
-                    compact
-                    buttonColor={theme.colors.surface}
-                    textColor={theme.colors.primary}
-                  >
-                    Lieu proche
-                  </Button>
-                </View>
-              </View>
-              
-              <Button
-                testID="check-notification-status-button"
-                mode="text"
-                onPress={checkNotificationStatus}
-                style={styles.statusButton}
-                labelStyle={{ fontSize: textSizes.caption, color: theme.colors.primary }}
-                icon="information-outline"
-                compact
-              >
-                Vérifier le statut
-              </Button>
-            </View>
           </Card.Content>
         </Card>
 
         {/* Actions */}
         <View style={styles.actionsSection}>
           <Button 
-            testID="save-settings-button"
-            mode="contained" 
-            onPress={handleSaveSettings}
-            style={styles.saveButton}
-          >
-            Sauvegarder les paramètres
-          </Button>
-          
-          <Button 
             testID="reset-settings-button"
-            mode="contained" 
+            mode="outlined" 
             onPress={handleResetSettings}
-            style={[styles.resetButton, { backgroundColor: '#ff4444' }]}
-            labelStyle={{ fontSize: textSizes.body, color: 'white' }}
+            style={[styles.resetButton, { 
+              borderColor: theme.colors.error,
+              borderWidth: 2,
+              borderRadius: 12,
+              paddingVertical: 12,
+              marginTop: 8
+            }]}
+            labelStyle={{ 
+              fontSize: textSizes.body, 
+              color: theme.colors.error,
+              fontWeight: '600',
+              letterSpacing: 0.5
+            }}
             icon="refresh"
-            buttonColor="#ff4444"
-            textColor="white"
+            buttonColor="transparent"
+            textColor={theme.colors.error}
           >
-            Réinitialiser TOUS les paramètres
+            Réinitialiser tous les paramètres
           </Button>
         </View>
 
@@ -920,13 +742,15 @@ const styles = StyleSheet.create({
   },
   actionsSection: {
     marginVertical: 24,
-  },
-  saveButton: {
-    marginBottom: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
   resetButton: {
     paddingVertical: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   speechRateContainer: {
     flexDirection: 'row',
@@ -992,30 +816,5 @@ const styles = StyleSheet.create({
   },
   rangeLabel: {
     fontSize: 12,
-  },
-  testSection: {
-    marginTop: 16,
-    padding: 16,
-  },
-  testSectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  testSectionDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 16,
-  },
-  testButtonsGrid: {
-    marginBottom: 16,
-  },
-  testButtonRow: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  statusButton: {
-    marginTop: 16,
-    paddingVertical: 8,
   },
 }); 

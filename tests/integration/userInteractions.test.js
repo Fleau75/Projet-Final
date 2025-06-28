@@ -307,37 +307,18 @@ describe('Tests d\'intégration - Interactions utilisateur', () => {
       expect(largeTextSwitch).toBeTruthy();
     });
 
-    it('devrait permettre de tester les notifications', async () => {
+    it('devrait permettre de réinitialiser les paramètres', async () => {
       const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
       await waitFor(() => {
         expect(getByTestId('settings-screen')).toBeTruthy();
       });
       
-      const testNewPlaceButton = getByTestId('test-new-place-button');
-      const testNewReviewButton = getByTestId('test-new-review-button');
-      const testAppUpdateButton = getByTestId('test-app-update-button');
-      const testNearbyPlaceButton = getByTestId('test-nearby-place-button');
-      
-      expect(testNewPlaceButton).toBeTruthy();
-      expect(testNewReviewButton).toBeTruthy();
-      expect(testAppUpdateButton).toBeTruthy();
-      expect(testNearbyPlaceButton).toBeTruthy();
-    });
-
-    it('devrait permettre de sauvegarder les paramètres', async () => {
-      const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
-      await waitFor(() => {
-        expect(getByTestId('settings-screen')).toBeTruthy();
-      });
-      
-      const saveSettingsButton = getByTestId('save-settings-button');
       const resetSettingsButton = getByTestId('reset-settings-button');
       
-      fireEvent.press(saveSettingsButton);
-      fireEvent.press(resetSettingsButton);
-      
-      expect(saveSettingsButton).toBeTruthy();
       expect(resetSettingsButton).toBeTruthy();
+      
+      // Le bouton devrait être cliquable
+      fireEvent.press(resetSettingsButton);
     });
   });
 });
