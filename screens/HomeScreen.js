@@ -882,10 +882,10 @@ export default function HomeScreen({ navigation }) {
       let distance = userLocation ? calculateDistance(userLocation, place.coordinates) : null;
       if (!isFinite(distance)) distance = null;
       return {
-        ...place,
+      ...place,
         distance,
-        accessibilityLevel: getAccessibilityLevel(place),
-        accessibilityLabel: getAccessibilityLabel(getAccessibilityLevel(place))
+      accessibilityLevel: getAccessibilityLevel(place),
+      accessibilityLabel: getAccessibilityLabel(getAccessibilityLevel(place))
       };
     })
     .filter(place => {
@@ -1128,7 +1128,7 @@ export default function HomeScreen({ navigation }) {
                       fontSize: textSizes.caption
                     }
                   ]}>
-                    {category.label}
+                  {category.label}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -1162,7 +1162,7 @@ export default function HomeScreen({ navigation }) {
                     fontSize: textSizes.caption
                   }
                 ]}>
-                  Tous
+                Tous
                 </Text>
               </TouchableOpacity>
               
@@ -1187,7 +1187,7 @@ export default function HomeScreen({ navigation }) {
                     fontSize: textSizes.caption
                   }
                 ]}>
-                  Totalement accessible
+                Totalement accessible
                 </Text>
               </TouchableOpacity>
               
@@ -1212,7 +1212,7 @@ export default function HomeScreen({ navigation }) {
                     fontSize: textSizes.caption
                   }
                 ]}>
-                  Partiellement accessible
+                Partiellement accessible
                 </Text>
               </TouchableOpacity>
             </View>

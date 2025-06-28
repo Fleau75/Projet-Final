@@ -690,7 +690,7 @@ export default function SettingsScreen({ navigation, route }) {
             </Text>
 
             <View style={styles.searchRadiusContainer}>
-              <Text style={[styles.valueText, { fontSize: textSizes.subtitle }]}> 
+              <Text style={[styles.valueText, { fontSize: textSizes.subtitle }]}>
                 {searchRadius === 10000
                   ? '10 km'
                   : searchRadius >= 1000
