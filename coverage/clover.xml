@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1750950965959" clover="3.2.0">
-  <project timestamp="1750950965960" name="All files">
-    <metrics statements="1528" coveredstatements="1015" conditionals="744" coveredconditionals="446" methods="228" coveredmethods="172" elements="2500" coveredelements="1633" complexity="0" loc="1528" ncloc="1528" packages="4" files="10" classes="10"/>
+<coverage generated="1751026768391" clover="3.2.0">
+  <project timestamp="1751026768391" name="All files">
+    <metrics statements="1527" coveredstatements="1015" conditionals="744" coveredconditionals="446" methods="228" coveredmethods="172" elements="2499" coveredelements="1633" complexity="0" loc="1527" ncloc="1527" packages="4" files="10" classes="10"/>
     <package name="Projet-Final-main">
       <metrics statements="2" coveredstatements="2" conditionals="14" coveredconditionals="7" methods="0" coveredmethods="0"/>
       <file name="firebase.config.js" path="/Users/florianmartinez/Desktop/Projet-Final-main/firebase.config.js">
@@ -694,7 +694,7 @@
       </file>
     </package>
     <package name="Projet-Final-main.services">
-      <metrics statements="867" coveredstatements="603" conditionals="354" coveredconditionals="214" methods="91" coveredmethods="83"/>
+      <metrics statements="866" coveredstatements="603" conditionals="354" coveredconditionals="214" methods="91" coveredmethods="83"/>
       <file name="authService.js" path="/Users/florianmartinez/Desktop/Projet-Final-main/services/authService.js">
         <metrics statements="471" coveredstatements="325" conditionals="180" coveredconditionals="104" methods="24" coveredmethods="22"/>
         <line num="7" count="1" type="stmt"/>
@@ -1340,7 +1340,7 @@
         <line num="552" count="0" type="stmt"/>
       </file>
       <file name="storageService.js" path="/Users/florianmartinez/Desktop/Projet-Final-main/services/storageService.js">
-        <metrics statements="229" coveredstatements="167" conditionals="99" coveredconditionals="58" methods="40" coveredmethods="39"/>
+        <metrics statements="228" coveredstatements="167" conditionals="99" coveredconditionals="58" methods="40" coveredmethods="39"/>
         <line num="17" count="54" type="cond" truecount="2" falsecount="0"/>
         <line num="18" count="1" type="stmt"/>
         <line num="20" count="53" type="stmt"/>
@@ -1545,7 +1545,6 @@
         <line num="534" count="0" type="stmt"/>
         <line num="535" count="0" type="stmt"/>
         <line num="536" count="0" type="cond" truecount="0" falsecount="2"/>
-        <line num="539" count="0" type="stmt"/>
         <line num="542" count="3" type="stmt"/>
         <line num="545" count="0" type="stmt"/>
         <line num="546" count="0" type="stmt"/>

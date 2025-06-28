@@ -359,6 +359,46 @@ export default function SettingsScreen({ navigation, route }) {
     }
   };
 
+  const handleReportProblem = () => {
+    Alert.alert(
+      "Signaler un problème",
+      "Comment souhaitez-vous nous contacter ?",
+      [
+        {
+          text: "Annuler",
+          style: "cancel"
+        },
+        {
+          text: "Envoyer un email",
+          onPress: () => {
+            const subject = encodeURIComponent("AccessPlus - Signalement de problème");
+            const body = encodeURIComponent(
+              `Bonjour,\n\nJe souhaite signaler un problème avec l'application AccessPlus.\n\n` +
+              `Version de l'app : 1.0.0\n` +
+              `Appareil : ${Platform.OS}\n` +
+              `Utilisateur : ${user?.email || 'Non connecté'}\n\n` +
+              `Description du problème :\n\n` +
+              `Merci de votre aide !`
+            );
+            const mailtoUrl = `mailto:support@accessplus.com?subject=${subject}&body=${body}`;
+            
+            Linking.canOpenURL(mailtoUrl).then(supported => {
+              if (supported) {
+                Linking.openURL(mailtoUrl);
+              } else {
+                Alert.alert(
+                  "Erreur",
+                  "Impossible d'ouvrir l'application email",
+                  [{ text: "OK" }]
+                );
+              }
+            });
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]} testID="settings-screen">
       <ScrollView ref={scrollViewRef} style={styles.scrollView}>
@@ -701,6 +741,8 @@ export default function SettingsScreen({ navigation, route }) {
               description="Nous aider à améliorer l'app"
               left={props => <List.Icon {...props} icon="bug" />}
               right={props => <List.Icon {...props} icon="chevron-right" />}
+              onPress={handleReportProblem}
+              testID="report-problem-button"
             />
           </Card.Content>
         </Card>

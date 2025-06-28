@@ -9,6 +9,7 @@ import RegisterScreen from '../../screens/RegisterScreen';
 import HomeScreen from '../../screens/HomeScreen';
 import SettingsScreen from '../../screens/SettingsScreen';
 import { act as testRendererAct } from 'react-test-renderer';
+import { Alert } from 'react-native';
 
 // Mock des services
 jest.mock('../../services/authService', () => ({
@@ -319,6 +320,68 @@ describe('Tests d\'intégration - Interactions utilisateur', () => {
       
       // Le bouton devrait être cliquable
       fireEvent.press(resetSettingsButton);
+    });
+
+    it('devrait permettre de signaler un problème', async () => {
+      const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
+      await waitFor(() => {
+        expect(getByTestId('settings-screen')).toBeTruthy();
+      });
+      
+      const reportProblemButton = getByTestId('report-problem-button');
+      
+      expect(reportProblemButton).toBeTruthy();
+      
+      // Le bouton devrait être cliquable
+      fireEvent.press(reportProblemButton);
+    });
+
+    it('devrait afficher la boîte de dialogue de signalement', async () => {
+      const mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      
+      const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
+      await waitFor(() => {
+        expect(getByTestId('settings-screen')).toBeTruthy();
+      });
+      
+      const reportProblemButton = getByTestId('report-problem-button');
+      fireEvent.press(reportProblemButton);
+      
+      expect(mockAlert).toHaveBeenCalledWith(
+        "Signaler un problème",
+        "Comment souhaitez-vous nous contacter ?",
+        expect.arrayContaining([
+          expect.objectContaining({ text: "Annuler", style: "cancel" }),
+          expect.objectContaining({ text: "Envoyer un email" })
+        ])
+      );
+      
+      mockAlert.mockRestore();
+    });
+
+    it('devrait avoir les bonnes options dans la boîte de dialogue', async () => {
+      const mockAlert = jest.spyOn(Alert, 'alert').mockImplementation((title, message, buttons) => {
+        // Vérifier que les boutons ont les bonnes propriétés
+        expect(buttons).toHaveLength(2);
+        expect(buttons[0]).toEqual(expect.objectContaining({
+          text: "Annuler",
+          style: "cancel"
+        }));
+        expect(buttons[1]).toEqual(expect.objectContaining({
+          text: "Envoyer un email"
+        }));
+        expect(buttons[1].onPress).toBeInstanceOf(Function);
+      });
+      
+      const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
+      await waitFor(() => {
+        expect(getByTestId('settings-screen')).toBeTruthy();
+      });
+      
+      const reportProblemButton = getByTestId('report-problem-button');
+      fireEvent.press(reportProblemButton);
+      
+      mockAlert.mockRestore();
     });
   });
 });
