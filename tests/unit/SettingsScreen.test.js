@@ -7,6 +7,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import SettingsScreen from '../../screens/SettingsScreen';
+import * as RN from 'react-native';
 
 // Mock des services et contextes
 jest.mock('../../services/storageService', () => ({
@@ -77,6 +78,7 @@ jest.mock('../../theme/AuthContext', () => ({
 describe('SettingsScreen - Signalement de problème', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('Fonctionnalité "Signaler un problème"', () => {
@@ -224,9 +226,9 @@ describe('SettingsScreen - Signalement de problème', () => {
       mockAlert.mockRestore();
     });
 
-    it('devrait avoir 2 options dans la boîte de dialogue d\'aide', async () => {
+    it('devrait avoir 3 options dans la boîte de dialogue d\'aide', async () => {
       const mockAlert = jest.spyOn(Alert, 'alert').mockImplementation((title, message, buttons) => {
-        expect(buttons).toHaveLength(2);
+        expect(buttons).toHaveLength(3);
       });
       
       const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
@@ -264,6 +266,49 @@ describe('SettingsScreen - Signalement de problème', () => {
       const helpButton = getByTestId('help-support-button');
       fireEvent.press(helpButton);
       
+      mockAlert.mockRestore();
+    });
+
+    it('devrait afficher le bouton "À propos de l\'application"', async () => {
+      const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
+      await waitFor(() => {
+        expect(getByTestId('settings-screen')).toBeTruthy();
+      });
+      const aboutButton = getByTestId('about-app-button');
+      expect(aboutButton).toBeTruthy();
+    });
+
+    it('devrait ouvrir la landing page au clic sur "À propos de l\'application"', async () => {
+      jest.spyOn(RN.Linking, 'canOpenURL').mockResolvedValue(true);
+      const openURLSpy = jest.spyOn(RN.Linking, 'openURL').mockResolvedValue();
+      const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
+      await waitFor(() => {
+        expect(getByTestId('settings-screen')).toBeTruthy();
+      });
+      const aboutButton = getByTestId('about-app-button');
+      fireEvent.press(aboutButton);
+      await waitFor(() => {
+        expect(RN.Linking.canOpenURL).toHaveBeenCalledWith('https://fleau75.github.io/Landing-Business-AccessPlus/');
+        expect(openURLSpy).toHaveBeenCalledWith('https://fleau75.github.io/Landing-Business-AccessPlus/');
+      });
+    });
+
+    it('affiche une alerte si la page web ne peut pas être ouverte', async () => {
+      jest.spyOn(RN.Linking, 'canOpenURL').mockResolvedValue(false);
+      const mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      const { getByTestId } = render(<SettingsScreen navigation={{ navigate: jest.fn() }} />);
+      await waitFor(() => {
+        expect(getByTestId('settings-screen')).toBeTruthy();
+      });
+      const aboutButton = getByTestId('about-app-button');
+      fireEvent.press(aboutButton);
+      await waitFor(() => {
+        expect(mockAlert).toHaveBeenCalledWith(
+          'Erreur',
+          "Impossible d'ouvrir la page web",
+          [{ text: 'OK' }]
+        );
+      });
       mockAlert.mockRestore();
     });
   });

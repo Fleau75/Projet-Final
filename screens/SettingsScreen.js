@@ -462,6 +462,28 @@ export default function SettingsScreen({ navigation, route }) {
     );
   };
 
+  const handleAboutApp = () => {
+    const landingPageUrl = 'https://fleau75.github.io/Landing-Business-AccessPlus/';
+    
+    Linking.canOpenURL(landingPageUrl).then(supported => {
+      if (supported) {
+        Linking.openURL(landingPageUrl);
+      } else {
+        Alert.alert(
+          "Erreur",
+          "Impossible d'ouvrir la page web",
+          [{ text: "OK" }]
+        );
+      }
+    }).catch(() => {
+      Alert.alert(
+        "Erreur",
+        "Impossible d'ouvrir la page web",
+        [{ text: "OK" }]
+      );
+    });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]} testID="settings-screen">
       <ScrollView ref={scrollViewRef} style={styles.scrollView}>
@@ -792,6 +814,8 @@ export default function SettingsScreen({ navigation, route }) {
               description="Version 1.0.0"
               left={props => <List.Icon {...props} icon="information" />}
               right={props => <List.Icon {...props} icon="chevron-right" />}
+              onPress={handleAboutApp}
+              testID="about-app-button"
             />
             <List.Item
               title="Aide et support"
