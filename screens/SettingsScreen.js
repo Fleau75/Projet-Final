@@ -28,7 +28,7 @@ import NotificationService from '../services/notificationService';
 // Constantes pour les valeurs par défaut et les limites
 const SEARCH_RADIUS_DEFAULT = 800;
 const SEARCH_RADIUS_MIN = 200;
-const SEARCH_RADIUS_MAX = 2000;
+const SEARCH_RADIUS_MAX = 10000;
 const SEARCH_RADIUS_STEP = 50;
 
 export default function SettingsScreen({ navigation, route }) {
@@ -690,8 +690,12 @@ export default function SettingsScreen({ navigation, route }) {
             </Text>
 
             <View style={styles.searchRadiusContainer}>
-              <Text style={[styles.valueText, { fontSize: textSizes.subtitle }]}>
-                {Math.round(searchRadius)} mètres
+              <Text style={[styles.valueText, { fontSize: textSizes.subtitle }]}> 
+                {searchRadius === 10000
+                  ? '10 km'
+                  : searchRadius >= 1000
+                    ? (searchRadius / 1000).toFixed(1) + ' km'
+                    : Math.round(searchRadius) + ' mètres'}
               </Text>
               
               <Slider
@@ -715,7 +719,7 @@ export default function SettingsScreen({ navigation, route }) {
                   {SEARCH_RADIUS_MIN}m
                 </Text>
                 <Text style={[styles.rangeLabel, { color: theme.colors.onSurfaceVariant }]}>
-                  {SEARCH_RADIUS_MAX}m
+                  10 km
                 </Text>
               </View>
             </View>

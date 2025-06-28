@@ -597,7 +597,7 @@ describe('StorageService', () => {
 
         const result = await StorageService.getSearchRadius();
 
-        expect(result).toBe(800);
+        expect(result).toBe(500);
       });
     });
 

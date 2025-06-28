@@ -300,7 +300,7 @@ export class StorageService {
 
   // Rayon de recherche
   static async getSearchRadius() {
-    return await this.getUserData('searchRadius', 800);
+    return await this.getUserData('searchRadius', 500);
   }
 
   static async setSearchRadius(radius) {

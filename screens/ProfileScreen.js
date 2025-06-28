@@ -452,7 +452,7 @@ export default function ProfileScreen({ navigation, route }) {
                 <Text style={[styles.statLabel, { 
                   fontSize: textSizes.caption,
                   color: theme.colors.onSurfaceVariant
-                }]}>Lieux ajoutés</Text>
+                }]} numberOfLines={1} textAlign="center">Lieux ajoutés</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={[styles.statNumber, { 
@@ -464,7 +464,7 @@ export default function ProfileScreen({ navigation, route }) {
                 <Text style={[styles.statLabel, { 
                   fontSize: textSizes.caption,
                   color: theme.colors.onSurfaceVariant
-                }]}>Avis donnés</Text>
+                }]} numberOfLines={1} textAlign="center">Avis donnés</Text>
               </View>
               <View style={styles.statItem}>
                 <Text style={[styles.statNumber, { 
@@ -476,7 +476,7 @@ export default function ProfileScreen({ navigation, route }) {
                 <Text style={[styles.statLabel, { 
                   fontSize: textSizes.caption,
                   color: theme.colors.onSurfaceVariant
-                }]}>Note moyenne</Text>
+                }]} numberOfLines={1} textAlign="center">Note moyenne</Text>
               </View>
             </View>
           </Card.Content>

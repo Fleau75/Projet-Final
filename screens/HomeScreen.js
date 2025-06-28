@@ -16,6 +16,7 @@ import PlacesService from '../services/firebaseService';
 import SimplePlacesService from '../services/simplePlacesService';
 import { AccessibilityService } from '../services/accessibilityService';
 import StorageService from '../services/storageService';
+import ConfigService from '../services/configService';
 
 /**
  * Liste des catégories de lieux disponibles dans l'application
@@ -28,6 +29,8 @@ const categories = [
   { id: 'health', label: 'Santé' },
   { id: 'sport', label: 'Sport' },
   { id: 'education', label: 'Éducation' },
+  { id: 'hotel', label: 'Hôtels' },
+  { id: 'nature', label: 'Parcs & Nature' },
 ];
 
 /**
@@ -226,6 +229,64 @@ const staticPlaces = [
       toilets: true,
     },
   },
+  // Lieux sportifs pour s'assurer qu'il y en a dans la catégorie sport
+  {
+    id: 'static-sport-1',
+    name: 'Salle de sport République',
+    address: 'Place de la République, 75011 Paris',
+    type: 'sport',
+    rating: 4.2,
+    reviewCount: 89,
+    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
+    coordinates: {
+      latitude: 48.8676,
+      longitude: 2.3631
+    },
+    accessibility: {
+      ramp: true,
+      elevator: true,
+      parking: false,
+      toilets: true,
+    },
+  },
+  {
+    id: 'static-sport-2',
+    name: 'Piscine Oberkampf',
+    address: 'Rue Oberkampf, 75011 Paris',
+    type: 'sport',
+    rating: 4.0,
+    reviewCount: 67,
+    image: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400&h=300&fit=crop',
+    coordinates: {
+      latitude: 48.8665,
+      longitude: 2.3731
+    },
+    accessibility: {
+      ramp: true,
+      elevator: true,
+      parking: false,
+      toilets: true,
+    },
+  },
+  {
+    id: 'static-sport-3',
+    name: 'Tennis Club Bastille',
+    address: 'Boulevard Richard Lenoir, 75011 Paris',
+    type: 'sport',
+    rating: 4.3,
+    reviewCount: 45,
+    image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400&h=300&fit=crop',
+    coordinates: {
+      latitude: 48.8631,
+      longitude: 2.3726
+    },
+    accessibility: {
+      ramp: true,
+      elevator: false,
+      parking: true,
+      toilets: true,
+    },
+  },
 ];
 
 /**
@@ -286,7 +347,7 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
-  const [searchRadius, setSearchRadius] = useState(1000);
+  const [searchRadius, setSearchRadius] = useState(500);
   const [isCategoriesMenuOpen, setIsCategoriesMenuOpen] = useState(false);
   const [accessibilityPrefs, setAccessibilityPrefs] = useState({});
   
@@ -305,9 +366,14 @@ export default function HomeScreen({ navigation }) {
       const savedRadius = await StorageService.getSearchRadius();
       if (savedRadius !== null) {
         setSearchRadius(parseInt(savedRadius));
+      } else {
+        // Si aucune valeur sauvegardée, utiliser 500m par défaut
+        setSearchRadius(500);
       }
     } catch (error) {
       console.error('Erreur lors du chargement du rayon de recherche:', error);
+      // En cas d'erreur, utiliser 500m par défaut
+      setSearchRadius(500);
     }
   }, []);
 
@@ -335,14 +401,163 @@ export default function HomeScreen({ navigation }) {
   );
 
   /**
-   * Effet pour recharger les lieux quand l'écran devient focus
-   * Utile si des lieux ont été ajoutés/modifiés dans d'autres écrans
+   * Mapper les types Google Places vers les catégories de l'app
    */
-  useFocusEffect(
-    useCallback(() => {
-      loadPlacesFromFirestore();
-    }, [loadPlacesFromFirestore])
-  );
+  const mapGooglePlaceTypeToCategory = (googleTypes) => {
+    if (!googleTypes || !Array.isArray(googleTypes)) {
+      return 'restaurant'; // Fallback par défaut
+    }
+
+    // Mapping des types Google Places vers nos catégories
+    const typeMapping = {
+      // Restaurants
+      'restaurant': 'restaurant',
+      'food': 'restaurant',
+      'cafe': 'restaurant',
+      'bar': 'restaurant',
+      'bakery': 'restaurant',
+      'meal_takeaway': 'restaurant',
+      'meal_delivery': 'restaurant',
+      'pizza': 'restaurant',
+      'fast_food': 'restaurant',
+      'ice_cream_shop': 'restaurant',
+      'coffee_shop': 'restaurant',
+      'night_club': 'restaurant',
+      'liquor_store': 'restaurant',
+      
+      // Culture
+      'museum': 'culture',
+      'art_gallery': 'culture',
+      'library': 'culture',
+      'theater': 'culture',
+      'movie_theater': 'culture',
+      'amusement_park': 'culture',
+      'tourist_attraction': 'culture',
+      'church': 'culture',
+      'synagogue': 'culture',
+      'mosque': 'culture',
+      'hindu_temple': 'culture',
+      'establishment': 'culture', // Souvent utilisé pour les lieux culturels
+      
+      // Shopping
+      'store': 'shopping',
+      'shopping_mall': 'shopping',
+      'department_store': 'shopping',
+      'clothing_store': 'shopping',
+      'jewelry_store': 'shopping',
+      'shoe_store': 'shopping',
+      'book_store': 'shopping',
+      'electronics_store': 'shopping',
+      'convenience_store': 'shopping',
+      'supermarket': 'shopping',
+      'grocery_or_supermarket': 'shopping',
+      
+      // Santé
+      'hospital': 'health',
+      'doctor': 'health',
+      'dentist': 'health',
+      'pharmacy': 'health',
+      'physiotherapist': 'health',
+      'veterinary_care': 'health',
+      'health': 'health',
+      
+      // Sport
+      'gym': 'sport',
+      'fitness_center': 'sport',
+      'sports_complex': 'sport',
+      'stadium': 'sport',
+      'swimming_pool': 'sport',
+      'tennis_court': 'sport',
+      'basketball_court': 'sport',
+      'soccer_field': 'sport',
+      'baseball_field': 'sport',
+      'volleyball_court': 'sport',
+      'bowling_alley': 'sport',
+      'golf_course': 'sport',
+      'ski_resort': 'sport',
+      'ice_rink': 'sport',
+      'rock_climbing': 'sport',
+      'yoga_studio': 'sport',
+      'pilates_studio': 'sport',
+      'boxing_gym': 'sport',
+      'martial_arts': 'sport',
+      'dance_studio': 'sport',
+      
+      // Éducation
+      'school': 'education',
+      'university': 'education',
+      'library': 'education',
+      'training': 'education',
+      
+      // Hôtels
+      'lodging': 'hotel',
+      'hotel': 'hotel',
+      'motel': 'hotel',
+      'resort': 'hotel',
+      'guest_house': 'hotel',
+      'bed_and_breakfast': 'hotel',
+      
+      // Parcs & Nature
+      'park': 'nature',
+      'zoo': 'nature',
+      'aquarium': 'nature',
+      'campground': 'nature',
+      'rv_park': 'nature',
+      'natural_feature': 'nature',
+    };
+
+    // Chercher le premier type qui correspond
+    for (const googleType of googleTypes) {
+      if (typeMapping[googleType]) {
+        return typeMapping[googleType];
+      }
+    }
+
+    // Si aucun type ne correspond, essayer de deviner par le nom
+    const name = googleTypes.join(' ').toLowerCase();
+    if (name.includes('hotel') || name.includes('hôtel') || name.includes('lodging') || name.includes('motel') || name.includes('resort')) {
+      return 'hotel';
+    }
+    if (name.includes('restaurant') || name.includes('café') || name.includes('cafe') || name.includes('bar') || name.includes('pizzeria') || name.includes('boulangerie')) {
+      return 'restaurant';
+    }
+
+    return 'shopping'; // Fallback vers shopping au lieu de restaurant
+  };
+
+  /**
+   * Transformer les données brutes Google Places au format de l'app
+   */
+  const transformGooglePlacesData = (rawPlaces) => {
+    return rawPlaces.map(place => {
+      // Déterminer la catégorie basée sur les types Google Places
+      const category = mapGooglePlaceTypeToCategory(place.types);
+      
+      return {
+        id: place.place_id,
+        name: place.name,
+        type: category,
+        address: place.vicinity || place.formatted_address || 'Paris, France',
+        coordinates: {
+          latitude: place.geometry?.location?.lat,
+          longitude: place.geometry?.location?.lng
+        },
+        rating: place.rating || 4.0,
+        reviewCount: place.user_ratings_total || 0,
+        image: place.photos && place.photos.length > 0 
+          ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${place.photos[0].photo_reference}&key=${ConfigService.getGooglePlacesApiKey()}`
+          : null,
+        photos: place.photos || [],
+        accessibility: {
+          ramp: true, // Valeurs par défaut
+          elevator: false,
+          parking: false,
+          toilets: true,
+        },
+        source: 'google_places'
+      };
+    });
+  };
 
   /**
    * Fonction pour charger les lieux Google Places avec données réelles
@@ -352,18 +567,106 @@ export default function HomeScreen({ navigation }) {
       if (!location) {
         console.log('📍 Recherche depuis le centre de Paris (position non disponible)');
         // Utiliser le centre de Paris par défaut
-        return await PlacesApiService.searchNearbyPlaces({ lat: 48.8566, lng: 2.3522 }, radius);
+        const rawPlaces = await PlacesApiService.searchNearbyPlaces({ lat: 48.8566, lng: 2.3522 }, radius);
+        return transformGooglePlacesData(rawPlaces);
       }
       
       console.log(`📍 Recherche depuis votre position: ${location.latitude}, ${location.longitude}`);
       console.log(`🎯 Rayon de recherche: ${radius}m (configuré dans les réglages)`);
       
-      return await PlacesApiService.searchNearbyPlaces({ lat: location.latitude, lng: location.longitude }, radius);
+      // Rechercher différents types de lieux pour avoir plus de variété
+      const searchTypes = ['restaurant', 'store', 'museum', 'hospital', 'gym', 'school', 'park', 'stadium', 'fitness_center'];
+      let allPlaces = [];
+      
+      for (const type of searchTypes) {
+        try {
+          console.log(`🔍 Recherche de lieux de type: ${type}`);
+          const placesOfType = await PlacesApiService.searchNearbyPlaces(
+            { lat: location.latitude, lng: location.longitude }, 
+            radius, 
+            type
+          );
+          console.log(`✅ ${placesOfType.length} lieux trouvés pour le type ${type}`);
+          allPlaces = allPlaces.concat(placesOfType);
+        } catch (error) {
+          console.warn(`⚠️ Erreur pour le type ${type}:`, error.message);
+        }
+      }
+      
+      // Éviter les doublons basés sur place_id
+      const uniquePlaces = [];
+      const seenIds = new Set();
+      
+      allPlaces.forEach(place => {
+        if (!seenIds.has(place.place_id)) {
+          seenIds.add(place.place_id);
+          uniquePlaces.push(place);
+        }
+      });
+      
+      console.log(`✅ Total: ${uniquePlaces.length} lieux uniques trouvés (${allPlaces.length} avant déduplication)`);
+      
+      return transformGooglePlacesData(uniquePlaces);
     } catch (error) {
       console.warn('⚠️ Google Places erreur:', error.message);
       return [];
     }
   }, []);
+
+  /**
+   * Fonction pour recharger les lieux de manière robuste
+   */
+  const reloadPlaces = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('🔄 Rechargement des lieux au retour sur l\'écran...');
+      
+      // Récupérer les valeurs actuelles
+      const currentLocation = userLocation;
+      const currentRadius = searchRadius || 1000; // Fallback si pas encore chargé
+      
+      // Charger depuis les différentes sources en parallèle
+      const [firestorePlaces, parisPlaces] = await Promise.all([
+        PlacesService.getAllPlaces().catch(() => []),
+        loadGooglePlacesWithRealData(currentLocation, currentRadius).catch((error) => {
+          console.warn('⚠️ Google Places erreur:', error.message);
+          return [];
+        })
+      ]);
+      
+      // Combiner toutes les sources en évitant les doublons
+      const allPlaces = [...firestorePlaces];
+      const existingNames = new Set(firestorePlaces.map(p => p.name.toLowerCase()));
+      
+      // Ajouter les lieux Google Places qui ne sont pas déjà dans Firebase
+      parisPlaces.forEach(place => {
+        if (!existingNames.has(place.name.toLowerCase())) {
+          allPlaces.push(place);
+          existingNames.add(place.name.toLowerCase());
+        }
+      });
+      
+      // Ajouter les lieux statiques comme fallback SEULEMENT si aucun lieu n'a été trouvé
+      if (allPlaces.length === 0) {
+        console.log('📦 Fallback sur les données statiques');
+        setError('Erreur de chargement - utilisation des données locales');
+        staticPlaces.forEach(staticPlace => {
+          allPlaces.push(staticPlace);
+        });
+      }
+      
+      console.log(`✅ ${allPlaces.length} lieux rechargés (Firebase: ${firestorePlaces.length}, Google: ${parisPlaces.length})`);
+      setPlaces(allPlaces);
+      
+    } catch (err) {
+      console.error('❌ Erreur lors du rechargement:', err.message);
+      setError('Erreur de rechargement - utilisation des données locales');
+      setPlaces(staticPlaces);
+    } finally {
+      setLoading(false);
+    }
+  }, [userLocation, searchRadius]);
 
   /**
    * Fonction pour charger TOUS les lieux de Paris depuis Google Places API + Firebase
@@ -422,6 +725,21 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     loadPlacesFromFirestore();
   }, [loadPlacesFromFirestore]);
+
+  /**
+   * Effet pour recharger les lieux quand l'écran devient focus
+   * Utile si des lieux ont été ajoutés/modifiés dans d'autres écrans
+   */
+  useFocusEffect(
+    useCallback(() => {
+      // Attendre un peu que les autres données soient chargées
+      const timer = setTimeout(() => {
+        reloadPlaces();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }, [reloadPlaces])
+  );
 
   /**
    * Effet pour gérer la géolocalisation au chargement
@@ -535,24 +853,46 @@ export default function HomeScreen({ navigation }) {
 
   const sortedAndFilteredPlaces = places
     .filter(place => {
+      // Exclure les lieux sans coordonnées valides
+      if (!place.coordinates || typeof place.coordinates.latitude !== 'number' || typeof place.coordinates.longitude !== 'number') {
+        return false;
+      }
+      // Filtrer les lieux fallback incomplets (nom 'Paris' sans adresse ou coordonnées)
+      if ((place.name === 'Paris' || place.name === 'paris') && (!place.address || place.address === '' || !place.coordinates)) {
+        return false;
+      }
       const matchesCategory = selectedCategory === 'all' || place.type === selectedCategory;
       const accessLevel = getAccessibilityLevel(place);
       const isAccessible = accessibilityFilter === 'all' || 
                           accessibilityFilter === accessLevel ||
                           (accessibilityFilter === 'partial' && (accessLevel === 'full' || accessLevel === 'partial'));
       const meetsPreferences = meetsAccessibilityPreferences(place);
-      return matchesCategory && isAccessible && meetsPreferences;
+      // Filtrage par distance
+      let withinRadius = true;
+      if (userLocation && place.coordinates && searchRadius) {
+        const distance = calculateDistance(userLocation, place.coordinates);
+        const radiusInKm = searchRadius / 1000;
+        withinRadius = distance <= radiusInKm;
+      }
+      
+      return matchesCategory && isAccessible && meetsPreferences && withinRadius;
     })
-    .map(place => ({
-      ...place,
-      distance: userLocation ? calculateDistance(userLocation, place.coordinates) : 0,
-      accessibilityLevel: getAccessibilityLevel(place),
-      accessibilityLabel: getAccessibilityLabel(getAccessibilityLevel(place))
-    }))
+    .map(place => {
+      // Calculer la distance, mais la mettre à null si elle est infinie
+      let distance = userLocation ? calculateDistance(userLocation, place.coordinates) : null;
+      if (!isFinite(distance)) distance = null;
+      return {
+        ...place,
+        distance,
+        accessibilityLevel: getAccessibilityLevel(place),
+        accessibilityLabel: getAccessibilityLabel(getAccessibilityLevel(place))
+      };
+    })
     .filter(place => {
       // Si le filtre "photo" est activé, ne montrer que les lieux avec des images
       if (sortValue === 'photo') {
-        return place.image || (place.photos && place.photos.length > 0);
+        const hasImage = place.image || (place.photos && place.photos.length > 0);
+        return hasImage;
       }
       return true; // Sinon, montrer tous les lieux filtrés
     })
@@ -566,12 +906,13 @@ export default function HomeScreen({ navigation }) {
         }
         // Si même statut d'image, trier par note
         return b.rating - a.rating;
-      } else if (sortValue === 'rating') {
-        return b.rating - a.rating;
-      } else {
+      } else if (sortValue === 'reviews') {
         return b.reviewCount - a.reviewCount;
       }
     });
+
+  // Logs essentiels pour le diagnostic
+  console.log(`[INFO] Lieux chargés: ${places.length}, affichés: ${sortedAndFilteredPlaces.length}, rayon: ${searchRadius}m`);
 
   const nearbyPlaces = [...places]
     .map(place => ({
@@ -639,17 +980,51 @@ export default function HomeScreen({ navigation }) {
         )}
 
         {/* Boutons de tri en haut */}
-        <SegmentedButtons
-          testID="sort-buttons"
-          value={sortValue}
-          onValueChange={setSortValue}
-          buttons={[
-            { value: 'photo', label: 'Photo', labelStyle: { fontSize: textSizes.body } },
-            { value: 'rating', label: 'Note', labelStyle: { fontSize: textSizes.body } },
-            { value: 'reviews', label: 'Avis', labelStyle: { fontSize: textSizes.body } },
-          ]}
-          style={styles.sortButtons}
-        />
+        <View style={styles.sortButtonsContainer}>
+          <TouchableOpacity
+            style={[
+              styles.sortButton,
+              {
+                backgroundColor: sortValue === 'photo' ? '#2596BE' : 'transparent',
+                borderColor: '#2596BE',
+              }
+            ]}
+            onPress={() => setSortValue('photo')}
+            activeOpacity={0.7}
+          >
+            <Text style={[
+              styles.sortButtonText,
+              { 
+                color: sortValue === 'photo' ? '#FFFFFF' : '#2596BE',
+                fontWeight: sortValue === 'photo' ? '700' : '600'
+              }
+            ]}>
+              Photo
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[
+              styles.sortButton,
+              {
+                backgroundColor: sortValue === 'reviews' ? '#2596BE' : 'transparent',
+                borderColor: '#2596BE',
+              }
+            ]}
+            onPress={() => setSortValue('reviews')}
+            activeOpacity={0.7}
+          >
+            <Text style={[
+              styles.sortButtonText,
+              { 
+                color: sortValue === 'reviews' ? '#FFFFFF' : '#2596BE',
+                fontWeight: sortValue === 'reviews' ? '700' : '600'
+              }
+            ]}>
+              Avis
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {error && (
@@ -729,27 +1104,35 @@ export default function HomeScreen({ navigation }) {
             <Text style={[styles.menuSectionTitle, { color: theme.colors.onSurface, fontSize: textSizes.label }]}>
               Catégories
             </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoriesContainer}
-              contentContainerStyle={styles.categories}
-            >
+            <View style={styles.categoriesGrid}>
               {categories.map(category => (
-                <Chip
+                <TouchableOpacity
                   key={category.id}
                   testID={`category-${category.id}`}
-                  selected={selectedCategory === category.id}
+                  style={[
+                    styles.categoryButton,
+                    {
+                      backgroundColor: selectedCategory === category.id ? theme.colors.primary : 'transparent',
+                      borderColor: theme.colors.primary,
+                    }
+                  ]}
                   onPress={() => {
                     setSelectedCategory(category.id);
                   }}
-                  style={styles.categoryChip}
-                  textStyle={{ fontSize: textSizes.body }}
                 >
-                  {category.label}
-                </Chip>
+                  <Text style={[
+                    styles.categoryButtonText,
+                    {
+                      color: selectedCategory === category.id ? '#FFFFFF' : theme.colors.primary,
+                      fontWeight: selectedCategory === category.id ? '700' : '600',
+                      fontSize: textSizes.caption
+                    }
+                  ]}>
+                    {category.label}
+                  </Text>
+                </TouchableOpacity>
               ))}
-            </ScrollView>
+            </View>
           </View>
 
           {/* Filtres d'accessibilité */}
@@ -757,49 +1140,82 @@ export default function HomeScreen({ navigation }) {
             <Text style={[styles.menuSectionTitle, { color: theme.colors.onSurface, fontSize: textSizes.label }]}>
               Accessibilité
             </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.accessibilityContainer}
-              contentContainerStyle={styles.categories}
-            >
-              <Chip
+            <View style={styles.accessibilityGrid}>
+              <TouchableOpacity
                 testID="accessibility-all"
-                selected={accessibilityFilter === 'all'}
+                style={[
+                  styles.accessibilityButton,
+                  {
+                    backgroundColor: accessibilityFilter === 'all' ? theme.colors.primary : 'transparent',
+                    borderColor: theme.colors.primary,
+                  }
+                ]}
                 onPress={() => {
                   setAccessibilityFilter('all');
                 }}
-                style={styles.categoryChip}
-                selectedColor={theme.colors.primary}
-                textStyle={{ fontSize: textSizes.body }}
               >
-                Tous
-              </Chip>
-              <Chip
+                <Text style={[
+                  styles.accessibilityButtonText,
+                  {
+                    color: accessibilityFilter === 'all' ? '#FFFFFF' : theme.colors.primary,
+                    fontWeight: accessibilityFilter === 'all' ? '700' : '600',
+                    fontSize: textSizes.caption
+                  }
+                ]}>
+                  Tous
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
                 testID="accessibility-full"
-                selected={accessibilityFilter === 'full'}
+                style={[
+                  styles.accessibilityButton,
+                  {
+                    backgroundColor: accessibilityFilter === 'full' ? theme.colors.primary : 'transparent',
+                    borderColor: theme.colors.primary,
+                  }
+                ]}
                 onPress={() => {
                   setAccessibilityFilter('full');
                 }}
-                style={styles.categoryChip}
-                selectedColor={theme.colors.primary}
-                textStyle={{ fontSize: textSizes.body }}
               >
-                Totalement accessible
-              </Chip>
-              <Chip
+                <Text style={[
+                  styles.accessibilityButtonText,
+                  {
+                    color: accessibilityFilter === 'full' ? '#FFFFFF' : theme.colors.primary,
+                    fontWeight: accessibilityFilter === 'full' ? '700' : '600',
+                    fontSize: textSizes.caption
+                  }
+                ]}>
+                  Totalement accessible
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
                 testID="accessibility-partial"
-                selected={accessibilityFilter === 'partial'}
+                style={[
+                  styles.accessibilityButton,
+                  {
+                    backgroundColor: accessibilityFilter === 'partial' ? theme.colors.primary : 'transparent',
+                    borderColor: theme.colors.primary,
+                  }
+                ]}
                 onPress={() => {
                   setAccessibilityFilter('partial');
                 }}
-                style={styles.categoryChip}
-                selectedColor={theme.colors.primary}
-                textStyle={{ fontSize: textSizes.body }}
               >
-                Partiellement accessible
-              </Chip>
-            </ScrollView>
+                <Text style={[
+                  styles.accessibilityButtonText,
+                  {
+                    color: accessibilityFilter === 'partial' ? '#FFFFFF' : theme.colors.primary,
+                    fontWeight: accessibilityFilter === 'partial' ? '700' : '600',
+                    fontSize: textSizes.caption
+                  }
+                ]}>
+                  Partiellement accessible
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       )}
@@ -838,20 +1254,14 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   categoryChip: {
-    marginRight: 3,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 1,
-    borderRadius: 8,
+    marginHorizontal: 2,
+    marginVertical: 1,
     paddingHorizontal: 6,
     paddingVertical: 2,
+    borderRadius: 10,
+    minHeight: 20,
   },
-  sortButtons: {
+  sortButtonsContainer: {
     marginBottom: 8,
     elevation: 1,
     shadowColor: '#000',
@@ -861,6 +1271,25 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.08,
     shadowRadius: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  sortButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1.5,
+    borderColor: '#2596BE',
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  sortButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   content: {
     flex: 1,
@@ -1039,8 +1468,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   categoriesMenu: {
-    padding: 8,
-    borderRadius: 8,
+    padding: 6,
+    borderRadius: 6,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: {
@@ -1049,27 +1478,24 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 2,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   accessibilityButton: {
-    padding: 12,
-    borderRadius: 8,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    borderRadius: 5,
+    minHeight: 20,
   },
   accessibilityButtonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   accessibilityMenu: {
-    padding: 12,
-    borderRadius: 8,
+    padding: 6,
+    borderRadius: 6,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: {
@@ -1081,20 +1507,40 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   menuSection: {
-    marginBottom: 6,
+    marginBottom: 8,
   },
   menuSectionTitle: {
     fontWeight: 'bold',
     marginBottom: 4,
-    paddingHorizontal: 8,
-    fontSize: 12,
+    paddingHorizontal: 3,
+    fontSize: 11,
   },
   closeButton: {
-    padding: 6,
+    padding: 3,
     alignItems: 'center',
+    marginBottom: 6,
   },
   closeButtonText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
+  },
+  categoriesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 3,
+  },
+  categoryButton: {
+    padding: 6,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+    borderRadius: 6,
+  },
+  categoryButtonText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  accessibilityGrid: {
+    flexDirection: 'row',
+    gap: 3,
   },
 });
