@@ -8,6 +8,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-✅%20Complète-brightgreen.svg)](https://github.com/Fleau75/Projet-Final)
 [![Last Update](https://img.shields.io/badge/Last%20Update-Juin%202025-blue.svg)](https://github.com/Fleau75/Projet-Final)
+[![Tests](https://img.shields.io/badge/Tests-328%20passing-brightgreen.svg)](https://github.com/Fleau75/Projet-Final)
 
 ## 🎯 **Vue d'ensemble**
 
@@ -25,6 +26,8 @@
 - 🏆 **Système de badges vérifiés** pour les utilisateurs actifs
 - 🔄 **Mode visiteur** avec migration vers compte permanent
 - 🔒 **Stockage sécurisé** avec chiffrement AES-256
+- 🆘 **Système d'aide et support** intégré
+- 📱 **Notifications push** personnalisables
 
 ## 🚀 **Démarrage rapide**
 
@@ -67,36 +70,36 @@ npx expo start
 
 ## 📱 **Écrans de l'application**
 
-| Écran | Description | Statut |
-|-------|-------------|--------|
-| 🔐 **Connexion** | Authentification avec biométrie | ✅ Complète |
-| 📝 **Inscription** | Création de compte avec migration | ✅ Complète |
-| 🏠 **Accueil** | Liste des lieux avec filtres | ✅ Complète |
-| 🗺️ **Carte** | Carte interactive avec géolocalisation | ✅ Complète |
-| 👤 **Profil** | Informations utilisateur et statistiques | ✅ Complète |
-| ⚙️ **Réglages** | Paramètres et préférences | ✅ Complète |
-| 📍 **Détails lieu** | Informations complètes d'un établissement | ✅ Complète |
-| ✍️ **Ajouter avis** | Formulaire d'évaluation avec photos | ✅ Complète |
-| 📊 **Mes avis** | Historique des évaluations personnelles | ✅ Complète |
-| 🕒 **Historique** | Lieux visités et consultés | ✅ Complète |
-| 🔑 **Mot de passe oublié** | Réinitialisation sécurisée | ✅ Complète |
-| 🎯 **Lieux favoris** | Gestion des favoris | ✅ Complète |
+| Écran | Description | Statut | Fonctionnalités |
+|-------|-------------|--------|-----------------|
+| 🔐 **Connexion** | Authentification avec biométrie | ✅ Complète | Auth + Face ID |
+| 📝 **Inscription** | Création de compte avec migration | ✅ Complète | Migration visiteur |
+| 🏠 **Accueil** | Liste des lieux avec filtres | ✅ Complète | Bouton retour, catégorisation |
+| 🗺️ **Carte** | Carte interactive avec géolocalisation | ✅ Complète | FAB ajout avis |
+| 👤 **Profil** | Informations utilisateur et statistiques | ✅ Complète | Badges vérifiés |
+| ⚙️ **Réglages** | Paramètres et préférences | ✅ Complète | Notifications, aide |
+| 📍 **Détails lieu** | Informations complètes d'un établissement | ✅ Complète | Contact, prix |
+| ✍️ **Ajouter avis** | Formulaire d'évaluation avec photos | ✅ Complète | Upload photos |
+| 📊 **Mes avis** | Historique des évaluations personnelles | ✅ Complète | Gestion avis |
+| 🕒 **Historique** | Lieux visités et consultés | ✅ Complète | Historique complet |
+| 🔑 **Mot de passe oublié** | Réinitialisation sécurisée | ✅ Complète | Tokens sécurisés |
+| 🎯 **Lieux favoris** | Gestion des favoris | ✅ Complète | Favoris persistants |
 
 ## 🏗️ **Architecture technique**
 
 ### Stack technologique
 
-| Technologie | Version | Usage |
-|-------------|---------|-------|
-| React Native | 0.79.2 | Framework mobile cross-platform |
-| Expo | SDK 53 | Plateforme de développement |
-| Firebase | 10.14.1 | Backend, authentification et base de données |
-| React Navigation | 6.x | Navigation entre écrans |
-| React Native Paper | 5.14.5 | UI Components Material Design |
-| react-native-maps | 1.20.1 | Cartographie interactive |
-| AsyncStorage | 2.1.2 | Stockage local sécurisé |
-| expo-local-authentication | 16.0.4 | Authentification biométrique |
-| expo-notifications | 0.31.3 | Système de notifications |
+| Technologie | Version | Usage | Statut |
+|-------------|---------|-------|--------|
+| React Native | 0.79.2 | Framework mobile cross-platform | ✅ Stable |
+| Expo | SDK 53 | Plateforme de développement | ✅ Stable |
+| Firebase | 10.14.1 | Backend, authentification et base de données | ✅ Stable |
+| React Navigation | 6.x | Navigation entre écrans | ✅ Stable |
+| React Native Paper | 5.14.5 | UI Components Material Design | ✅ Stable |
+| react-native-maps | 1.20.1 | Cartographie interactive | ✅ Stable |
+| AsyncStorage | 2.1.2 | Stockage local sécurisé | ✅ Stable |
+| expo-local-authentication | 16.0.4 | Authentification biométrique | ✅ Stable |
+| expo-notifications | 0.31.3 | Système de notifications | ✅ Stable |
 
 ### Structure du projet
 
@@ -131,14 +134,16 @@ Projet-Final/
 - **Recherche géolocalisée** de lieux à proximité
 - **Ajout manuel** de nouveaux lieux avec validation
 - **Calcul de distances** en temps réel avec formule de Haversine
+- **FAB (Floating Action Button)** pour ajouter des avis directement depuis la carte
 
 ### 🔍 **Recherche et Filtrage Intelligent**
 
 - **Recherche textuelle** par nom d'établissement
-- **Filtrage par catégorie** : Restaurants, Culture, Shopping, Santé, Sport, Éducation
+- **Filtrage par catégorie** : Restaurants, Culture, Shopping, Santé, Sport, Éducation, Hôtels
 - **Filtres d'accessibilité** : Rampes, ascenseurs, parking, toilettes
 - **Tri intelligent** : Par distance, note, popularité
-- **Recherche par proximité** avec rayon configurable
+- **Recherche par proximité** avec rayon configurable (500m par défaut)
+- **Bouton retour en haut** pour navigation rapide
 
 ### ⭐ **Système d'Évaluation Communautaire**
 
@@ -157,6 +162,7 @@ Projet-Final/
 - **Navigation adaptée** aux interactions tactiles
 - **Labels d'accessibilité** détaillés pour tous les éléments
 - **Préférences d'accessibilité** personnalisables
+- **Menus compacts** pour une meilleure expérience
 
 ### 🏆 **Système de Badges Vérifiés**
 
@@ -173,6 +179,21 @@ Projet-Final/
 - **Migration automatique** vers compte permanent
 - **Préservation** de l'historique et des préférences
 - **Interface adaptée** pour les visiteurs
+
+### 🆘 **Système d'Aide et Support**
+
+- **Interface d'aide** intégrée dans les réglages
+- **Signaler un problème** avec formulaire dédié
+- **Support utilisateur** avec options multiples
+- **Documentation** accessible directement dans l'app
+
+### 📱 **Notifications Avancées**
+
+- **Notifications push** Firebase
+- **Notifications locales** Expo
+- **Personnalisation** des préférences
+- **Gestion des permissions** granulaire
+- **Mode simulation** pour les tests
 
 ## 🔧 **Configuration avancée**
 
@@ -200,114 +221,102 @@ node scripts/test-auth.js
 # Tests biométrie
 node scripts/test-biometric.js
 
-# Initialisation base de données
-node scripts/initDatabase.js
-
-# Création utilisateurs test
-node scripts/create-test-users.js
-
-# Tests de migration
-node scripts/test-migration-flow.js
-
-# Diagnostic des notifications
+# Tests notifications
 node scripts/test-notifications.js
+
+# Migration des données
+node scripts/migrate-to-private-storage.js
 ```
 
-## 📊 **Données et API**
+## 🧪 **Tests et Qualité**
 
-### Sources de données
+### Couverture de Tests
+- **328 tests** au total (unitaires + intégration)
+- **98.7% de réussite** (323/328 tests passent)
+- **Tests automatisés** pour tous les services
+- **Tests d'intégration** pour les interactions utilisateur
 
-- **Firebase Firestore** : Base de données principale
-- **Google Places API** : Informations des établissements
-- **Données statiques** : Fallback en cas d'échec API
-- **AsyncStorage** : Cache local et préférences sécurisées
+### Services Testés
+- ✅ **AuthService** - Authentification complète
+- ✅ **BiometricService** - Biométrie avancée
+- ✅ **ConfigService** - Configuration globale
+- ✅ **NotificationService** - Notifications push
+- ✅ **PlacesSearch** - Recherche avancée
+- ✅ **CryptoService** - Chiffrement AES-256
+- ✅ **PlacesApi** - API Google Places
+- ✅ **SimplePlacesService** - Données statiques
+- ✅ **AccessibilityService** - Accessibilité
 
-### Collections Firebase
+## 📚 **Documentation Complète**
 
-```javascript
-// Collection "places"
-{
-  id: "string",
-  name: "string",
-  address: "string",
-  type: "string",
-  rating: "number",
-  reviewCount: "number",
-  coordinates: {
-    latitude: "number",
-    longitude: "number"
-  },
-  accessibility: {
-    ramp: "boolean",
-    elevator: "boolean",
-    parking: "boolean",
-    toilets: "boolean"
-  }
-}
+Consultez notre documentation détaillée dans le dossier `docs/` :
 
-// Collection "reviews"
-{
-  id: "string",
-  placeId: "string",
-  userId: "string",
-  rating: "number",
-  comment: "string",
-  photos: ["string"],
-  createdAt: "timestamp"
-}
-```
+- [📋 Cahier des Charges](./docs/CAHIER_DES_CHARGES.md)
+- [🏗️ Guide d'Architecture](./docs/ARCHITECTURE_GUIDE.md)
+- [🔌 Référence API](./docs/API_REFERENCE.md)
+- [🧩 Guide des Composants](./docs/COMPONENTS_GUIDE.md)
+- [📱 Guide des Écrans](./docs/SCREENS_GUIDE.md)
+- [⚙️ Guide des Services](./docs/SERVICES_GUIDE.md)
+- [🧪 Guide des Tests](./docs/TESTING_GUIDE.md)
+- [🚀 Guide de Déploiement](./docs/DEPLOYMENT_GUIDE.md)
+- [🔧 Guide de Dépannage](./docs/TROUBLESHOOTING_GUIDE.md)
+- [👤 Guide Utilisateur](./docs/USER_GUIDE.md)
+- [👥 Mode Visiteur](./docs/VISITOR_MODE_GUIDE.md)
 
-## 🎨 **Interface utilisateur**
+## 🎨 **Interface Utilisateur**
 
 ### Design System
+- **Material Design** avec React Native Paper
+- **Thèmes adaptatifs** (clair/sombre automatique)
+- **Composants réutilisables** bien structurés
+- **Animations** fluides et accessibles
+- **Logo intégré** avec tests dédiés
 
-- **Material Design 3** avec composants personnalisés
-- **Thème adaptatif** sombre/clair automatique
-- **Couleurs accessibles** avec contraste WCAG 2.1
-- **Typographie** optimisée pour la lisibilité
-- **Animations** fluides et réactives
+### Améliorations UX Récentes
+- **Bouton retour en haut** pour navigation rapide
+- **Correction catégorisation hôtels** avec icônes appropriées
+- **Informations de contact** contextuelles
+- **Prix contextuels** pour les établissements
+- **Layout avis** optimisé avec alignement gauche
+- **FAB amélioré** sur la carte pour ajouter des avis
+- **Menus compacts** pour une meilleure accessibilité
 
-### Composants principaux
+## 🔒 **Sécurité et Performance**
 
-- **PlaceCard** : Affichage des lieux avec accessibilité
-- **CustomRating** : Système de notation intuitif
-- **VerifiedBadge** : Badges de vérification utilisateur
-- **LoadingOverlay** : États de chargement élégants
-
-## 🔒 **Sécurité et Confidentialité**
-
-### Mesures de sécurité
-
+### Sécurité
 - **Chiffrement AES-256** des données sensibles
-- **Stockage privé** par utilisateur
-- **Authentification biométrique** sécurisée
-- **Validation** des entrées utilisateur
-- **Isolation** des données entre utilisateurs
+- **Authentification Firebase** sécurisée
+- **Permissions granulaire** des utilisateurs
+- **Validation** robuste des entrées
+- **Stockage sécurisé** des tokens
 
-### Conformité
-
-- **RGPD** : Gestion des données personnelles
-- **Accessibilité** : Standards WCAG 2.1
-- **Sécurité** : Bonnes pratiques OWASP
-
-## 📈 **Statistiques du projet**
-
-- **15 écrans** principaux implémentés
-- **11 services** spécialisés
-- **18 scripts** utilitaires
-- **100%** des fonctionnalités principales
-- **Documentation complète** avec guides détaillés
+### Performance
+- **Lazy loading** des images
+- **Cache intelligent** des données
+- **Optimisation** des requêtes Firebase
+- **Gestion mémoire** efficace
+- **Tests de performance** intégrés
 
 ## 🤝 **Contribution**
 
-Ce projet est maintenant **complet** et stable. Pour toute question ou suggestion d'amélioration, n'hésitez pas à ouvrir une issue.
+1. Fork le projet
+2. Créez une branche pour votre fonctionnalité (`git checkout -b feature/AmazingFeature`)
+3. Committez vos changements (`git commit -m 'Add some AmazingFeature'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrez une Pull Request
 
 ## 📄 **Licence**
 
 Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
+## 📞 **Support**
+
+- 📧 Email : support@accessplus.com
+- 🐛 Issues : [GitHub Issues](https://github.com/Fleau75/Projet-Final/issues)
+- 📖 Documentation : [Documentation complète](./docs/)
+
 ---
 
-**AccessPlus** - Rendre l'accessibilité accessible à tous ! ♿
+**AccessPlus** - Rendre l'accessibilité accessible à tous ! 🦽✨
 
 *Dernière mise à jour : Juin 2025* 

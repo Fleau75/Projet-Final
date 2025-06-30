@@ -1,560 +1,566 @@
 # 📱 Guide des Écrans - AccessPlus
 
-## 📋 Vue d'ensemble
-
-Ce guide détaille tous les écrans d'AccessPlus, leur fonctionnalité, leur navigation et leur interface utilisateur.
-
-## 🏠 Écrans Principaux
-
-### HomeScreen
-
-**Fichier :** `screens/HomeScreen.js`
-
-**Description :** Écran d'accueil principal avec liste des lieux accessibles.
-
-**Fonctionnalités :**
-- ✅ Liste des lieux avec cartes interactives
-- ✅ Filtres par catégorie (Restaurant, Culture, Shopping, etc.)
-- ✅ Recherche en temps réel
-- ✅ Compteur de lieux disponibles
-- ✅ Bouton d'actualisation
-- ✅ Support de l'accessibilité complète
-- ✅ Thèmes clair/sombre
-- ✅ Adaptation de la taille des polices
-
-**Navigation :**
-```javascript
-// Navigation vers le détail d'un lieu
-navigation.navigate('PlaceDetail', { place: placeData });
-
-// Navigation vers la carte
-navigation.navigate('Map');
-
-// Navigation vers le profil
-navigation.navigate('Profile');
-```
-
-**États :**
-- `loading` : Chargement des données
-- `error` : Erreur de chargement
-- `success` : Données chargées
-- `empty` : Aucun lieu trouvé
-
-### MapScreen
-
-**Fichier :** `screens/MapScreen.js`
-
-**Description :** Écran de carte interactive avec géolocalisation.
-
-**Fonctionnalités :**
-- ✅ Carte interactive avec marqueurs
-- ✅ Géolocalisation de l'utilisateur
-- ✅ Marqueurs pour tous les lieux accessibles
-- ✅ Filtres par catégorie
-- ✅ Recherche par zone
-- ✅ Navigation vers un lieu
-- ✅ Support de l'accessibilité
-- ✅ Mode hors ligne
-
-**Navigation :**
-```javascript
-// Navigation vers le détail d'un lieu
-navigation.navigate('PlaceDetail', { place: placeData });
-
-// Retour à l'accueil
-navigation.goBack();
-```
-
-### PlaceDetailScreen
-
-**Fichier :** `screens/PlaceDetailScreen.js`
-
-**Description :** Écran de détail d'un lieu avec informations complètes.
-
-**Fonctionnalités :**
-- ✅ Informations détaillées du lieu
-- ✅ Indicateurs d'accessibilité
-- ✅ Liste des avis utilisateurs
-- ✅ Notation moyenne
-- ✅ Bouton d'ajout d'avis
-- ✅ Bouton de favori
-- ✅ Navigation vers la carte
-- ✅ Partage du lieu
-
-**Navigation :**
-```javascript
-// Ajouter un avis
-navigation.navigate('AddReview', { place: placeData });
-
-// Voir sur la carte
-navigation.navigate('Map', { focusPlace: placeData });
-
-// Retour à l'accueil
-navigation.goBack();
-```
-
-## 🔐 Écrans d'Authentification
-
-### LoginScreen
-
-**Fichier :** `screens/LoginScreen.js`
-
-**Description :** Écran de connexion avec authentification biométrique.
-
-**Fonctionnalités :**
-- ✅ Connexion par email/mot de passe
-- ✅ Authentification biométrique
-- ✅ Bouton "Mot de passe oublié"
-- ✅ Lien vers l'inscription
-- ✅ Mode visiteur
-- ✅ Validation des champs
-- ✅ Messages d'erreur
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Connexion réussie
-navigation.replace('Main');
-
-// Mot de passe oublié
-navigation.navigate('ForgotPassword');
-
-// Inscription
-navigation.navigate('Register');
-
-// Mode visiteur
-navigation.replace('Main');
-```
-
-### RegisterScreen
-
-**Fichier :** `screens/RegisterScreen.js`
-
-**Description :** Écran d'inscription de nouveau compte.
-
-**Fonctionnalités :**
-- ✅ Formulaire d'inscription
-- ✅ Validation des champs
-- ✅ Vérification de la force du mot de passe
-- ✅ Conditions d'utilisation
-- ✅ Politique de confidentialité
-- ✅ Messages d'erreur
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Inscription réussie
-navigation.replace('Main');
-
-// Retour à la connexion
-navigation.goBack();
-```
-
-### ForgotPasswordScreen
-
-**Fichier :** `screens/ForgotPasswordScreen.js`
-
-**Description :** Écran de récupération de mot de passe.
-
-**Fonctionnalités :**
-- ✅ Saisie de l'email
-- ✅ Validation de l'email
-- ✅ Envoi du lien de réinitialisation
-- ✅ Messages de confirmation
-- ✅ Retour à la connexion
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Email envoyé
-navigation.navigate('ResetPassword', { email: email });
-
-// Retour à la connexion
-navigation.goBack();
-```
-
-### ResetPasswordScreen
-
-**Fichier :** `screens/ResetPasswordScreen.js`
-
-**Description :** Écran de définition du nouveau mot de passe.
-
-**Fonctionnalités :**
-- ✅ Saisie du nouveau mot de passe
-- ✅ Confirmation du mot de passe
-- ✅ Validation de la force
-- ✅ Réinitialisation
-- ✅ Messages de succès
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Mot de passe réinitialisé
-navigation.replace('Login');
-
-// Retour à la demande
-navigation.goBack();
-```
-
-## 👤 Écrans de Profil
-
-### ProfileScreen
-
-**Fichier :** `screens/ProfileScreen.js`
-
-**Description :** Écran de profil utilisateur avec statistiques.
-
-**Fonctionnalités :**
-- ✅ Informations du profil
-- ✅ Badge de vérification
-- ✅ Statistiques utilisateur
-- ✅ Historique des activités
-- ✅ Paramètres rapides
-- ✅ Bouton de déconnexion
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Éditer le profil
-navigation.navigate('EditProfile');
-
-// Changer le mot de passe
-navigation.navigate('ChangePassword');
-
-// Mes avis
-navigation.navigate('MyReviews');
-
-// Lieux favoris
-navigation.navigate('FavoritePlaces');
-
-// Historique des lieux
-navigation.navigate('LocationHistory');
-
-// Paramètres
-navigation.navigate('Settings');
-```
-
-### EditProfileScreen
-
-**Fichier :** `screens/EditProfileScreen.js`
-
-**Description :** Écran d'édition du profil utilisateur.
-
-**Fonctionnalités :**
-- ✅ Modification du nom
-- ✅ Modification de l'email
-- ✅ Photo de profil
-- ✅ Validation des champs
-- ✅ Sauvegarde automatique
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Sauvegarde réussie
-navigation.goBack();
-
-// Annulation
-navigation.goBack();
-```
-
-### ChangePasswordScreen
-
-**Fichier :** `screens/ChangePasswordScreen.js`
-
-**Description :** Écran de changement de mot de passe.
-
-**Fonctionnalités :**
-- ✅ Ancien mot de passe
-- ✅ Nouveau mot de passe
-- ✅ Confirmation du nouveau mot de passe
-- ✅ Validation de la force
-- ✅ Messages de succès
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Mot de passe changé
-navigation.goBack();
-
-// Annulation
-navigation.goBack();
-```
-
-## 📝 Écrans d'Avis
-
-### AddReviewScreen
-
-**Fichier :** `screens/AddReviewScreen.js`
-
-**Description :** Écran d'ajout d'un avis sur un lieu.
-
-**Fonctionnalités :**
-- ✅ Notation avec étoiles
-- ✅ Commentaire détaillé
-- ✅ Informations sur le lieu
-- ✅ Validation des champs
-- ✅ Sauvegarde automatique
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Avis ajouté
-navigation.goBack();
-
-// Annulation
-navigation.goBack();
-```
-
-### MyReviewsScreen
-
-**Fichier :** `screens/MyReviewsScreen.js`
-
-**Description :** Écran de gestion des avis de l'utilisateur.
-
-**Fonctionnalités :**
-- ✅ Liste des avis de l'utilisateur
-- ✅ Modification d'avis
-- ✅ Suppression d'avis
-- ✅ Filtres par lieu
-- ✅ Tri par date
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Modifier un avis
-navigation.navigate('EditReview', { review: reviewData });
-
-// Voir le lieu
-navigation.navigate('PlaceDetail', { place: placeData });
-
-// Retour au profil
-navigation.goBack();
-```
-
-## ⚙️ Écrans de Paramètres
-
-### SettingsScreen
-
-**Fichier :** `screens/SettingsScreen.js`
-
-**Description :** Écran principal des paramètres de l'application.
-
-**Fonctionnalités :**
-- ✅ Thème clair/sombre
-- ✅ Taille des polices
-- ✅ Authentification biométrique
-- ✅ Notifications
-- ✅ Confidentialité
-- ✅ À propos
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Paramètres d'accessibilité
-navigation.navigate('AccessibilitySettings');
-
-// Paramètres de confidentialité
-navigation.navigate('PrivacySettings');
-
-// À propos
-navigation.navigate('About');
-```
-
-## 📍 Écrans de Lieux
-
-### FavoritePlacesScreen
-
-**Fichier :** `screens/FavoritePlacesScreen.js`
-
-**Description :** Écran des lieux favoris de l'utilisateur.
-
-**Fonctionnalités :**
-- ✅ Liste des lieux favoris
-- ✅ Ajout/suppression de favoris
-- ✅ Tri par nom/date
-- ✅ Recherche dans les favoris
-- ✅ Navigation vers le détail
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Voir le détail d'un lieu
-navigation.navigate('PlaceDetail', { place: placeData });
-
-// Retour au profil
-navigation.goBack();
-```
-
-### LocationHistoryScreen
-
-**Fichier :** `screens/LocationHistoryScreen.js`
-
-**Description :** Écran de l'historique des lieux visités.
-
-**Fonctionnalités :**
-- ✅ Historique des lieux visités
-- ✅ Tri par date
-- ✅ Filtres par catégorie
-- ✅ Statistiques de visite
-- ✅ Navigation vers le détail
-- ✅ Support de l'accessibilité
-
-**Navigation :**
-```javascript
-// Voir le détail d'un lieu
-navigation.navigate('PlaceDetail', { place: placeData });
-
-// Retour au profil
-navigation.goBack();
-```
-
-## 🎨 Thèmes et Accessibilité
-
-### Adaptation des Thèmes
-
-Tous les écrans supportent :
-- ✅ Thème clair/sombre automatique
-- ✅ Adaptation de la taille des polices
-- ✅ Contraste élevé
-- ✅ Couleurs d'accent personnalisables
-
-### Support de l'Accessibilité
-
-Tous les écrans incluent :
-- ✅ Labels d'accessibilité
-- ✅ Rôles appropriés
-- ✅ Navigation au clavier
-- ✅ Support du lecteur d'écran
-- ✅ Messages d'erreur clairs
-- ✅ Boutons avec icônes descriptives
-
-## 🔄 Navigation
-
-### Structure de Navigation
-
-```
-App
-├── Auth Stack
-│   ├── Login
-│   ├── Register
-│   ├── ForgotPassword
-│   └── ResetPassword
-└── Main Stack
-    ├── Home
-    ├── Map
-    ├── PlaceDetail
-    ├── AddReview
-    ├── Profile Stack
-    │   ├── Profile
-    │   ├── EditProfile
-    │   ├── ChangePassword
-    │   ├── MyReviews
-    │   ├── FavoritePlaces
-    │   └── LocationHistory
-    └── Settings Stack
-        ├── Settings
-        ├── AccessibilitySettings
-        ├── PrivacySettings
-        └── About
-```
-
-### Navigation Conditionnelle
-
-```javascript
-// Vérifier si l'utilisateur est connecté
-const isAuthenticated = await AuthService.getCurrentUser();
-
-if (isAuthenticated) {
-  navigation.replace('Main');
-} else {
-  navigation.replace('Login');
-}
-```
-
-## 📱 Responsive Design
-
-### Adaptation Mobile
-
-Tous les écrans sont optimisés pour :
-- ✅ Smartphones (portrait/paysage)
-- ✅ Tablettes
-- ✅ Différentes tailles d'écran
-- ✅ Densités de pixels variables
-
-### Composants Adaptatifs
-
-- ✅ Cartes de lieux redimensionnables
-- ✅ Listes avec scroll fluide
-- ✅ Formulaires adaptatifs
-- ✅ Boutons tactiles optimisés
-
-## 🧪 Tests des Écrans
-
-### Scripts de test disponibles
-
-```bash
-# Test de navigation
-node scripts/test-navigation.js
-
-# Test des écrans
-node scripts/test-screens.js
-
-# Test de l'accessibilité
-node scripts/test-accessibility.js
-```
-
-### Tests inclus
-
-- ✅ Navigation entre les écrans
-- ✅ Rendu des composants
-- ✅ Interactions utilisateur
-- ✅ Gestion des états
-- ✅ Accessibilité
-- ✅ Thèmes et styles
-- ✅ Performance
-
-## 📝 Bonnes Pratiques
-
-### 1. **Performance**
-- Lazy loading des images
-- Optimisation des listes
-- Gestion de la mémoire
-- Cache des données
-
-### 2. **UX/UI**
-- Design cohérent
-- Feedback utilisateur
-- États de chargement
-- Gestion des erreurs
-
-### 3. **Accessibilité**
-- Labels descriptifs
-- Navigation alternative
-- Contraste suffisant
-- Support des lecteurs d'écran
-
-### 4. **Maintenance**
-- Code modulaire
-- Documentation claire
-- Tests automatisés
-- Gestion des versions
-
-## 🔮 Évolutions Futures
-
-### Écrans prévus
-- 📊 Tableau de bord analytique
-- 🗺️ Carte personnalisée avancée
-- 📱 Notifications push
-- 🔔 Système d'alertes
-- 🌐 Mode hors ligne avancé
-
-### Améliorations
-- ⚡ Performance optimisée
-- 🎨 Animations fluides
-- 🔧 Configuration avancée
-- 📱 Support tablette
-- 🌍 Internationalisation
+> **Guide complet des 15 écrans de l'application AccessPlus - Version Finale**
+
+[![React Native](https://img.shields.io/badge/React%20Native-0.79.2-blue.svg)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2053-000000.svg)](https://expo.dev/)
+[![Status](https://img.shields.io/badge/Status-✅%20Complète-brightgreen.svg)](https://github.com/Fleau75/Projet-Final)
+[![Last Update](https://img.shields.io/badge/Last%20Update-Juin%202025-blue.svg)](https://github.com/Fleau75/Projet-Final)
+
+## 🎯 **Vue d'ensemble des écrans**
+
+AccessPlus comprend **15 écrans principaux** organisés en 3 catégories :
+
+### **🔐 Écrans d'Authentification**
+- LoginScreen - Connexion avec biométrie
+- RegisterScreen - Inscription avec migration
+- ForgotPasswordScreen - Mot de passe oublié
+- ResetPasswordScreen - Réinitialisation
+
+### **📱 Écrans Principaux (Navigation par onglets)**
+- HomeScreen - Accueil avec liste des lieux
+- MapScreen - Carte interactive
+- ProfileScreen - Profil utilisateur
+- SettingsScreen - Paramètres et aide
+
+### **🔍 Écrans de Détail et Gestion**
+- PlaceDetailScreen - Détails d'un lieu
+- AddReviewScreen - Ajout d'avis
+- MyReviewsScreen - Mes avis
+- FavoritePlacesScreen - Lieux favoris
+- LocationHistoryScreen - Historique
+- EditProfileScreen - Édition profil
+- ChangePasswordScreen - Changement mot de passe
 
 ---
 
-*Tous les écrans d'AccessPlus sont conçus pour offrir une expérience utilisateur optimale avec un support complet de l'accessibilité.* 
+## 🔐 **ÉCRANS D'AUTHENTIFICATION**
+
+### **1. LoginScreen.js** - Écran de Connexion
+
+**📁 Fichier :** `screens/LoginScreen.js`  
+**📏 Taille :** 500 lignes  
+**🎯 Fonctionnalités :** Authentification complète
+
+#### **Fonctionnalités Principales**
+- **Connexion email/mot de passe** avec validation
+- **Authentification biométrique** (empreinte/Face ID)
+- **Mode visiteur** avec accès immédiat
+- **Gestion des erreurs** avec messages contextuels
+- **Navigation** vers inscription et mot de passe oublié
+
+#### **Composants Utilisés**
+```javascript
+// Authentification biométrique
+import { BiometricService } from '../services/biometricService';
+
+// Validation des entrées
+const [email, setEmail] = useState('');
+const [password, setPassword] = useState('');
+
+// Gestion des erreurs
+const [error, setError] = useState('');
+```
+
+#### **Améliorations Récentes**
+- **Interface plus intuitive** avec labels d'accessibilité
+- **Gestion améliorée** des états de chargement
+- **Support complet** des lecteurs d'écran
+- **Validation en temps réel** des champs
+
+### **2. RegisterScreen.js** - Écran d'Inscription
+
+**📁 Fichier :** `screens/RegisterScreen.js`  
+**📏 Taille :** 590 lignes  
+**🎯 Fonctionnalités :** Création de compte avec migration
+
+#### **Fonctionnalités Principales**
+- **Inscription** avec validation complète
+- **Migration automatique** des données visiteur
+- **Gestion des préférences** de migration
+- **Validation en temps réel** des champs
+- **Navigation** vers connexion
+
+#### **Migration des Données**
+```javascript
+// Migration automatique des données visiteur
+const migrationResult = await StorageService.migrateVisitorDataToUser(
+  userData.email, 
+  true
+);
+
+// Préservation de l'historique et des préférences
+if (migrationResult.migrated) {
+  console.log('✅ Migration réussie');
+}
+```
+
+#### **Améliorations Récentes**
+- **Suppression du bouton 'Se connecter'** pour éviter les erreurs de navigation
+- **Interface plus claire** pour la gestion de la migration
+- **Messages informatifs** sur le processus de migration
+
+### **3. ForgotPasswordScreen.js** - Mot de Passe Oublié
+
+**📁 Fichier :** `screens/ForgotPasswordScreen.js`  
+**📏 Taille :** 222 lignes  
+**🎯 Fonctionnalités :** Réinitialisation sécurisée
+
+#### **Fonctionnalités Principales**
+- **Formulaire de récupération** par email
+- **Validation** de l'adresse email
+- **Messages de confirmation** clairs
+- **Navigation** vers connexion
+
+### **4. ResetPasswordScreen.js** - Réinitialisation
+
+**📁 Fichier :** `screens/ResetPasswordScreen.js`  
+**📏 Taille :** 264 lignes  
+**🎯 Fonctionnalités :** Confirmation de réinitialisation
+
+#### **Fonctionnalités Principales**
+- **Confirmation** de l'envoi du lien
+- **Instructions** pour l'utilisateur
+- **Navigation** vers connexion
+
+---
+
+## 📱 **ÉCRANS PRINCIPAUX (Navigation par onglets)**
+
+### **5. HomeScreen.js** - Écran d'Accueil
+
+**📁 Fichier :** `screens/HomeScreen.js`  
+**📏 Taille :** 1661 lignes  
+**🎯 Fonctionnalités :** Liste des lieux avec filtres avancés
+
+#### **Fonctionnalités Principales**
+- **Liste des lieux** avec cartes interactives
+- **Filtrage par catégorie** (Restaurants, Culture, Shopping, Santé, Sport, Éducation, Hôtels)
+- **Filtres d'accessibilité** (rampes, ascenseurs, parking, toilettes)
+- **Recherche textuelle** par nom d'établissement
+- **Tri intelligent** (distance, note, popularité)
+- **Géolocalisation** avec calcul de distances
+- **Bouton retour en haut** pour navigation rapide
+
+#### **Améliorations Récentes (Juin 2025)**
+```javascript
+// Bouton retour en haut
+const scrollToTop = () => {
+  if (flatListRef.current) {
+    flatListRef.current.scrollToOffset({ offset: 0, animated: true });
+  }
+};
+
+// Correction catégorisation hôtels
+const mapGooglePlaceTypeToCategory = (googleTypes) => {
+  if (googleTypes.includes('lodging')) return 'hotel';
+  // ... autres catégories
+};
+
+// Rayon de recherche par défaut (500m)
+const defaultSearchRadius = 500;
+```
+
+#### **Fonctionnalités Avancées**
+- **Données statiques** de fallback (11ème arrondissement)
+- **Intégration Google Places API** avec gestion d'erreurs
+- **Cache intelligent** des résultats
+- **Support complet** de l'accessibilité
+- **Menus compacts** pour une meilleure expérience
+
+### **6. MapScreen.js** - Carte Interactive
+
+**📁 Fichier :** `screens/MapScreen.js`  
+**📏 Taille :** 868 lignes  
+**🎯 Fonctionnalités :** Cartographie interactive
+
+#### **Fonctionnalités Principales**
+- **Carte Google Maps** avec thème adaptatif
+- **Marqueurs personnalisés** par catégorie
+- **Géolocalisation** en temps réel
+- **Recherche géolocalisée** avec rayon configurable
+- **FAB (Floating Action Button)** pour ajouter des avis
+- **Navigation** vers détails des lieux
+
+#### **Améliorations Récentes (Juin 2025)**
+```javascript
+// FAB amélioré pour ajouter des avis
+<FAB
+  icon="plus"
+  style={styles.fab}
+  onPress={() => navigation.navigate('AddReview')}
+  accessibilityLabel="Ajouter un avis"
+  accessibilityHint="Ouvre le formulaire d'ajout d'avis"
+/>
+```
+
+#### **Fonctionnalités Avancées**
+- **Calcul de distances** avec formule de Haversine
+- **Gestion des permissions** de localisation
+- **Mode hors-ligne** avec données locales
+- **Animations** fluides des marqueurs
+
+### **7. ProfileScreen.js** - Profil Utilisateur
+
+**📁 Fichier :** `screens/ProfileScreen.js`  
+**📏 Taille :** 690 lignes  
+**🎯 Fonctionnalités :** Gestion du profil et statistiques
+
+#### **Fonctionnalités Principales**
+- **Informations utilisateur** (nom, email, avatar)
+- **Statistiques personnelles** (avis, lieux visités)
+- **Badge vérifié** avec critères
+- **Actions rapides** (éditer profil, changer mot de passe)
+- **Navigation** vers écrans de gestion
+
+#### **Améliorations Récentes (Juin 2025)**
+```javascript
+// Correction effet rouge profil
+const getProfileCardStyle = () => ({
+  backgroundColor: theme.colors.surface,
+  borderRadius: 16,
+  elevation: 4,
+  // Suppression de l'effet rouge non désiré
+});
+```
+
+#### **Système de Badges**
+- **Critères de vérification** : Compte créé + 3 avis minimum
+- **Badge visuel** distinctif avec tooltips
+- **Progression** vers la vérification
+- **Statistiques** en temps réel
+
+### **8. SettingsScreen.js** - Paramètres
+
+**📁 Fichier :** `screens/SettingsScreen.js`  
+**📏 Taille :** 955 lignes  
+**🎯 Fonctionnalités :** Configuration et aide
+
+#### **Fonctionnalités Principales**
+- **Thème** (clair/sombre automatique)
+- **Taille de texte** (3 niveaux)
+- **Accessibilité** (lecteur d'écran, contraste)
+- **Notifications** (push, locales, préférences)
+- **Système d'aide et support** intégré
+- **Signaler un problème** avec formulaire dédié
+
+#### **Améliorations Récentes (Juin 2025)**
+```javascript
+// Suppression des boutons de test de notifications
+// Interface plus propre et intuitive
+
+// Amélioration du design du bouton 'Réinitialiser'
+<Button
+  mode="outlined"
+  onPress={handleResetSettings}
+  style={styles.resetButton}
+  labelStyle={styles.resetButtonLabel}
+>
+  Réinitialiser
+</Button>
+
+// Suppression du Divider inutile dans la section Notifications
+```
+
+#### **Système d'Aide et Support**
+- **Interface d'aide** intégrée
+- **Signaler un problème** avec formulaire
+- **Support utilisateur** avec options multiples
+- **Documentation** accessible directement
+
+---
+
+## 🔍 **ÉCRANS DE DÉTAIL ET GESTION**
+
+### **9. PlaceDetailScreen.js** - Détails d'un Lieu
+
+**📁 Fichier :** `screens/PlaceDetailScreen.js`  
+**📏 Taille :** 545 lignes  
+**🎯 Fonctionnalités :** Informations complètes d'un établissement
+
+#### **Fonctionnalités Principales**
+- **Informations détaillées** (nom, adresse, type)
+- **Note et avis** avec système de notation
+- **Photos** du lieu et des avis
+- **Informations d'accessibilité** détaillées
+- **Actions** (ajouter aux favoris, ajouter avis)
+- **Informations de contact** contextuelles
+- **Prix contextuels** pour les établissements
+
+#### **Améliorations Récentes (Juin 2025)**
+```javascript
+// Ajout d'informations de contact
+const renderContactInfo = () => {
+  if (place.phone || place.website) {
+    return (
+      <View style={styles.contactSection}>
+        {place.phone && (
+          <TouchableOpacity onPress={() => Linking.openURL(`tel:${place.phone}`)}>
+            <Text>📞 {place.phone}</Text>
+          </TouchableOpacity>
+        )}
+        {place.website && (
+          <TouchableOpacity onPress={() => Linking.openURL(place.website)}>
+            <Text>🌐 {place.website}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  }
+};
+
+// Prix contextuels
+const renderPriceInfo = () => {
+  if (place.priceLevel) {
+    const priceText = '€'.repeat(place.priceLevel);
+    return (
+      <View style={styles.priceSection}>
+        <Text>Prix : {priceText}</Text>
+      </View>
+    );
+  }
+};
+```
+
+#### **Layout Avis Optimisé**
+- **Alignement gauche** pour une meilleure lisibilité
+- **Photos** des avis avec gestion d'erreurs
+- **Informations contextuelles** enrichies
+
+### **10. AddReviewScreen.js** - Ajout d'Avis
+
+**📁 Fichier :** `screens/AddReviewScreen.js`  
+**📏 Taille :** 617 lignes  
+**🎯 Fonctionnalités :** Formulaire d'évaluation avec photos
+
+#### **Fonctionnalités Principales**
+- **Système de notation** 1-5 étoiles
+- **Commentaire textuel** avec validation
+- **Upload de photos** avec Firebase Storage
+- **Critères d'accessibilité** spécifiques
+- **Prévisualisation** avant envoi
+- **Gestion des erreurs** complète
+
+#### **Upload de Photos**
+```javascript
+// Gestion des photos avec Firebase Storage
+const uploadPhotos = async (photos) => {
+  const uploadedUrls = [];
+  
+  for (const photo of photos) {
+    const photoRef = ref(storage, `reviews/${reviewId}/${Date.now()}.jpg`);
+    await uploadBytes(photoRef, photo);
+    const url = await getDownloadURL(photoRef);
+    uploadedUrls.push(url);
+  }
+  
+  return uploadedUrls;
+};
+```
+
+### **11. MyReviewsScreen.js** - Mes Avis
+
+**📁 Fichier :** `screens/MyReviewsScreen.js`  
+**📏 Taille :** 626 lignes  
+**🎯 Fonctionnalités :** Historique des évaluations personnelles
+
+#### **Fonctionnalités Principales**
+- **Liste des avis** personnels
+- **Filtrage** par lieu, date, note
+- **Actions** (éditer, supprimer)
+- **Statistiques** personnelles
+- **Navigation** vers détails des lieux
+
+### **12. FavoritePlacesScreen.js** - Lieux Favoris
+
+**📁 Fichier :** `screens/FavoritePlacesScreen.js`  
+**📏 Taille :** 709 lignes  
+**🎯 Fonctionnalités :** Gestion des favoris
+
+#### **Fonctionnalités Principales**
+- **Liste des lieux favoris** avec cartes
+- **Actions** (retirer des favoris, voir détails)
+- **Tri** par nom, distance, note
+- **Recherche** dans les favoris
+- **Synchronisation** avec Firebase
+
+### **13. LocationHistoryScreen.js** - Historique
+
+**📁 Fichier :** `screens/LocationHistoryScreen.js`  
+**📏 Taille :** 583 lignes  
+**🎯 Fonctionnalités :** Lieux visités et consultés
+
+#### **Fonctionnalités Principales**
+- **Historique chronologique** des lieux
+- **Filtrage** par date, type, accessibilité
+- **Actions** (voir détails, ajouter aux favoris)
+- **Statistiques** de navigation
+- **Export** des données
+
+### **14. EditProfileScreen.js** - Édition Profil
+
+**📁 Fichier :** `screens/EditProfileScreen.js`  
+**📏 Taille :** 623 lignes  
+**🎯 Fonctionnalités :** Modification des informations utilisateur
+
+#### **Fonctionnalités Principales**
+- **Modification** du nom et email
+- **Upload d'avatar** avec ImagePicker
+- **Validation** des champs
+- **Sauvegarde** automatique
+- **Gestion des erreurs**
+
+### **15. ChangePasswordScreen.js** - Changement Mot de Passe
+
+**📁 Fichier :** `screens/ChangePasswordScreen.js`  
+**📏 Taille :** 424 lignes  
+**🎯 Fonctionnalités :** Modification sécurisée du mot de passe
+
+#### **Fonctionnalités Principales**
+- **Validation** de l'ancien mot de passe
+- **Nouveau mot de passe** avec critères de sécurité
+- **Confirmation** du nouveau mot de passe
+- **Chiffrement** sécurisé
+- **Messages de confirmation**
+
+---
+
+## 🎨 **PATTERNS DE DESIGN COMMUNS**
+
+### **Navigation**
+```javascript
+// Navigation standard entre écrans
+navigation.navigate('ScreenName', { params });
+
+// Retour avec données
+navigation.goBack();
+
+// Navigation vers onglet spécifique
+navigation.navigate('MainTabs', { screen: 'Home' });
+```
+
+### **Gestion d'État**
+```javascript
+// État local avec useState
+const [data, setData] = useState([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState(null);
+
+// Effets avec useEffect
+useEffect(() => {
+  loadData();
+}, []);
+```
+
+### **Accessibilité**
+```javascript
+// Labels d'accessibilité
+<View
+  accessible={true}
+  accessibilityLabel="Description de l'élément"
+  accessibilityRole="button"
+  accessibilityHint="Action à effectuer"
+>
+```
+
+### **Gestion des Erreurs**
+```javascript
+// Try-catch avec messages utilisateur
+try {
+  await performAction();
+} catch (error) {
+  setError(getErrorMessage(error));
+}
+```
+
+---
+
+## 🔧 **CONFIGURATION ET PERSONNALISATION**
+
+### **Thèmes et Styles**
+```javascript
+// Utilisation du thème
+const theme = useTheme();
+
+// Styles adaptatifs
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: theme.colors.surface,
+    padding: theme.spacing.medium,
+  },
+});
+```
+
+### **Tests d'Accessibilité**
+```javascript
+// TestID pour les tests
+<View testID="screen-container">
+  <Text testID="screen-title">Titre</Text>
+</View>
+```
+
+---
+
+## 📊 **STATISTIQUES DES ÉCRANS**
+
+| Écran | Lignes | Complexité | Tests | Statut |
+|-------|--------|------------|-------|--------|
+| HomeScreen | 1661 | ⭐⭐⭐⭐⭐ | ✅ | Complète |
+| SettingsScreen | 955 | ⭐⭐⭐⭐ | ✅ | Complète |
+| ProfileScreen | 690 | ⭐⭐⭐⭐ | ✅ | Complète |
+| MapScreen | 868 | ⭐⭐⭐⭐ | ✅ | Complète |
+| RegisterScreen | 590 | ⭐⭐⭐ | ✅ | Complète |
+| AddReviewScreen | 617 | ⭐⭐⭐ | ✅ | Complète |
+| FavoritePlacesScreen | 709 | ⭐⭐⭐ | ✅ | Complète |
+| MyReviewsScreen | 626 | ⭐⭐⭐ | ✅ | Complète |
+| LocationHistoryScreen | 583 | ⭐⭐⭐ | ✅ | Complète |
+| EditProfileScreen | 623 | ⭐⭐⭐ | ✅ | Complète |
+| PlaceDetailScreen | 545 | ⭐⭐⭐ | ✅ | Complète |
+| LoginScreen | 500 | ⭐⭐ | ✅ | Complète |
+| ChangePasswordScreen | 424 | ⭐⭐ | ✅ | Complète |
+| ForgotPasswordScreen | 222 | ⭐ | ✅ | Complète |
+| ResetPasswordScreen | 264 | ⭐ | ✅ | Complète |
+
+**Total :** 9,207 lignes de code pour les écrans
+
+---
+
+## 🚀 **BONNES PRATIQUES IMPLÉMENTÉES**
+
+### **Performance**
+- **Lazy loading** des images et données
+- **Memoization** des composants coûteux
+- **Optimisation** des re-renders
+- **Gestion mémoire** efficace
+
+### **Accessibilité**
+- **Labels d'accessibilité** sur tous les éléments
+- **Support lecteur d'écran** complet
+- **Navigation clavier** et tactile
+- **Contraste élevé** configurable
+
+### **Sécurité**
+- **Validation** des entrées utilisateur
+- **Chiffrement** des données sensibles
+- **Gestion sécurisée** des tokens
+- **Permissions** granulaire
+
+### **Maintenabilité**
+- **Code modulaire** et réutilisable
+- **Documentation** inline complète
+- **Tests** couvrants
+- **Gestion d'erreurs** robuste
+
+---
+
+## 📚 **RESSOURCES COMPLÉMENTAIRES**
+
+- [🏗️ Guide d'Architecture](./ARCHITECTURE_GUIDE.md)
+- [🧩 Guide des Composants](./COMPONENTS_GUIDE.md)
+- [⚙️ Guide des Services](./SERVICES_GUIDE.md)
+- [🧪 Guide des Tests](./TESTING_GUIDE.md)
+- [👤 Guide Utilisateur](./USER_GUIDE.md)
+
+---
+
+**AccessPlus** - Des écrans accessibles pour tous ! 🦽✨ 

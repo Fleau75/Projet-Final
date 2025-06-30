@@ -2,9 +2,24 @@
 
 > **Manuel d'utilisation complet de l'application AccessPlus pour les Personnes à Mobilité Réduite (PMR)**
 
+[![React Native](https://img.shields.io/badge/React%20Native-0.79.2-blue.svg)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-SDK%2053-000000.svg)](https://expo.dev/)
+[![Status](https://img.shields.io/badge/Status-✅%20Complète-brightgreen.svg)](https://github.com/Fleau75/Projet-Final)
+[![Last Update](https://img.shields.io/badge/Last%20Update-Juin%202025-blue.svg)](https://github.com/Fleau75/Projet-Final)
+
 ## 🎯 **Introduction**
 
-AccessPlus est une application mobile conçue spécialement pour faciliter la découverte et l'évaluation de lieux accessibles. Ce guide vous accompagne dans l'utilisation de toutes les fonctionnalités de l'application.
+AccessPlus est une application mobile conçue spécialement pour faciliter la découverte et l'évaluation de lieux accessibles. Ce guide vous accompagne dans l'utilisation de toutes les fonctionnalités de l'application, y compris les **nouvelles améliorations** de juin 2025.
+
+### **🆕 Nouvelles Fonctionnalités (Juin 2025)**
+- **Bouton retour en haut** pour navigation rapide
+- **Informations de contact** contextuelles
+- **Prix contextuels** pour les établissements
+- **Système d'aide et support** intégré
+- **Menus compacts** pour une meilleure accessibilité
+- **FAB amélioré** sur la carte pour ajouter des avis
+
+---
 
 ## 🔐 **Première connexion**
 
@@ -14,6 +29,7 @@ AccessPlus est une application mobile conçue spécialement pour faciliter la d�
 2. **Cliquez sur "Continuer sans compte"**
 3. **Explorez l'application** avec toutes les fonctionnalités
 4. **Vos données sont sauvegardées** localement
+5. **Migration automatique** vers compte permanent disponible
 
 ### Création d'un compte permanent
 
@@ -32,6 +48,8 @@ AccessPlus est une application mobile conçue spécialement pour faciliter la d�
 2. **Cliquez sur "Se connecter"**
 3. **Activez la biométrie** si proposée pour des connexions plus rapides
 
+---
+
 ## 🏠 **Écran d'accueil**
 
 ### Navigation principale
@@ -42,6 +60,13 @@ L'application dispose de 4 onglets principaux :
 - 🗺️ **Carte** : Carte interactive
 - 👤 **Profil** : Vos informations et statistiques
 - ⚙️ **Réglages** : Paramètres de l'application
+
+### **🆕 Bouton retour en haut**
+
+- **Icône flèche vers le haut** en haut à droite de l'écran
+- **Cliquez pour remonter** en haut de la liste
+- **Navigation rapide** sans faire défiler manuellement
+- **Accessible** avec le lecteur d'écran
 
 ### Recherche et filtrage
 
@@ -58,6 +83,7 @@ L'application dispose de 4 onglets principaux :
 - **🏥 Santé** : Hôpitaux, pharmacies, cabinets
 - **🏃 Sport** : Salles de sport, piscines
 - **📚 Éducation** : Écoles, bibliothèques
+- **🆕 🏨 Hôtels** : Hôtels et hébergements (nouveau)
 
 #### Filtres d'accessibilité
 Activez les filtres selon vos besoins :
@@ -70,6 +96,8 @@ Activez les filtres selon vos besoins :
 - **Par distance** : Du plus proche au plus loin
 - **Par note** : Du mieux noté au moins bien noté
 - **Par popularité** : Selon le nombre d'avis
+
+---
 
 ## 🗺️ **Carte interactive**
 
@@ -86,6 +114,13 @@ Activez les filtres selon vos besoins :
 - **🟡 Jaune** : Lieux moyennement accessibles (3-4 étoiles)
 - **🔴 Rouge** : Lieux peu accessibles (1-3 étoiles)
 - **📍 Bleu** : Votre position actuelle
+
+### **🆕 FAB (Floating Action Button) amélioré**
+
+- **Bouton flottant** avec icône "+" sur la carte
+- **Cliquez pour ajouter un avis** directement depuis la carte
+- **Navigation rapide** vers le formulaire d'avis
+- **Accessible** avec le lecteur d'écran
 
 ### Recherche géolocalisée
 
@@ -104,6 +139,8 @@ Activez les filtres selon vos besoins :
    - Équipements d'accessibilité
 3. **Sauvegardez** le lieu
 
+---
+
 ## 📍 **Détails d'un lieu**
 
 ### Informations affichées
@@ -115,6 +152,19 @@ Activez les filtres selon vos besoins :
 - **Photos** du lieu (si disponibles)
 - **Avis des utilisateurs**
 
+### **🆕 Informations de contact contextuelles**
+
+- **📞 Numéro de téléphone** : Cliquez pour appeler directement
+- **🌐 Site web** : Cliquez pour visiter le site
+- **📧 Email** : Cliquez pour envoyer un email
+- **📍 Adresse** : Cliquez pour ouvrir dans Maps
+
+### **🆕 Prix contextuels**
+
+- **Indicateur de prix** : €, €€, €€€, €€€€
+- **Informations tarifaires** pour les établissements
+- **Aide à la planification** budgétaire
+
 ### Actions disponibles
 
 - **⭐ Noter le lieu** : Donnez votre avis
@@ -122,6 +172,8 @@ Activez les filtres selon vos besoins :
 - **🗺️ Voir sur la carte** : Localiser le lieu
 - **📞 Appeler** : Contacter le lieu (si numéro disponible)
 - **🌐 Site web** : Visiter le site (si disponible)
+
+---
 
 ## ⭐ **Système d'évaluation**
 
@@ -136,6 +188,13 @@ Activez les filtres selon vos besoins :
    - Sélectionnez vos photos
 5. **Publiez votre avis**
 
+### **🆕 Layout avis optimisé**
+
+- **Alignement gauche** pour une meilleure lisibilité
+- **Photos des avis** avec gestion d'erreurs améliorée
+- **Informations contextuelles** enrichies
+- **Interface plus claire** et organisée
+
 ### Critères d'évaluation
 
 Évaluez selon ces critères :
@@ -149,6 +208,8 @@ Activez les filtres selon vos besoins :
 - **Consultez vos avis** dans l'onglet "Mes avis"
 - **Modifiez un avis** en cliquant dessus
 - **Supprimez un avis** si nécessaire
+
+---
 
 ## 👤 **Profil utilisateur**
 
@@ -180,6 +241,8 @@ Activez les filtres selon vos besoins :
 - **🕒 Historique des lieux** : Lieux consultés
 - **🚪 Se déconnecter** : Fermer votre session
 
+---
+
 ## ⚙️ **Réglages**
 
 ### Apparence
@@ -196,6 +259,13 @@ Activez les filtres selon vos besoins :
   - Ascenseur requis
   - Parking accessible requis
   - Toilettes adaptées requises
+
+### **🆕 Menus compacts**
+
+- **Interface plus compacte** pour une meilleure expérience
+- **Navigation optimisée** pour les PMR
+- **Réduction de la fatigue** visuelle
+- **Accès plus rapide** aux fonctionnalités
 
 ### Notifications
 
@@ -214,6 +284,17 @@ Activez les filtres selon vos besoins :
 - **Synchronisation** : État de la synchronisation
 - **Espace utilisé** : Taille des données stockées
 - **Nettoyage des données** : Supprimer les données temporaires
+
+### **🆕 Système d'aide et support**
+
+- **Interface d'aide** intégrée dans les réglages
+- **Signaler un problème** avec formulaire dédié
+- **Support utilisateur** avec options multiples
+- **Documentation** accessible directement dans l'app
+- **FAQ** et guides d'utilisation
+- **Contact direct** avec le support
+
+---
 
 ## 🔄 **Mode visiteur et migration**
 
@@ -242,6 +323,8 @@ Activez les filtres selon vos besoins :
 - **Statistiques détaillées**
 - **Authentification biométrique**
 
+---
+
 ## 🔐 **Authentification biométrique**
 
 ### Activation
@@ -263,6 +346,8 @@ Activez les filtres selon vos besoins :
 1. **Allez dans Réglages > Sécurité**
 2. **Désactivez la biométrie**
 3. **Confirmez la désactivation**
+
+---
 
 ## 🆘 **Résolution de problèmes**
 
@@ -294,7 +379,16 @@ Activez les filtres selon vos besoins :
 - **Utilisez le mode contraste élevé**
 - **Contactez le support** pour des améliorations
 
+---
+
 ## 📞 **Support et aide**
+
+### **🆕 Système d'aide intégré**
+
+- **Aide contextuelle** : Informations sur chaque fonctionnalité
+- **Tutoriels interactifs** : Apprentissage guidé
+- **FAQ dynamique** : Questions/réponses courantes
+- **Signaler un problème** : Formulaire dédié avec catégorisation
 
 ### Ressources disponibles
 
@@ -309,6 +403,8 @@ Activez les filtres selon vos besoins :
 - **🐛 Signaler un bug** : Via l'application
 - **💡 Suggestion** : Formulaire de contact
 - **📱 Chat support** : Support en temps réel
+
+---
 
 ## 🔒 **Sécurité et confidentialité**
 
@@ -328,6 +424,31 @@ Activez les filtres selon vos besoins :
 
 ---
 
-**AccessPlus** - Rendre l'accessibilité accessible à tous ! ♿
+## 🎯 **Astuces et raccourcis**
 
-*Dernière mise à jour : Juin 2025* 
+### Navigation rapide
+
+- **Double-tap** sur l'onglet actif pour remonter en haut
+- **Glissement horizontal** entre les onglets
+- **Appui long** sur les cartes pour plus d'options
+- **Balayage** pour actualiser les listes
+
+### Accessibilité
+
+- **Triple-tap** pour activer le mode contraste élevé
+- **Double-tap + glissement** pour zoomer
+- **Balayage à deux doigts** pour navigation rapide
+- **Commande vocale** disponible sur certains appareils
+
+### Performance
+
+- **Fermez l'application** complètement si elle ralentit
+- **Videz le cache** dans les réglages si nécessaire
+- **Désactivez les notifications** non essentielles
+- **Utilisez le mode économie d'énergie** si disponible
+
+---
+
+**AccessPlus** - Rendre l'accessibilité accessible à tous ! 🦽✨
+
+*Dernière mise à jour : Juin 2025 - Nouvelles fonctionnalités incluses* 
