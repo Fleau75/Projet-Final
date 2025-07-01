@@ -1,5 +1,8 @@
 import { GOOGLE_PLACES_API_KEY } from '@env';
 
+// Cache mémoire pour les recherches Nearby
+const simpleNearbyCache = {};
+
 // Service Places simplifié et robuste
 class SimplePlacesService {
   static isApiEnabled = null; // Cache pour éviter les vérifications répétées
@@ -42,8 +45,14 @@ class SimplePlacesService {
     return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photo_reference=${photoReference}&key=${GOOGLE_PLACES_API_KEY}`;
   }
   
-  static async getNearbyPlaces(category = 'all', maxResults = 20, userLocation = null, searchRadius = null) {
+  static async getNearbyPlaces(category = 'all', maxResults = 10, userLocation = null, searchRadius = null) {
     try {
+      // Clé de cache basée sur la catégorie et la position
+      const cacheKey = `${category}_${userLocation ? userLocation.latitude + ',' + userLocation.longitude : 'default'}_${searchRadius || 'default'}`;
+      if (simpleNearbyCache[cacheKey]) {
+        console.log('🟡 Résultat Nearby depuis le cache');
+        return simpleNearbyCache[cacheKey];
+      }
       // Vérifier si l'API est accessible
       const apiAvailable = await this.checkApiStatus();
       if (!apiAvailable) {
@@ -95,7 +104,7 @@ class SimplePlacesService {
       }
       
       // Transformer les résultats au format de l'app
-      const places = data.results.slice(0, maxResults).map(place => {
+      const places = data.results.slice(0, Math.min(maxResults, 10)).map(place => {
         // Récupérer l'URL de la première image si disponible
         const imageUrl = place.photos && place.photos.length > 0 
           ? this.getPhotoUrl(place.photos[0].photo_reference, 400)
@@ -132,6 +141,7 @@ class SimplePlacesService {
       console.log(`📸 ${placesWithImages.length}/${places.length} lieux ont des images`);
       
       console.log(`✅ Google Places: ${places.length} lieux trouvés pour "${category}" dans un rayon de ${radius}m`);
+      simpleNearbyCache[cacheKey] = places;
       return places;
       
     } catch (error) {

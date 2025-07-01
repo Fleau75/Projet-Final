@@ -334,6 +334,23 @@ const getAccessibilityLabel = (level) => {
   }
 };
 
+// Cache mémoire simple pour les recherches Google Places
+const googlePlacesCache = {};
+
+// Fonction utilitaire debounce
+function debounceAsync(fn, delay) {
+  let timeout;
+  let lastPromise = null;
+  return (...args) => {
+    clearTimeout(timeout);
+    return new Promise((resolve, reject) => {
+      timeout = setTimeout(() => {
+        lastPromise = fn(...args).then(resolve).catch(reject);
+      }, delay);
+    });
+  };
+}
+
 /**
  * Composant principal de l'écran d'accueil
  */
@@ -593,103 +610,77 @@ export default function HomeScreen({ navigation }) {
   };
 
   /**
-   * Fonction pour charger les lieux Google Places avec données réelles
+   * Fonction pour charger les lieux Google Places avec données réelles (corrigée)
    */
-  const loadGooglePlacesWithRealData = useCallback(async (location, radius) => {
-    try {
-      if (!location) {
-        console.log('📍 Recherche depuis le centre de Paris (position non disponible)');
-        // Utiliser le centre de Paris par défaut
-        const rawPlaces = await PlacesApiService.searchNearbyPlaces({ lat: 48.8566, lng: 2.3522 }, radius);
-        return transformGooglePlacesData(rawPlaces);
-      }
-      
-      console.log(`📍 Recherche depuis votre position: ${location.latitude}, ${location.longitude}`);
-      console.log(`🎯 Rayon de recherche: ${radius}m (configuré dans les réglages)`);
-      
-      // Rechercher différents types de lieux pour avoir plus de variété
-      const searchTypes = [
-        'restaurant', 
-        'lodging', // Ajout des hôtels
-        'store', 
-        'museum', 
-        'hospital', 
-        'gym', 
-        'school', 
-        'park', 
-        'stadium', 
-        'fitness_center',
-        'cafe', // Ajout des cafés séparément
-        'bar', // Ajout des bars
-        'shopping_mall', // Ajout des centres commerciaux
-        'library', // Ajout des bibliothèques
-        'pharmacy' // Ajout des pharmacies
-      ];
-      let allPlaces = [];
-      
-      for (const type of searchTypes) {
-        try {
-          console.log(`🔍 Recherche de lieux de type: ${type}`);
-          const placesOfType = await PlacesApiService.searchNearbyPlaces(
-            { lat: location.latitude, lng: location.longitude }, 
-            radius, 
-            type
-          );
-          console.log(`✅ ${placesOfType.length} lieux trouvés pour le type ${type}`);
-          allPlaces = allPlaces.concat(placesOfType);
-        } catch (error) {
-          console.warn(`⚠️ Erreur pour le type ${type}:`, error.message);
+  const loadGooglePlacesWithRealData = useCallback(
+    debounceAsync(async (location, radius) => {
+      try {
+        // Clé de cache basée sur la position et le rayon
+        const cacheKey = location
+          ? `${location.latitude || location.lat},${location.longitude || location.lng},${radius}`
+          : `default,${radius}`;
+        if (googlePlacesCache[cacheKey]) {
+          console.log('🟡 Résultat Google Places depuis le cache');
+          return googlePlacesCache[cacheKey];
         }
-      }
-      
-      // Éviter les doublons basés sur place_id
-      const uniquePlaces = [];
-      const seenIds = new Set();
-      
-      allPlaces.forEach(place => {
-        if (!seenIds.has(place.place_id)) {
-          seenIds.add(place.place_id);
-          uniquePlaces.push(place);
+
+        // Limiter à 3 types pour éviter la surconsommation
+        const searchTypes = [
+          'restaurant',
+          'store',
+          'museum',
+        ];
+        let allPlaces = [];
+        for (const type of searchTypes) {
+          try {
+            console.log(`🔍 Recherche de lieux de type: ${type}`);
+            const placesOfType = await PlacesApiService.searchNearbyPlaces(
+              location
+                ? { lat: location.latitude || location.lat, lng: location.longitude || location.lng }
+                : { lat: 48.8566, lng: 2.3522 },
+              radius,
+              type
+            );
+            allPlaces = allPlaces.concat(placesOfType);
+          } catch (error) {
+            console.warn(`⚠️ Erreur pour le type ${type}:`, error.message);
+          }
         }
-      });
-      
-      console.log(`✅ Total: ${uniquePlaces.length} lieux uniques trouvés (${allPlaces.length} avant déduplication)`);
-      
-      // Récupérer les détails complets pour les premiers lieux (pour éviter trop d'appels API)
-      const placesWithDetails = [];
-      const maxDetailsToFetch = 20; // Limiter pour éviter trop d'appels API
-      
-      for (let i = 0; i < Math.min(uniquePlaces.length, maxDetailsToFetch); i++) {
-        try {
-          const place = uniquePlaces[i];
-          console.log(`🔍 Récupération des détails pour: ${place.name}`);
-          const details = await PlacesApiService.getPlaceDetails(place.place_id);
-          
-          // Fusionner les données de base avec les détails
-          const placeWithDetails = {
-            ...place,
-            ...details
-          };
-          
-          placesWithDetails.push(placeWithDetails);
-        } catch (error) {
-          console.warn(`⚠️ Erreur pour les détails de ${uniquePlaces[i].name}:`, error.message);
-          // Ajouter le lieu sans détails
+        // Déduplication
+        const uniquePlaces = [];
+        const seenIds = new Set();
+        allPlaces.forEach(place => {
+          if (!seenIds.has(place.place_id)) {
+            seenIds.add(place.place_id);
+            uniquePlaces.push(place);
+          }
+        });
+        // Limiter le nombre de détails à 5
+        const placesWithDetails = [];
+        const maxDetailsToFetch = 5;
+        for (let i = 0; i < Math.min(uniquePlaces.length, maxDetailsToFetch); i++) {
+          try {
+            const place = uniquePlaces[i];
+            const details = await PlacesApiService.getPlaceDetails(place.place_id);
+            placesWithDetails.push({ ...place, ...details });
+          } catch (error) {
+            placesWithDetails.push(uniquePlaces[i]);
+          }
+        }
+        // Ajouter les lieux restants sans détails
+        for (let i = maxDetailsToFetch; i < uniquePlaces.length; i++) {
           placesWithDetails.push(uniquePlaces[i]);
         }
+        const result = transformGooglePlacesData(placesWithDetails);
+        googlePlacesCache[cacheKey] = result;
+        return result;
+      } catch (error) {
+        console.warn('⚠️ Google Places erreur:', error.message);
+        return [];
       }
-      
-      // Ajouter les lieux restants sans détails
-      for (let i = maxDetailsToFetch; i < uniquePlaces.length; i++) {
-        placesWithDetails.push(uniquePlaces[i]);
-      }
-      
-      return transformGooglePlacesData(placesWithDetails);
-    } catch (error) {
-      console.warn('⚠️ Google Places erreur:', error.message);
-      return [];
-    }
-  }, []);
+    }, 700), // 700ms debounce
+    []
+  );
 
   /**
    * Fonction pour recharger les lieux de manière robuste

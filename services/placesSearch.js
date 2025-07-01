@@ -1,25 +1,44 @@
 import { GOOGLE_PLACES_API_KEY } from '@env';
 import PlacesApiService from './placesApi';
 
+// Cache mémoire simple pour les recherches Google Places
+const placesSearchCache = {};
+
+// Fonction utilitaire debounce
+function debounceAsync(fn, delay) {
+  let timeout;
+  let lastPromise = null;
+  return (...args) => {
+    clearTimeout(timeout);
+    return new Promise((resolve, reject) => {
+      timeout = setTimeout(() => {
+        lastPromise = fn(...args).then(resolve).catch(reject);
+      }, delay);
+    });
+  };
+}
+
 /**
  * Recherche des lieux avec l'API Google Places
  * @param {string} query - Le texte de recherche
  * @returns {Promise<Array>} - Liste des lieux trouvés
  */
-export const searchPlaces = async (query) => {
+export const searchPlaces = debounceAsync(async (query) => {
   try {
+    if (placesSearchCache[query]) {
+      console.log('🟡 Résultat Places Search depuis le cache');
+      return placesSearchCache[query];
+    }
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
         query
       )}&key=${GOOGLE_PLACES_API_KEY}&region=FR&language=fr`
     );
-
     const data = await response.json();
-
     if (data.status === 'OK') {
-      // Récupérer les détails complets pour chaque lieu
-          const placesWithDetails = await Promise.all(
-      data.results.slice(0, 15).map(async (place) => {
+      // Limiter le nombre de détails à 5
+      const placesWithDetails = await Promise.all(
+        data.results.slice(0, 5).map(async (place) => {
           try {
             const details = await PlacesApiService.getPlaceDetails(place.place_id);
             return {
@@ -27,7 +46,6 @@ export const searchPlaces = async (query) => {
               name: place.name,
               address: place.formatted_address,
               location: place.geometry.location,
-              // Vraies données complètes
               rating: place.rating || 0,
               reviewCount: place.user_ratings_total || 0,
               phone: details.formatted_phone_number || null,
@@ -39,7 +57,6 @@ export const searchPlaces = async (query) => {
               fullDetails: details
             };
           } catch (error) {
-            console.warn(`Détails non récupérés pour ${place.name}:`, error);
             return {
               id: place.place_id,
               name: place.name,
@@ -57,17 +74,15 @@ export const searchPlaces = async (query) => {
           }
         })
       );
-      
+      placesSearchCache[query] = placesWithDetails;
       return placesWithDetails;
     } else {
-      console.error('Erreur Google Places:', data.status);
       return [];
     }
   } catch (error) {
-    console.error('Erreur lors de la recherche:', error);
     return [];
   }
-};
+}, 700); // 700ms debounce
 
 /**
  * Recherche des lieux par texte dans une zone géographique spécifique
@@ -76,50 +91,31 @@ export const searchPlaces = async (query) => {
  * @param {number} maxResults - Nombre maximum de résultats (défaut: 100)
  * @returns {Promise<Array>} - Liste des lieux trouvés avec informations complètes
  */
-export const searchPlacesByText = async (query, location = null, maxResults = 20) => {
+export const searchPlacesByText = debounceAsync(async (query, location = null, maxResults = 10) => {
   try {
-    // Construction de l'URL de base
+    const cacheKey = location ? `${query}_${location.latitude}_${location.longitude}_${maxResults}` : `${query}_default_${maxResults}`;
+    if (placesSearchCache[cacheKey]) {
+      console.log('🟡 Résultat Places SearchByText depuis le cache');
+      return placesSearchCache[cacheKey];
+    }
     let url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}`;
-    
-    // Si une localisation est fournie, ajouter les paramètres de géolocalisation
     if (location) {
       url += `&location=${location.latitude},${location.longitude}`;
       if (location.radius) {
         url += `&radius=${location.radius}`;
       }
     } else {
-      // Par défaut, rechercher dans Paris
       url += `&location=48.8566,2.3522&radius=20000`;
     }
-
-    // Ajouter la région et la langue
     url += `&region=FR&language=fr&key=${GOOGLE_PLACES_API_KEY}`;
-
     const response = await fetch(url);
     const data = await response.json();
-
     if (data.status === 'OK') {
-      // Limiter les résultats au nombre demandé
-      const limitedResults = data.results.slice(0, maxResults);
-      
-      // Récupérer les détails complets pour chaque lieu
+      const limitedResults = data.results.slice(0, Math.min(maxResults, 5));
       const placesWithDetails = await Promise.all(
         limitedResults.map(async (place) => {
           try {
-            console.log(`🔍 Récupération des détails pour: ${place.name} (${place.place_id})`);
             const details = await PlacesApiService.getPlaceDetails(place.place_id);
-            
-            // Debug: Vérifier les avis récupérés
-            console.log(`🔍 Lieu "${place.name}" - Avis récupérés:`, {
-              hasDetails: !!details,
-              hasReviews: !!details?.reviews,
-              reviewsCount: details?.reviews?.length || 0,
-              firstReviewAuthor: details?.reviews?.[0]?.author_name || 'Aucun',
-              // Debug complet
-              detailsKeys: details ? Object.keys(details) : 'Pas de détails',
-              placeId: place.place_id
-            });
-            
             return {
               id: place.place_id,
               name: place.name,
@@ -134,21 +130,16 @@ export const searchPlacesByText = async (query, location = null, maxResults = 20
                 latitude: place.geometry.location.lat,
                 longitude: place.geometry.location.lng
               },
-              // Vraies données complètes
               phone: details.formatted_phone_number || null,
               website: details.website || null,
               openingHours: details.opening_hours || null,
               priceLevel: details.price_level || 0,
-              // Vrais avis Google
               reviews: details.reviews || [],
-              // Informations d'accessibilité basées sur les vrais avis
               accessibility: extractAccessibilityFromReviews(details.reviews, place.types),
               isOpenNow: place.opening_hours ? place.opening_hours.open_now : null,
               fullDetails: details
             };
           } catch (error) {
-            console.warn(`❌ Détails non récupérés pour ${place.name}:`, error);
-            // Fallback avec données basiques
             return {
               id: place.place_id,
               name: place.name,
@@ -175,17 +166,15 @@ export const searchPlacesByText = async (query, location = null, maxResults = 20
           }
         })
       );
-      
+      placesSearchCache[cacheKey] = placesWithDetails;
       return placesWithDetails;
     } else {
-      console.error('Erreur Google Places:', data.status, data.error_message);
       return [];
     }
   } catch (error) {
-    console.error('Erreur lors de la recherche par texte:', error);
     return [];
   }
-};
+}, 700); // 700ms debounce
 
 /**
  * Détermine le type de lieu basé sur les types Google Places

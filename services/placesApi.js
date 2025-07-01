@@ -6,6 +6,9 @@ import ConfigService from './configService';
 class PlacesApiService {
   static BASE_URL = 'https://maps.googleapis.com/maps/api';
   
+  // Cache mémoire pour les détails de lieux
+  static placeDetailsCache = {};
+  
   /**
    * Obtenir la clé API Google Places
    */
@@ -58,6 +61,10 @@ class PlacesApiService {
    */
   static async getPlaceDetails(placeId) {
     try {
+      if (this.placeDetailsCache[placeId]) {
+        console.log('🟡 Détails lieu depuis le cache');
+        return this.placeDetailsCache[placeId];
+      }
       const apiKey = this.getApiKey();
       if (!apiKey) {
         console.log('🔍 Google Places API non disponible - retour des données locales');
@@ -92,6 +99,7 @@ class PlacesApiService {
           hasReviewsField: 'reviews' in data.result
         });
         
+        this.placeDetailsCache[placeId] = data.result;
         return data.result;
       } else {
         console.warn('⚠️ Erreur API Google Places:', data.status, data.error_message);
