@@ -11,9 +11,14 @@ function debounceAsync(fn, delay) {
   return (...args) => {
     clearTimeout(timeout);
     return new Promise((resolve, reject) => {
-      timeout = setTimeout(() => {
+      // En mode test, exécuter immédiatement sans debounce
+      if (process.env.NODE_ENV === 'test') {
         lastPromise = fn(...args).then(resolve).catch(reject);
-      }, delay);
+      } else {
+        timeout = setTimeout(() => {
+          lastPromise = fn(...args).then(resolve).catch(reject);
+        }, delay);
+      }
     });
   };
 }
@@ -313,4 +318,8 @@ const enhanceAccessibilityWithDefaults = (detectedAccessibility, types) => {
     parking: detectedAccessibility.parking || defaultAccessibility.parking,
     toilets: detectedAccessibility.toilets || defaultAccessibility.toilets
   };
+};
+
+export const clearPlacesSearchCache = () => {
+  Object.keys(placesSearchCache).forEach(k => delete placesSearchCache[k]);
 }; 

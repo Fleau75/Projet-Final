@@ -12,12 +12,13 @@ global.fetch = jest.fn();
 jest.unmock('../../services/placesSearch');
 
 // Import placesSearch après les mocks
-import { searchPlaces, searchPlacesByText } from '../../services/placesSearch';
+import { searchPlaces, searchPlacesByText, clearPlacesSearchCache } from '../../services/placesSearch';
 
 describe('placesSearch', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     fetch.mockClear();
+    clearPlacesSearchCache();
   });
 
   describe('searchPlaces', () => {
@@ -124,7 +125,7 @@ describe('placesSearch', () => {
       });
 
       const location = { latitude: 43.2965, longitude: 5.3698, radius: 5000 };
-      await searchPlacesByText('restaurant', location);
+      const result = await searchPlacesByText('restaurant', location);
       
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('radius=5000')
