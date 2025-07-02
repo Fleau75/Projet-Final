@@ -36,9 +36,9 @@ export const searchPlaces = debounceAsync(async (query) => {
     );
     const data = await response.json();
     if (data.status === 'OK') {
-      // Limiter le nombre de détails à 5
+      // Limiter le nombre de détails à 15 (comme avant)
       const placesWithDetails = await Promise.all(
-        data.results.slice(0, 5).map(async (place) => {
+        data.results.slice(0, 15).map(async (place) => {
           try {
             const details = await PlacesApiService.getPlaceDetails(place.place_id);
             return {
@@ -82,7 +82,7 @@ export const searchPlaces = debounceAsync(async (query) => {
   } catch (error) {
     return [];
   }
-}, 700); // 700ms debounce
+}, 300); // 300ms debounce (plus réactif)
 
 /**
  * Recherche des lieux par texte dans une zone géographique spécifique
@@ -91,8 +91,9 @@ export const searchPlaces = debounceAsync(async (query) => {
  * @param {number} maxResults - Nombre maximum de résultats (défaut: 100)
  * @returns {Promise<Array>} - Liste des lieux trouvés avec informations complètes
  */
-export const searchPlacesByText = debounceAsync(async (query, location = null, maxResults = 10) => {
+export const searchPlacesByText = debounceAsync(async (query, location = null, maxResults = 20) => {
   try {
+    console.log(`🔍 Début de recherche pour: "${query}" avec maxResults: ${maxResults}`);
     const cacheKey = location ? `${query}_${location.latitude}_${location.longitude}_${maxResults}` : `${query}_default_${maxResults}`;
     if (placesSearchCache[cacheKey]) {
       console.log('🟡 Résultat Places SearchByText depuis le cache');
@@ -110,8 +111,10 @@ export const searchPlacesByText = debounceAsync(async (query, location = null, m
     url += `&region=FR&language=fr&key=${GOOGLE_PLACES_API_KEY}`;
     const response = await fetch(url);
     const data = await response.json();
+    console.log(`🔍 Réponse API: status=${data.status}, résultats=${data.results?.length || 0}`);
     if (data.status === 'OK') {
-      const limitedResults = data.results.slice(0, Math.min(maxResults, 5));
+      const limitedResults = data.results.slice(0, Math.min(maxResults, 20));
+      console.log(`🔍 Limitation: ${data.results.length} → ${limitedResults.length} résultats`);
       const placesWithDetails = await Promise.all(
         limitedResults.map(async (place) => {
           try {
@@ -174,7 +177,7 @@ export const searchPlacesByText = debounceAsync(async (query, location = null, m
   } catch (error) {
     return [];
   }
-}, 700); // 700ms debounce
+}, 300); // 300ms debounce (plus réactif)
 
 /**
  * Détermine le type de lieu basé sur les types Google Places
