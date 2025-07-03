@@ -32,7 +32,7 @@ function debounceAsync(fn, delay) {
 export const searchPlaces = debounceAsync(async (query) => {
   try {
     if (placesSearchCache[query]) {
-      console.log('🟡 Résultat Places Search depuis le cache');
+      // console.log('🟡 Résultat Places Search depuis le cache');
       return placesSearchCache[query];
     }
     const response = await fetch(
@@ -99,16 +99,16 @@ export const searchPlaces = debounceAsync(async (query) => {
  */
 export const searchPlacesByText = debounceAsync(async (query, location = null, maxResults = 20) => {
   try {
-    console.log(`🔍 Début de recherche pour: "${query}" avec maxResults: ${maxResults}`);
+    // console.log(`🔍 Début de recherche pour: "${query}" avec maxResults: ${maxResults}`);
     const cacheKey = location ? `${query}_${location.latitude}_${location.longitude}_${maxResults}` : `${query}_default_${maxResults}`;
     if (placesSearchCache[cacheKey]) {
-      console.log('🟡 Résultat Places SearchByText depuis le cache');
+      // console.log('🟡 Résultat Places SearchByText depuis le cache');
       return placesSearchCache[cacheKey];
     }
 
     // Récupérer les faux lieux
     const fakePlaces = getFakePlaces();
-    console.log(`📍 ${fakePlaces.length} lieux disponibles pour la recherche`);
+    // console.log(`📍 ${fakePlaces.length} lieux disponibles pour la recherche`);
 
     // Filtrer les faux lieux selon la requête
     const filteredFakePlaces = fakePlaces.filter(place => {
@@ -122,7 +122,7 @@ export const searchPlacesByText = debounceAsync(async (query, location = null, m
       );
     });
 
-    console.log(`📍 ${filteredFakePlaces.length} lieux correspondent à la recherche`);
+    // console.log(`📍 ${filteredFakePlaces.length} lieux correspondent à la recherche`);
 
     let url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}`;
     if (location) {
@@ -136,7 +136,7 @@ export const searchPlacesByText = debounceAsync(async (query, location = null, m
     url += `&region=FR&language=fr&key=${GOOGLE_PLACES_API_KEY}`;
     const response = await fetch(url);
     const data = await response.json();
-    console.log(`🔍 Réponse API: status=${data.status}, résultats=${data.results?.length || 0}`);
+    // console.log(`🔍 Réponse API: status=${data.status}, résultats=${data.results?.length || 0}`);
 
     // Combiner les résultats Google Places et les faux lieux
     let allResults = [];
@@ -144,7 +144,7 @@ export const searchPlacesByText = debounceAsync(async (query, location = null, m
     // Ajouter d'abord les résultats Google Places
     if (data.status === 'OK') {
       const limitedResults = data.results.slice(0, Math.min(maxResults, 20));
-      console.log(`🔍 Limitation: ${data.results.length} → ${limitedResults.length} résultats`);
+      // console.log(`🔍 Limitation: ${data.results.length} → ${limitedResults.length} résultats`);
       const placesWithDetails = await Promise.all(
         limitedResults.map(async (place) => {
           try {
@@ -216,7 +216,7 @@ export const searchPlacesByText = debounceAsync(async (query, location = null, m
     // Limiter le nombre total de résultats
     const finalResults = allResults.slice(0, maxResults);
     
-    console.log(`🎯 Résultats finaux: ${finalResults.length} lieux trouvés`);
+    // console.log(`🎯 Résultats finaux: ${finalResults.length} lieux trouvés`);
     
     placesSearchCache[cacheKey] = finalResults;
     return finalResults;

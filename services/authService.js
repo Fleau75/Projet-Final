@@ -293,11 +293,11 @@ export class AuthService {
    */
   static async login(email, password) {
     try {
-      console.log('🔍 Tentative de connexion pour:', email);
+      // console.log('🔍 Tentative de connexion pour:', email);
       
       // Cas spécial pour le visiteur
       if (email === 'visiteur@accessplus.com') {
-        console.log('🔍 Connexion visiteur détectée');
+        // console.log('🔍 Connexion visiteur détectée');
         
         // Vérifier le mot de passe du visiteur (peut être stocké directement ou chiffré)
         const visitorPasswordKey = `user_${email}_userPassword`;
