@@ -12,7 +12,35 @@ const fakePlaces = [
   { id: 'resto-9', name: 'Brasserie Bastille', address: '2 Place de la Bastille, 75011 Paris', type: 'restaurant', rating: 4.3, reviewCount: 112, image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&h=300&fit=crop', coordinates: { latitude: 48.853, longitude: 2.369 }, accessibility: { ramp: true, elevator: false, parking: false, toilets: true }, },
   { id: 'resto-10', name: 'Chez Marie', address: '17 Rue de Lappe, 75011 Paris', type: 'restaurant', rating: 4.6, reviewCount: 98, image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=300&fit=crop', coordinates: { latitude: 48.8535, longitude: 2.371 }, accessibility: { ramp: true, elevator: false, parking: false, toilets: true }, },
 
-  // ... (ajoute ici tous les autres lieux de staticPlaces, même structure)
+  // === CULTURE ===
+  { id: 'culture-1', name: 'Place de la République', address: 'Place de la République, 75011 Paris', type: 'culture', rating: 4.3, reviewCount: 89, image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&h=300&fit=crop', coordinates: { latitude: 48.8676, longitude: 2.3631 }, accessibility: { ramp: true, elevator: false, parking: true, toilets: true }, },
+  { id: 'culture-2', name: 'Musée Carnavalet', address: '23 Rue de Sévigné, 75003 Paris', type: 'culture', rating: 4.8, reviewCount: 89, image: 'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=400&h=300&fit=crop', coordinates: { latitude: 48.8578, longitude: 2.3622 }, accessibility: { ramp: true, elevator: true, parking: true, toilets: true }, },
+  { id: 'culture-3', name: 'Place des Vosges', address: 'Place des Vosges, 75004 Paris', type: 'culture', rating: 4.9, reviewCount: 245, image: null, coordinates: { latitude: 48.8561, longitude: 2.3655 }, accessibility: { ramp: true, elevator: false, parking: true, toilets: true }, },
+  { id: 'culture-4', name: 'Bibliothèque de l\'Arsenal', address: '1 Rue de Sully, 75004 Paris', type: 'education', rating: 4.7, reviewCount: 34, image: null, coordinates: { latitude: 48.8509, longitude: 2.3645 }, accessibility: { ramp: true, elevator: true, parking: true, toilets: true }, },
+
+  // === SHOPPING ===
+  { id: 'shop-1', name: 'Monoprix Bastille', address: '51 Rue du Faubourg Saint-Antoine, 75011 Paris', type: 'shopping', rating: 4.0, reviewCount: 234, image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop', coordinates: { latitude: 48.8531, longitude: 2.3726 }, accessibility: { ramp: true, elevator: true, parking: false, toilets: true }, },
+  { id: 'shop-2', name: 'BHV Marais', address: '52 Rue de Rivoli, 75004 Paris', type: 'shopping', rating: 4.2, reviewCount: 156, image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop', coordinates: { latitude: 48.8571, longitude: 2.3519 }, accessibility: { ramp: true, elevator: true, parking: true, toilets: true }, },
+
+  // === SANTÉ ===
+  { id: 'health-1', name: 'Hôpital Saint-Antoine', address: '184 Rue du Faubourg Saint-Antoine, 75012 Paris', type: 'health', rating: 3.8, reviewCount: 89, image: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop', coordinates: { latitude: 48.8479, longitude: 2.3939 }, accessibility: { ramp: true, elevator: true, parking: true, toilets: true }, },
+
+  // === SPORT ===
+  { id: 'sport-1', name: 'Salle de sport République', address: 'Place de la République, 75011 Paris', type: 'sport', rating: 4.2, reviewCount: 89, image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop', coordinates: { latitude: 48.8676, longitude: 2.3631 }, accessibility: { ramp: true, elevator: true, parking: false, toilets: true }, },
+  { id: 'sport-2', name: 'Piscine Oberkampf', address: 'Rue Oberkampf, 75011 Paris', type: 'sport', rating: 4.0, reviewCount: 67, image: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400&h=300&fit=crop', coordinates: { latitude: 48.8665, longitude: 2.3731 }, accessibility: { ramp: true, elevator: true, parking: false, toilets: true }, },
+  { id: 'sport-3', name: 'Tennis Club Bastille', address: 'Boulevard Richard Lenoir, 75011 Paris', type: 'sport', rating: 4.3, reviewCount: 45, image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400&h=300&fit=crop', coordinates: { latitude: 48.8631, longitude: 2.3726 }, accessibility: { ramp: true, elevator: false, parking: true, toilets: true }, },
+
+  // === HÔTELS ===
+  { id: 'hotel-1', name: 'Hôtel de la République', address: '31 Boulevard Saint-Martin, 75003 Paris', type: 'hotel', rating: 4.1, reviewCount: 156, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop', coordinates: { latitude: 48.8645, longitude: 2.3622 }, accessibility: { ramp: true, elevator: true, parking: true, toilets: true }, },
+  { id: 'hotel-2', name: 'Hôtel du Marais', address: '2 Rue Commines, 75003 Paris', type: 'hotel', rating: 4.4, reviewCount: 98, image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop', coordinates: { latitude: 48.8627, longitude: 2.3622 }, accessibility: { ramp: true, elevator: true, parking: false, toilets: true }, },
+
+  // === NATURE ===
+  { id: 'nature-1', name: 'Parc de Belleville', address: '47 Rue des Couronnes, 75020 Paris', type: 'nature', rating: 4.6, reviewCount: 234, image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop', coordinates: { latitude: 48.8721, longitude: 2.3833 }, accessibility: { ramp: true, elevator: false, parking: true, toilets: true }, },
+  { id: 'nature-2', name: 'Jardin du Luxembourg', address: 'Rue de Médicis, 75006 Paris', type: 'nature', rating: 4.8, reviewCount: 567, image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop', coordinates: { latitude: 48.8462, longitude: 2.3376 }, accessibility: { ramp: true, elevator: false, parking: true, toilets: true }, },
+
+  // === AUTRES ===
+  { id: 'other-1', name: 'Centre Commercial Forum des Halles', address: '101 Porte Berger, 75001 Paris', type: 'other', rating: 4.0, reviewCount: 345, image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=300&fit=crop', coordinates: { latitude: 48.8606, longitude: 2.3476 }, accessibility: { ramp: true, elevator: true, parking: true, toilets: true }, },
+  { id: 'other-2', name: 'Gare de Lyon', address: 'Place Louis-Armand, 75012 Paris', type: 'other', rating: 3.9, reviewCount: 456, image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=300&fit=crop', coordinates: { latitude: 48.8449, longitude: 2.3733 }, accessibility: { ramp: true, elevator: true, parking: true, toilets: true }, },
 ];
 
 export default fakePlaces; 

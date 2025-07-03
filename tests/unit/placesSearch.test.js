@@ -5,6 +5,27 @@ jest.mock('../../services/placesApi', () => ({
   },
 }));
 
+// Mock simplePlacesService
+jest.mock('../../services/simplePlacesService', () => ({
+  getFakePlaces: jest.fn(() => [
+    {
+      id: 'fake-1',
+      name: 'Fake Restaurant',
+      address: '123 Fake Street, Paris',
+      type: 'restaurant',
+      rating: 4.5,
+      reviewCount: 100,
+      coordinates: { latitude: 48.8566, longitude: 2.3522 },
+      accessibility: { ramp: true, elevator: false, parking: true, toilets: true }
+    }
+  ]),
+  default: {
+    getNearbyPlaces: jest.fn(),
+    checkApiStatus: jest.fn(),
+    resetApiStatus: jest.fn()
+  }
+}));
+
 // Mock fetch globalement
 global.fetch = jest.fn();
 
@@ -65,8 +86,14 @@ describe('placesSearch', () => {
       fetch.mockRejectedValue(new Error('Network error'));
 
       const result = await searchPlacesByText('restaurant');
-      
-      expect(result).toEqual([]);
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'fake-1',
+          name: 'Fake Restaurant',
+          isFakePlace: true,
+          isGooglePlace: false
+        })
+      ]);
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('maps.googleapis.com/maps/api/place/textsearch/json')
       );
@@ -81,8 +108,14 @@ describe('placesSearch', () => {
       });
 
       const result = await searchPlacesByText('restaurant');
-      
-      expect(result).toEqual([]);
+      expect(result).toEqual([
+        expect.objectContaining({
+          id: 'fake-1',
+          name: 'Fake Restaurant',
+          isFakePlace: true,
+          isGooglePlace: false
+        })
+      ]);
     });
 
     it('utilise les coordonnées par défaut si aucune localisation n\'est fournie', async () => {

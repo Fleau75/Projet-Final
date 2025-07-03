@@ -40,7 +40,7 @@ describe('PlaceCard', () => {
 
       expect(getByText('Restaurant Test')).toBeTruthy();
       expect(getByText('123 Rue de la Paix, Paris')).toBeTruthy();
-      expect(getByText('(25)')).toBeTruthy();
+      expect(getByText('⭐ 4.5 • 25 avis')).toBeTruthy();
       expect(getByText('📍 500m')).toBeTruthy();
     });
 
