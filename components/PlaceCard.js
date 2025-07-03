@@ -138,8 +138,8 @@ export default function PlaceCard({ place, onPress }) {
               size={16}
               style={styles.rating}
             />
-            <Text variant="bodySmall" style={styles.reviewCount}>
-              ({place.reviewCount})
+            <Text variant="bodySmall" style={[styles.reviewCount, { color: theme.colors.onSurface }]}>
+              ⭐ {place.rating} • {place.reviewCount} avis
             </Text>
           </View>
 

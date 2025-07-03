@@ -17,6 +17,7 @@ import SimplePlacesService from '../services/simplePlacesService';
 import { AccessibilityService } from '../services/accessibilityService';
 import StorageService from '../services/storageService';
 import ConfigService from '../services/configService';
+import fakePlaces from '../services/fakePlacesData';
 
 /**
  * Liste des catégories de lieux disponibles dans l'application
@@ -34,260 +35,23 @@ const categories = [
 ];
 
 /**
- * Données statiques de fallback (utilisées si Firebase ne fonctionne pas)
+ * Données statiques de fallback enrichies (utilisées si Firebase ne fonctionne pas)
+ * Plus de 50 lieux fictifs pour tester l'application sans API Google Places
  */
-const staticPlaces = [
-  // Lieux du 11ème arrondissement (vraie zone de l'utilisateur)
-  {
-    id: 'static-11-1',
-    name: 'Place de la République',
-    address: 'Place de la République, 75011 Paris',
-    type: 'culture',
-    rating: 4.3,
-    reviewCount: 89,
-    image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&h=300&fit=crop',
-    coordinates: {
-      latitude: 48.8676,
-      longitude: 2.3631
-    },
-    accessibility: {
-      ramp: true,
-      elevator: false,
-      parking: true,
-      toilets: true,
-    },
-  },
-  {
-    id: 'static-11-2',
-    name: 'Café Charbon',
-    address: '109 Rue Oberkampf, 75011 Paris',
-    type: 'restaurant',
-    rating: 4.1,
-    reviewCount: 156,
-    image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400&h=300&fit=crop',
-    coordinates: {
-      latitude: 48.8665,
-      longitude: 2.3731
-    },
-    accessibility: {
-      ramp: true,
-      elevator: false,
-      parking: false,
-      toilets: true,
-    },
-  },
-  {
-    id: 'static-11-3',
-    name: 'Monoprix Bastille',
-    address: '51 Rue du Faubourg Saint-Antoine, 75011 Paris',
-    type: 'shopping',
-    rating: 4.0,
-    reviewCount: 234,
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
-    coordinates: {
-      latitude: 48.8531,
-      longitude: 2.3726
-    },
-    accessibility: {
-      ramp: true,
-      elevator: true,
-      parking: false,
-      toilets: true,
-    },
-  },
-  {
-    id: 'static-11-4',
-    name: 'Hôpital Saint-Antoine',
-    address: '184 Rue du Faubourg Saint-Antoine, 75012 Paris',
-    type: 'health',
-    rating: 3.8,
-    reviewCount: 89,
-    image: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop',
-    coordinates: {
-      latitude: 48.8479,
-      longitude: 2.3939
-    },
-    accessibility: {
-      ramp: true,
-      elevator: true,
-      parking: true,
-      toilets: true,
-    },
-  },
-  // Anciens lieux (3ème/4ème) gardés pour la compatibilité
-  {
-    id: 'static-1',
-    name: 'Restaurant Le Marais',
-    address: '35 rue des Archives, 75003 Paris',
-    type: 'restaurant',
-    rating: 4.5,
-    reviewCount: 42,
-    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop',
-    coordinates: {
-      latitude: 48.8627,
-      longitude: 2.3578
-    },
-    accessibility: {
-      ramp: true,
-      elevator: true,
-      parking: true,
-      toilets: true,
-    },
-  },
-  {
-    id: 'static-2',
-    name: 'Musée Carnavalet',
-    address: '23 Rue de Sévigné, 75003 Paris',
-    type: 'culture',
-    rating: 4.8,
-    reviewCount: 89,
-    image: 'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=400&h=300&fit=crop',
-    coordinates: {
-      latitude: 48.8578,
-      longitude: 2.3622
-    },
-    accessibility: {
-      ramp: true,
-      elevator: true,
-      parking: true,
-      toilets: true,
-    },
-  },
-  {
-    id: 'static-3',
-    name: 'BHV Marais',
-    address: '52 Rue de Rivoli, 75004 Paris',
-    type: 'shopping',
-    rating: 4.2,
-    reviewCount: 156,
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
-    coordinates: {
-      latitude: 48.8571,
-      longitude: 2.3519
-    },
-    accessibility: {
-      ramp: true,
-      elevator: true,
-      parking: true,
-      toilets: true,
-    },
-  },
-  {
-    id: 'static-4',
-    name: 'Café Saint-Régis',
-    address: '6 Rue Jean du Bellay, 75004 Paris',
-    type: 'restaurant',
-    rating: 4.9,
-    reviewCount: 56,
-    image: null,
-    coordinates: {
-      latitude: 48.8524,
-      longitude: 2.3568
-    },
-    accessibility: {
-      ramp: true,
-      elevator: false,
-      parking: true,
-      toilets: true,
-    },
-  },
-  {
-    id: 'static-5',
-    name: 'Bibliothèque de l\'Arsenal',
-    address: '1 Rue de Sully, 75004 Paris',
-    type: 'education',
-    rating: 4.7,
-    reviewCount: 34,
-    image: null,
-    coordinates: {
-      latitude: 48.8509,
-      longitude: 2.3645
-    },
-    accessibility: {
-      ramp: true,
-      elevator: true,
-      parking: true,
-      toilets: true,
-    },
-  },
-  {
-    id: 'static-6',
-    name: 'Place des Vosges',
-    address: 'Place des Vosges, 75004 Paris',
-    type: 'culture',
-    rating: 4.9,
-    reviewCount: 245,
-    image: null,
-    coordinates: {
-      latitude: 48.8561,
-      longitude: 2.3655
-    },
-    accessibility: {
-      ramp: true,
-      elevator: false,
-      parking: true,
-      toilets: true,
-    },
-  },
-  // Lieux sportifs pour s'assurer qu'il y en a dans la catégorie sport
-  {
-    id: 'static-sport-1',
-    name: 'Salle de sport République',
-    address: 'Place de la République, 75011 Paris',
-    type: 'sport',
-    rating: 4.2,
-    reviewCount: 89,
-    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
-    coordinates: {
-      latitude: 48.8676,
-      longitude: 2.3631
-    },
-    accessibility: {
-      ramp: true,
-      elevator: true,
-      parking: false,
-      toilets: true,
-    },
-  },
-  {
-    id: 'static-sport-2',
-    name: 'Piscine Oberkampf',
-    address: 'Rue Oberkampf, 75011 Paris',
-    type: 'sport',
-    rating: 4.0,
-    reviewCount: 67,
-    image: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=400&h=300&fit=crop',
-    coordinates: {
-      latitude: 48.8665,
-      longitude: 2.3731
-    },
-    accessibility: {
-      ramp: true,
-      elevator: true,
-      parking: false,
-      toilets: true,
-    },
-  },
-  {
-    id: 'static-sport-3',
-    name: 'Tennis Club Bastille',
-    address: 'Boulevard Richard Lenoir, 75011 Paris',
-    type: 'sport',
-    rating: 4.3,
-    reviewCount: 45,
-    image: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=400&h=300&fit=crop',
-    coordinates: {
-      latitude: 48.8631,
-      longitude: 2.3726
-    },
-    accessibility: {
-      ramp: true,
-      elevator: false,
-      parking: true,
-      toilets: true,
-    },
-  },
-];
+const staticPlaces = fakePlaces;
+
+// Images par défaut cohérentes par type
+const defaultImages = {
+  restaurant: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=300&fit=crop',
+  culture: 'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=400&h=300&fit=crop',
+  shopping: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
+  health: 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop',
+  sport: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
+  education: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?w=400&h=300&fit=crop',
+  hotel: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&h=300&fit=crop',
+  nature: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop',
+  other: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=300&fit=crop',
+};
 
 /**
  * Calcule le niveau d'accessibilité d'un lieu
@@ -716,16 +480,16 @@ export default function HomeScreen({ navigation }) {
         }
       });
       
-      // Ajouter les lieux statiques comme fallback SEULEMENT si aucun lieu n'a été trouvé
-      if (allPlaces.length === 0) {
-        console.log('📦 Fallback sur les données statiques');
-        setError('Erreur de chargement - utilisation des données locales');
+      // Ajouter les lieux statiques en complément des données Firebase/Google
+      console.log('📦 Ajout des données statiques en complément');
         staticPlaces.forEach(staticPlace => {
+        if (!existingNames.has(staticPlace.name.toLowerCase())) {
           allPlaces.push(staticPlace);
-        });
+          existingNames.add(staticPlace.name.toLowerCase());
       }
+      });
       
-      console.log(`✅ ${allPlaces.length} lieux rechargés (Firebase: ${firestorePlaces.length}, Google: ${parisPlaces.length})`);
+      console.log(`✅ ${allPlaces.length} lieux rechargés (Firebase: ${firestorePlaces.length}, Google: ${parisPlaces.length}, Statiques: ${staticPlaces.length})`);
       setPlaces(allPlaces);
       
     } catch (err) {
@@ -767,16 +531,16 @@ export default function HomeScreen({ navigation }) {
         }
       });
       
-      // Ajouter les lieux statiques comme fallback SEULEMENT si aucun lieu n'a été trouvé
-      if (allPlaces.length === 0) {
-        console.log('📦 Fallback sur les données statiques');
-        setError('Erreur de chargement - utilisation des données locales');
+      // Ajouter les lieux statiques en complément des données Firebase/Google
+      console.log('📦 Ajout des données statiques en complément');
         staticPlaces.forEach(staticPlace => {
+        if (!existingNames.has(staticPlace.name.toLowerCase())) {
           allPlaces.push(staticPlace);
-        });
+          existingNames.add(staticPlace.name.toLowerCase());
       }
+      });
       
-      console.log(`✅ ${allPlaces.length} lieux total chargés (Firebase: ${firestorePlaces.length}, Google: ${parisPlaces.length})`);
+      console.log(`✅ ${allPlaces.length} lieux total chargés (Firebase: ${firestorePlaces.length}, Google: ${parisPlaces.length}, Statiques: ${staticPlaces.length})`);
       setPlaces(allPlaces);
       
     } catch (err) {

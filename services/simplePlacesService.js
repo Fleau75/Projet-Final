@@ -1,4 +1,5 @@
 import { GOOGLE_PLACES_API_KEY } from '@env';
+import fakePlaces from './fakePlacesData';
 
 // Cache mémoire pour les recherches Nearby
 const simpleNearbyCache = {};
@@ -156,6 +157,10 @@ class SimplePlacesService {
     this.isApiEnabled = null;
     console.log('🔄 Statut API Google Places réinitialisé');
   }
+}
+
+export function getFakePlaces() {
+  return fakePlaces;
 }
 
 export default SimplePlacesService; 

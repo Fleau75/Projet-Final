@@ -186,8 +186,66 @@ export default function PlaceDetailScreen({ navigation, route }) {
     firstReview: realReviews[0] || 'Aucun avis'
   });
 
-  // Utiliser uniquement les vrais avis Google
-  const displayReviews = realReviews;
+  // Créer des faux avis Google si les vrais ne sont pas disponibles
+  const generateFakeGoogleReviews = (place) => {
+    const fakeReviews = [
+      {
+        author_name: "Marie Dupont",
+        rating: 5,
+        time: Math.floor(Date.now() / 1000) - 86400 * 7, // 7 jours ago
+        text: "Excellent établissement ! Très accessible et le personnel est très accueillant. Je recommande vivement.",
+        author_url: null
+      },
+      {
+        author_name: "Jean Martin",
+        rating: 4,
+        time: Math.floor(Date.now() / 1000) - 86400 * 14, // 14 jours ago
+        text: "Bonne expérience globale. L'accessibilité est correcte, quelques améliorations possibles mais dans l'ensemble satisfait.",
+        author_url: null
+      },
+      {
+        author_name: "Sophie Bernard",
+        rating: 5,
+        time: Math.floor(Date.now() / 1000) - 86400 * 21, // 21 jours ago
+        text: "Parfait pour les personnes en situation de handicap. Rampe d'accès, toilettes adaptées, tout est bien pensé !",
+        author_url: null
+      },
+      {
+        author_name: "Pierre Leroy",
+        rating: 3,
+        time: Math.floor(Date.now() / 1000) - 86400 * 30, // 30 jours ago
+        text: "Lieu correct mais l'accessibilité pourrait être améliorée. Manque d'ascenseur pour accéder aux étages.",
+        author_url: null
+      },
+      {
+        author_name: "Claire Moreau",
+        rating: 4,
+        time: Math.floor(Date.now() / 1000) - 86400 * 45, // 45 jours ago
+        text: "Très bon service et personnel attentionné. L'établissement est bien adapté aux besoins d'accessibilité.",
+        author_url: null
+      }
+    ];
+
+    // Adapter les avis selon le type de lieu
+    if (place.type === 'restaurant') {
+      fakeReviews[0].text = "Délicieux repas ! Le restaurant est parfaitement accessible et la cuisine est excellente. Service impeccable.";
+      fakeReviews[1].text = "Bonne cuisine française traditionnelle. L'accessibilité est correcte, tables bien espacées.";
+      fakeReviews[2].text = "Restaurant très accessible avec des plats adaptés. Le personnel est très à l'écoute des besoins.";
+    } else if (place.type === 'museum') {
+      fakeReviews[0].text = "Musée magnifique et très accessible ! Audioguides disponibles, parcours adapté pour tous.";
+      fakeReviews[1].text = "Exposition intéressante. Bonne accessibilité générale, quelques salles plus difficiles d'accès.";
+      fakeReviews[2].text = "Très belle collection. L'accessibilité est bien pensée avec des rampes et des ascenseurs.";
+    } else if (place.type === 'park') {
+      fakeReviews[0].text = "Parc magnifique et très accessible ! Chemins bien entretenus, bancs adaptés, très agréable.";
+      fakeReviews[1].text = "Beau parc avec de bons aménagements d'accessibilité. Parfait pour une promenade.";
+      fakeReviews[2].text = "Espace vert très bien aménagé pour l'accessibilité. Toilettes adaptées disponibles.";
+    }
+
+    return fakeReviews;
+  };
+
+  // Utiliser les vrais avis Google si disponibles, sinon utiliser des faux avis
+  const displayReviews = realReviews.length > 0 ? realReviews : generateFakeGoogleReviews(place);
 
   const handleCall = () => {
     if (place.phone) {
@@ -357,10 +415,10 @@ export default function PlaceDetailScreen({ navigation, route }) {
         </Text>
       </Surface>
 
-      {/* Vrais avis Google */}
+      {/* Avis disponibles */}
       <Surface style={styles.section}>
         <Text style={[styles.sectionTitle, { fontSize: textSizes.subtitle, color: theme.colors.onSurface }]}>
-          Avis Google ({displayReviews.length})
+          {realReviews.length > 0 ? 'Avis Google' : 'Avis Google (simulés)'} ({displayReviews.length})
         </Text>
 
         {isLoadingReviews ? (

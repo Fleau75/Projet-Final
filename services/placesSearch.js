@@ -1,5 +1,6 @@
 import { GOOGLE_PLACES_API_KEY } from '@env';
 import PlacesApiService from './placesApi';
+import { getFakePlaces } from './simplePlacesService';
 
 // Cache mémoire simple pour les recherches Google Places
 const placesSearchCache = {};
@@ -104,6 +105,25 @@ export const searchPlacesByText = debounceAsync(async (query, location = null, m
       console.log('🟡 Résultat Places SearchByText depuis le cache');
       return placesSearchCache[cacheKey];
     }
+
+    // Récupérer les faux lieux
+    const fakePlaces = getFakePlaces();
+    console.log(`🎭 ${fakePlaces.length} faux lieux disponibles pour la recherche`);
+
+    // Filtrer les faux lieux selon la requête
+    const filteredFakePlaces = fakePlaces.filter(place => {
+      const searchTerms = query.toLowerCase().split(' ');
+      const placeText = `${place.name} ${place.address} ${place.type}`.toLowerCase();
+      
+      return searchTerms.some(term => 
+        placeText.includes(term) || 
+        place.name.toLowerCase().includes(term) ||
+        place.type.toLowerCase().includes(term)
+      );
+    });
+
+    console.log(`🎭 ${filteredFakePlaces.length} faux lieux correspondent à la recherche`);
+
     let url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}`;
     if (location) {
       url += `&location=${location.latitude},${location.longitude}`;
@@ -117,6 +137,11 @@ export const searchPlacesByText = debounceAsync(async (query, location = null, m
     const response = await fetch(url);
     const data = await response.json();
     console.log(`🔍 Réponse API: status=${data.status}, résultats=${data.results?.length || 0}`);
+
+    // Combiner les résultats Google Places et les faux lieux
+    let allResults = [];
+    
+    // Ajouter d'abord les résultats Google Places
     if (data.status === 'OK') {
       const limitedResults = data.results.slice(0, Math.min(maxResults, 20));
       console.log(`🔍 Limitation: ${data.results.length} → ${limitedResults.length} résultats`);
@@ -145,7 +170,8 @@ export const searchPlacesByText = debounceAsync(async (query, location = null, m
               reviews: details.reviews || [],
               accessibility: extractAccessibilityFromReviews(details.reviews, place.types),
               isOpenNow: place.opening_hours ? place.opening_hours.open_now : null,
-              fullDetails: details
+              fullDetails: details,
+              isGooglePlace: true
             };
           } catch (error) {
             return {
@@ -169,18 +195,52 @@ export const searchPlacesByText = debounceAsync(async (query, location = null, m
               reviews: [],
               accessibility: getDefaultAccessibility(place.types),
               isOpenNow: place.opening_hours ? place.opening_hours.open_now : null,
-              fullDetails: null
+              fullDetails: null,
+              isGooglePlace: true
             };
           }
         })
       );
-      placesSearchCache[cacheKey] = placesWithDetails;
-      return placesWithDetails;
-    } else {
-      return [];
+      allResults = placesWithDetails;
     }
+
+    // Ajouter les faux lieux correspondants
+    const fakePlacesWithDistance = filteredFakePlaces.map(place => ({
+      ...place,
+      isGooglePlace: false,
+      isFakePlace: true
+    }));
+
+    allResults = [...allResults, ...fakePlacesWithDistance];
+
+    // Limiter le nombre total de résultats
+    const finalResults = allResults.slice(0, maxResults);
+    
+    console.log(`🎯 Résultats finaux: ${finalResults.length} (${finalResults.filter(p => p.isGooglePlace).length} Google + ${finalResults.filter(p => p.isFakePlace).length} faux)`);
+    
+    placesSearchCache[cacheKey] = finalResults;
+    return finalResults;
   } catch (error) {
-    return [];
+    console.error('❌ Erreur dans searchPlacesByText:', error);
+    
+    // En cas d'erreur, retourner au moins les faux lieux
+    const fakePlaces = getFakePlaces();
+    const filteredFakePlaces = fakePlaces.filter(place => {
+      const searchTerms = query.toLowerCase().split(' ');
+      const placeText = `${place.name} ${place.address} ${place.type}`.toLowerCase();
+      
+      return searchTerms.some(term => 
+        placeText.includes(term) || 
+        place.name.toLowerCase().includes(term) ||
+        place.type.toLowerCase().includes(term)
+      );
+    });
+
+    return filteredFakePlaces.slice(0, maxResults).map(place => ({
+      ...place,
+      isGooglePlace: false,
+      isFakePlace: true
+    }));
   }
 }, 300); // 300ms debounce (plus réactif)
 
