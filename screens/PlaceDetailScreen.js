@@ -418,7 +418,7 @@ export default function PlaceDetailScreen({ navigation, route }) {
       {/* Avis disponibles */}
       <Surface style={styles.section}>
         <Text style={[styles.sectionTitle, { fontSize: textSizes.subtitle, color: theme.colors.onSurface }]}>
-          {realReviews.length > 0 ? 'Avis Google' : 'Avis Google (simulés)'} ({displayReviews.length})
+          Avis Google ({displayReviews.length})
         </Text>
 
         {isLoadingReviews ? (
